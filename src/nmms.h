@@ -270,6 +270,8 @@ struct System {
 //         i.e. ready to submit.
 bool is_finished(const System& system, const Matrix& problem_matrix);
 
+void global_energy_update(System& system);
+
 // @return true if halted.
 bool proceed_timestep(System& system);
 

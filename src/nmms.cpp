@@ -399,17 +399,21 @@ TEST(Commands, Fission) {
     EXPECT_EQ(system.bots[0].seeds.size(), 19);
 }
 
-bool proceed_timestep(System& system) {
-    bool halt = false;
-    NProceedTimestep::FusionStage fusion_stage;
-
-    // systemwide energy (count the nuber of bots before fusion/fission).
+void global_energy_update(System& system) {
     if (system.harmonics_high) {
         system.energy += Costs::k_HighHarmonics * system.matrix.R * system.matrix.R * system.matrix.R;
     } else {
         system.energy += Costs::k_LowHarmonics * system.matrix.R * system.matrix.R * system.matrix.R;
     }
     system.energy += Costs::k_Bot * system.bots.size();
+}
+
+bool proceed_timestep(System& system) {
+    bool halt = false;
+    NProceedTimestep::FusionStage fusion_stage;
+
+    // systemwide energy (count the nuber of bots before fusion/fission).
+    global_energy_update(system);
 
     // bots consume trace in the ascending order of bids.
     system.sort_by_bid();
@@ -417,7 +421,7 @@ bool proceed_timestep(System& system) {
     const size_t n = system.bots.size();
     for (size_t i = 0; i < n; ++i) {
         Command cmd = system.trace.front(); system.trace.pop_front();
-        ++system.consumed_commands;
+        ++system.consumed_commands; // FusionP and FusionS are treated as separate commands.
 
         NProceedTimestep::UpdateSystem visitor(system, system.bots[i], halt, fusion_stage);
         if (!boost::apply_visitor(visitor, cmd)) {
