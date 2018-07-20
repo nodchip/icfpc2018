@@ -96,6 +96,7 @@ struct Matrix {
     uint8_t& operator()(const Vec3& p) { return operator()(p.x, p.y, p.z); }
     uint8_t operator()(const Vec3& p) const { return operator()(p.x, p.y, p.z); }
 
+    // is this a valid matrix?
     operator bool() const {
         return 0 < R && !buf.empty();
     }

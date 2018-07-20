@@ -1,9 +1,14 @@
 #include "nmms.h"
+// std
 #include <cstdio>
+// 3rd
+#include <gtest/gtest.h>
 
-void test_model_io() {
+TEST(Matrix, LoadAndDumpMatrix) {
     Matrix m = load_model("../problems/LA001_tgt.mdl");
+    ASSERT_TRUE(m);
     std::printf("Model R=%d\n", m.R);
+    EXPECT_EQ(m.R, 20);
 
     // add some voxels.
     for (int x = 0; x < m.R / 2; ++x) {
@@ -15,9 +20,14 @@ void test_model_io() {
     }
 
     dump_model("LA001_tgt_modified.mdl", m);
+
+    // load again to check identity.
+    Matrix m2 = load_model("LA001_tgt_modified.mdl");
+    ASSERT_TRUE(m2);
+    EXPECT_EQ(m.buf, m2.buf);
 }
 
-int main() {
+TEST(Trace, OutputTraceExample) {
     Trace trace;
     trace.push_back(CommandWait{}); // 0
     trace.push_back(CommandFlip{}); // 0
@@ -34,11 +44,11 @@ int main() {
     trace.push_back(CommandSMove{Vec3(0, 0, -10)}); // 0
     trace.push_back(CommandHalt{}); // 0
 
-    output_trace("output.nbt", trace);
+    EXPECT_TRUE(output_trace("output.nbt", trace));
+}
 
-
-    test_model_io();
-
-    return 0;
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv); 
+    return RUN_ALL_TESTS();
 }
 // vim: set si et sw=4 ts=4:

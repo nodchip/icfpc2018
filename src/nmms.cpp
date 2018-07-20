@@ -183,6 +183,8 @@ bool dump_model(std::string output_path, const Matrix& m) {
     std::fwrite(&R, 1, 1, fp);
     std::fwrite(buf.data(), 1, buf.size(), fp);
     std::fclose(fp);
+
+    return true;
 }
 
 // vim: set si et sw=4 ts=4:
