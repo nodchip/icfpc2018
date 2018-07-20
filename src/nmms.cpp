@@ -401,8 +401,18 @@ TEST(Commands, Fission) {
 
 bool proceed_timestep(System& system) {
     bool halt = false;
-
     NProceedTimestep::FusionStage fusion_stage;
+
+    // systemwide energy (count the nuber of bots before fusion/fission).
+    if (system.harmonics_high) {
+        system.energy += Costs::k_HighHarmonics * system.matrix.R * system.matrix.R * system.matrix.R;
+    } else {
+        system.energy += Costs::k_LowHarmonics * system.matrix.R * system.matrix.R * system.matrix.R;
+    }
+    system.energy += Costs::k_Bot * system.bots.size();
+
+    // bots consume trace in the ascending order of bids.
+    system.sort_by_bid();
 
     const size_t n = system.bots.size();
     for (size_t i = 0; i < n; ++i) {

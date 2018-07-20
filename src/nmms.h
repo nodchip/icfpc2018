@@ -125,6 +125,12 @@ struct CommandFusionS {
 };
 
 namespace Costs {
+    // global
+    constexpr int k_HighHarmonics = 30;
+    constexpr int k_LowHarmonics = 3;
+    constexpr int k_Bot = 20;
+
+    // command
     constexpr int k_SMove = 2;
     constexpr int k_LMove = 2;
     constexpr int k_LMoveOffset = 2;
@@ -239,6 +245,12 @@ struct System {
         });
         if (it == bots.end()) return -1;
         return it->bid;
+    }
+
+    void sort_by_bid() {
+        std::sort(bots.begin(), bots.end(), [](const Bot& lhs, const Bot& rhs) {
+            return lhs.bid < rhs.bid;
+        });
     }
 
     void print() {
