@@ -81,3 +81,30 @@ typedef boost::variant<
 typedef std::vector<Command> Trace;
 bool output_trace(std::string output_path, const Trace& trace);
 
+
+enum { Void = 0, Full = 1 };
+struct Matrix {
+    Matrix(int R_) : R(R_), buf(R*R*R, Void) {
+    }
+
+    uint8_t& operator()(int x, int y, int z) {
+        return buf[(z * R + y) * R + x];
+    }
+    uint8_t operator()(int x, int y, int z) const {
+        return buf[(z * R + y) * R + x];
+    }
+    uint8_t& operator()(const Vec3& p) { return operator()(p.x, p.y, p.z); }
+    uint8_t operator()(const Vec3& p) const { return operator()(p.x, p.y, p.z); }
+
+    operator bool() const {
+        return 0 < R && !buf.empty();
+    }
+
+    int R;
+    std::vector<uint8_t> buf;
+};
+
+Matrix load_model(std::string input_path);
+bool dump_model(std::string output_path, const Matrix& m);
+
+// vim: set si et sw=4 ts=4:

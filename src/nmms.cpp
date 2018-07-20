@@ -138,3 +138,51 @@ bool output_trace(std::string output_path, const Trace& trace) {
 
     return true;
 }
+
+Matrix load_model(std::string input_path) {
+    std::FILE* fp = std::fopen(input_path.c_str(), "rb");
+
+    uint8_t R = 0xff;
+    std::fread(&R, 1, 1, fp);
+    // TODO:check error, R!=0xff
+
+    std::vector<uint8_t> buf((R * R * R + 8 - 1) / 8, 0);
+    std::fread(buf.data(), 1, buf.size(), fp);
+    std::fclose(fp);
+
+    Matrix m(R);
+
+    for (int z = 0; z < R; ++z) {
+        for (int y = 0; y < R; ++y) {
+            for (int x = 0; x < R; ++x) {
+                const size_t bit = (x * R + y) * R + z;
+                m(x, y, z) = (buf[bit >> 3] & (1 << (bit & 7))) ? Full : Void;
+            }
+        }
+    }
+
+    return m;
+}
+
+bool dump_model(std::string output_path, const Matrix& m) {
+    // assert a valid m.
+    std::vector<uint8_t> buf((m.R * m.R * m.R + 8 - 1) / 8, 0);
+    for (int z = 0; z < m.R; ++z) {
+        for (int y = 0; y < m.R; ++y) {
+            for (int x = 0; x < m.R; ++x) {
+                const size_t bit = (x * m.R + y) * m.R + z;
+                if (m(x, y, z) != Void) {
+                    buf[bit >> 3] |= (1 << (bit & 7));
+                }
+            }
+        }
+    }
+
+    std::FILE* fp = std::fopen(output_path.c_str(), "wb");
+    uint8_t R = m.R;
+    std::fwrite(&R, 1, 1, fp);
+    std::fwrite(buf.data(), 1, buf.size(), fp);
+    std::fclose(fp);
+}
+
+// vim: set si et sw=4 ts=4:
