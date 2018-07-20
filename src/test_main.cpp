@@ -54,7 +54,7 @@ TEST(System, StupidSolver) {
     ASSERT_TRUE(m);
 
     System sys;
-    sys.Start(m.R);
+    sys.start(m.R);
     EXPECT_FALSE(is_finished(sys, m));
 
     // sys is not changed in the solver.

@@ -84,6 +84,7 @@ std::vector<Vec3> neighbors18();
 std::vector<Vec3> neighbors6();
 
 struct Region {
+    Region(Vec3 c1_, Vec3 c2_) : c1(c1_), c2(c2_) {}
     Vec3 c1;
     Vec3 c2;
     bool operator==(const Region& rhs) const {
@@ -129,6 +130,8 @@ namespace Costs {
     constexpr int k_LMoveOffset = 2;
     constexpr int k_FillVoid = 12;
     constexpr int k_FillFull = 6;
+    constexpr int k_Fission = 24;
+    constexpr int k_Fusion = -24;
 }
 
 typedef boost::variant<
@@ -170,6 +173,18 @@ struct Matrix {
     }
     bool is_in_matrix(const Vec3& p) const { return is_in_matrix(p.x, p.y, p.z); }
 
+    bool any_full(Region r) const {
+        r = r.canonical();
+        for (int z = r.c1.z; z <= r.c2.z; ++z) {
+            for (int y = r.c1.y; y <= r.c2.y; ++y) {
+                for (int x = r.c1.x; x <= r.c2.x; ++x) {
+                    if ((*this)(x, y, z)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
     int R;
     std::vector<uint8_t> buf;
 };
@@ -184,6 +199,15 @@ struct Bot {
     BotID bid = 1;
     Vec3 pos = {0, 0, 0};
     std::vector<BotID> seeds;
+
+    void print() {
+        std::printf("Bot#%d at (%d, %d, %d), seeds=[",
+            bid, pos.x, pos.y, pos.z);
+        for (auto seed_bid : seeds) {
+            std::printf("%d, ", seed_bid);
+        }
+        std::printf("]\n");
+    }
 };
 struct System {
     int64_t energy = 0;
@@ -197,12 +221,36 @@ struct System {
     static Vec3 start_pos() { return Vec3(0, 0, 0); }
     static Vec3 final_pos() { return Vec3(0, 0, 0); }
 
-    bool Start(int R);
+    bool start(int R);
+
+    // @return bot index of bid.
+    int bot_index_by(BotID bid) const {
+        auto it = std::find_if(bots.begin(), bots.end(), [bid](const Bot& b) {
+            return b.bid == bid;
+        });
+        if (it == bots.end()) return -1;
+        return std::distance(bots.begin(), it);
+    }
+
+    // @return bid (not index) at pos.
+    int bid_at(Vec3 pos) const {
+        auto it = std::find_if(bots.begin(), bots.end(), [pos](const Bot& b) {
+            return b.pos == pos;
+        });
+        if (it == bots.end()) return -1;
+        return it->bid;
+    }
 
     void print() {
         std::printf("System energy=%ld, harmonics=%s, bots=%ld, trace=%ld commands=%ld\n",
             energy, harmonics_high ? "high" : "low",
             bots.size(), trace.size(), consumed_commands);
+    }
+    void print_detailed() {
+        print();
+        for (size_t i = 0; i < bots.size(); ++i) {
+            bots[i].print();
+        }
     }
 };
 
