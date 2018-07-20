@@ -3,6 +3,8 @@
 #include <cstdio>
 // 3rd
 #include <gtest/gtest.h>
+// project
+#include "stupid_solver.h"
 
 TEST(Matrix, LoadAndDumpMatrix) {
     Matrix m = load_model("../problems/LA001_tgt.mdl");
@@ -45,6 +47,39 @@ TEST(Trace, OutputTraceExample) {
     trace.push_back(CommandHalt{}); // 0
 
     EXPECT_TRUE(output_trace("output.nbt", trace));
+}
+
+TEST(System, StupidSolver) {
+    Matrix m = load_model("../problems/LA001_tgt.mdl");
+    ASSERT_TRUE(m);
+
+    System sys;
+    sys.Start(m.R);
+    EXPECT_FALSE(is_finished(sys, m));
+
+    // sys is not changed in the solver.
+    auto trace = stupid_solver(sys, m);
+
+    // simulate the plan.
+    sys.trace = trace;
+    while (!sys.trace.empty()) {
+        if (proceed_timestep(sys)) {
+            break;
+        }
+    }
+
+    // dump the result.
+    dump_model("LA001_stupid_solver.mdl", sys.matrix);
+    EXPECT_TRUE(is_finished(sys, m));
+
+    // complete trace.
+    EXPECT_TRUE(output_trace("LA001_stupid_solver.nbt", trace));
+
+    // broken trace.
+    for (int i = 0; i < 10; ++i) {
+        trace.pop_back();
+    }
+    EXPECT_TRUE(output_trace("LA001_stupid_solver_broken.nbt", trace));
 }
 
 int main(int argc, char **argv) {

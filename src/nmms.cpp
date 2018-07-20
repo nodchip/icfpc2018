@@ -1,5 +1,8 @@
 #include "nmms.h"
 #include <cstdio>
+#include <map>
+#include <unordered_map>
+#include <numeric>
 
 std::vector<Vec3> neighbors26() {
     std::vector<Vec3> neighbors;
@@ -185,6 +188,176 @@ bool dump_model(std::string output_path, const Matrix& m) {
     std::fclose(fp);
 
     return true;
+}
+
+bool System::Start(int R) {
+    // TODO: assert R > 0
+
+    energy = 0;
+    harmonics_high = false;
+    matrix = Matrix(R);
+
+    Bot first_bot;
+    first_bot.bid = 1;
+    first_bot.pos = start_pos();
+    // [2, 20]
+    first_bot.seeds.resize(19);
+    std::iota(first_bot.seeds.begin(), first_bot.seeds.end(), 2);
+    bots = {first_bot};
+
+    trace.clear();
+
+    return true;
+}
+
+bool is_finished(const System& system, const Matrix& problem_matrix) {
+    // TODO: check R.
+
+    if (system.harmonics_high) return false;
+    if (!system.bots.empty()) return false;
+    // TODO: check trace == epsilon (???)
+    if (system.matrix != problem_matrix) return false;
+
+    return true;
+}
+
+
+namespace NProceedTimestep {
+    struct UpdateSystem : public boost::static_visitor<bool> {
+        System& sys;
+        Bot& bot;
+        bool& halt_requested;
+        UpdateSystem(System& sys_, Bot& bot_, bool& halt_requested_)
+             : sys(sys_)
+             , bot(bot_)
+             , halt_requested(halt_requested_) {
+             } 
+        bool operator()(CommandHalt) { 
+            // TODO: check if Halt is possible.
+            halt_requested = true;
+            return true;
+        }
+        bool operator()(CommandWait) {
+             return true;
+        }
+        bool operator()(CommandFlip) { 
+            // XXX: whether flipping twice in the same timestep is allowed is not clearly stated.
+            sys.harmonics_high = !sys.harmonics_high;
+            return true;
+        }
+        bool operator()(CommandSMove cmd) {
+            // TODO: check.
+            bot.pos += cmd.lld;
+            sys.energy += Costs::k_SMove * mlen(cmd.lld);
+            return true;
+        };
+        bool operator()(CommandLMove cmd) {
+            bot.pos += cmd.sld1;
+            bot.pos += cmd.sld2;
+            sys.energy += Costs::k_LMove * (mlen(cmd.sld1) + Costs::k_LMoveOffset + mlen(cmd.sld2));
+            return true;
+        };
+        bool operator()(CommandFission cmd) {
+            // XXX: TODO:.
+            return true;
+        };
+        bool operator()(CommandFill cmd) {
+            auto c = bot.pos + cmd.nd;
+            if (sys.matrix(c) == Void) {
+                sys.matrix(c) = Full;
+                sys.energy += Costs::k_FillVoid;
+            } else {
+                sys.energy += Costs::k_FillFull;
+            }
+            return true;
+        };
+        bool operator()(CommandFusionP cmd) {
+            // XXX: TODO:.
+            return true;
+        };
+        bool operator()(CommandFusionS cmd) {
+            // XXX: TODO:.
+            return true;
+        };
+    };
+}
+
+bool proceed_timestep(System& system) {
+    bool halt = false;
+
+    const size_t n = system.bots.size();
+    for (size_t i = 0; i < n; ++i) {
+        Command cmd = system.trace.front(); system.trace.pop_front();
+        ++system.consumed_commands;
+
+        // for fusion, an intermediate staging is required. now simply ignore this.
+        // stage_command(system, i, cmd);
+
+        NProceedTimestep::UpdateSystem visitor(system, system.bots[i], halt);
+        boost::apply_visitor(visitor, cmd); 
+    }
+
+    if (halt) {
+        system.bots.clear();
+    }
+
+    return halt;
+}
+
+bool simulate_all(System& system) {
+    while (!system.trace.empty()) {
+        if (proceed_timestep(system)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool bfs_shortest_in_void(const Matrix& m, Vec3 start_pos, Vec3 stop_pos,
+    Trace* trace_opt, std::vector<Vec3>* trajectory_opt) {
+    if (m(start_pos) || m(stop_pos)) {
+        return false;
+    }
+    if (start_pos == stop_pos) {
+        return true;
+    }
+
+    std::deque<Vec3> queue;
+    std::unordered_map<Vec3, Vec3, Vec3::hash> parent;
+    Matrix blocked = m; // initially Full voxels are blocked.
+    queue.push_back(stop_pos);
+    blocked(stop_pos) = Full;
+
+    auto n6 = neighbors6();
+
+    while (!queue.empty()) {
+        auto p = queue.front(); queue.pop_front();
+        for (auto offset : n6) {
+            auto n = p + offset;
+            if (m.is_in_matrix(n) && !blocked(n)) {
+                parent[n] = p;
+                if (n == start_pos) {
+                    // backtrack.
+                    auto cursor = n;
+                    do {
+                        auto par = parent[cursor];
+                        if (trace_opt) {
+                            trace_opt->push_back(CommandSMove{par - cursor});
+                        }
+                        if (trajectory_opt) {
+                            trajectory_opt->push_back(par);
+                        }
+                        cursor = par;
+                    } while (cursor != stop_pos);
+                    return true;
+                }
+                queue.push_back(n);
+                blocked(n) = Full;
+            }
+        }
+    }
+
+    return false;
 }
 
 // vim: set si et sw=4 ts=4:

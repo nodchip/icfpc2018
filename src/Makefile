@@ -6,7 +6,7 @@ LDFLAGS+=-lpthread
 
 BUILD_PATH=build
 
-SRCS=nmms.cpp
+SRCS=nmms.cpp stupid_solver.cpp
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
 TEST_SRCS=../libs/googletest/googletest/src/gtest-all.cc
