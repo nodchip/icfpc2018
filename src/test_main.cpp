@@ -5,10 +5,46 @@
 // project
 #include "state.h"
 #include "trace.h"
+#include "nmms.h"
 // TODO(peria): Split test for solvers
 #include "engines/stupid_solver.h"
 #include "engines/stupid_solver_v2.h"
 #include "engines/parallel_stupid_solver.h"
+
+TEST(Planning, FastMove) {
+    Matrix m(5);
+    {
+        Trace trace;
+        EXPECT_TRUE(fast_manhattan_motion_in_void(m, Vec3(0, 1, 0), Vec3(4, 3, 4), trace));
+        EXPECT_EQ(trace.size(), 3);
+    }
+    {
+        Trace trace;
+        EXPECT_TRUE(fast_manhattan_motion_in_void(m, Vec3(0, 2, 0), Vec3(4, 2, 4), trace));
+        EXPECT_EQ(trace.size(), 2);
+    }
+    {
+        Trace trace;
+        EXPECT_TRUE(fast_manhattan_motion_in_void(m, Vec3(0, 2, 4), Vec3(4, 2, 4), trace));
+        EXPECT_EQ(trace.size(), 1);
+    }
+    {
+        Trace trace;
+        EXPECT_TRUE(fast_manhattan_motion_in_void(m, Vec3(4, 2, 4), Vec3(4, 2, 4), trace));
+        EXPECT_EQ(trace.size(), 0);
+    }
+    { // illegal
+        Trace trace;
+        EXPECT_FALSE(fast_manhattan_motion_in_void(m, Vec3(6, 2, 4), Vec3(4, 2, 4), trace));
+        EXPECT_EQ(trace.size(), 0);
+    }
+    { // no valid path
+        Trace trace;
+        m.buf.assign(m.buf.size(), Full);
+        EXPECT_FALSE(fast_manhattan_motion_in_void(m, Vec3(0, 0, 0), Vec3(4, 2, 4), trace));
+        EXPECT_EQ(trace.size(), 0);
+    }
+}
 
 TEST(Matrix, LoadAndDumpMatrix) {
     Matrix m("../data/problems/LA001_tgt.mdl");
