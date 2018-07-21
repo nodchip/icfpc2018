@@ -3,6 +3,9 @@
 #include <fstream>
 #include <map>
 #include <string>
+#ifndef _WIN32
+#include <time.h>
+#endif
 // 3rd
 #include <nlohmann/json.hpp>
 // project
@@ -36,6 +39,23 @@ Options ParseCommand(int argc, char** argv) {
 
   return options;
 }
+
+#ifdef _WIN32
+std::string get_utc_string() {
+    return "2018-07-01T00:00:00Z";
+}
+#else
+std::string get_utc_string() {
+    time_t rawtime;
+    std::time(&rawtime);
+    auto ptm = gmtime(&rawtime);
+    char buf[60];
+    std::sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02dZ",
+        ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday,
+        ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+    return std::string(buf);
+}
+#endif
 
 int main(int argc, char** argv) {
     Options options = ParseCommand(argc, argv);
@@ -124,6 +144,7 @@ int main(int argc, char** argv) {
             {"consumed_commands", state.system.consumed_commands},
             {"successful", exit_code == 0},
             {"engine_name", engine_name},
+            {"created_at", get_utc_string()},
         };
         std::ofstream ofs(options["info"]);
         ofs << std::setw(4) << j;
