@@ -1,21 +1,21 @@
 CXX=g++
-CXXFLAGS=-O2 -Wall -Wno-sign-compare
+CXXFLAGS=-O2 -Wall -Wno-sign-compare -std=c++17
 CXXFLAGS+=$(pkg-config --libs --cflags boost)
 CXXFLAGS+=-I .
-CXXFLAGS+=-I ../libs/
+CXXFLAGS+=-I ../libs
 CXXFLAGS+=-I ../libs/googletest/googletest/
 CXXFLAGS+=-I ../libs/googletest/googletest/include
-CXXFLAGS+= -std=c++17
 LDFLAGS+=-lpthread
 
 BUILD_PATH=build
+LIB_PATH=../libs
 
 SRCS=command.cpp matrix.cpp nanobot.cpp nmms.cpp region.cpp vec3.cpp system.cpp trace.cpp
 SRCS+=engine.cpp
 
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
-TEST_SRCS=../libs/googletest/googletest/src/gtest-all.cc
+TEST_SRCS=$(LIB_PATH)/googletest/googletest/src/gtest-all.cc
 TEST_OBJS=$(TEST_SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
 .PHONY: all
