@@ -19,7 +19,7 @@ TEST_SRCS=$(LIB_PATH)/googletest/googletest/src/gtest-all.cc
 TEST_OBJS=$(TEST_SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
 .PHONY: all
-all: dirs test engines
+all: dirs test engines evaluate
 
 ######################
 # ADD YOUR ENGINE TARGET HERE
@@ -41,6 +41,9 @@ dirs:
 	@mkdir -p $(BUILD_PATH)/engines
 
 test: test_main.cpp engines/stupid_solver.cpp engines/stupid_solver_v2.cpp $(OBJS) $(TEST_OBJS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+evaluate: evaluate_main.cpp $(OBJS) $(TEST_OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 $(BUILD_PATH)/%.o: %.cpp %.h
