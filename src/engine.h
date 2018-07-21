@@ -9,10 +9,13 @@ typedef std::function<Trace(const System& system, const Matrix& problem_matrix)>
 
 struct RegisterEngine {
     RegisterEngine(std::string name, EngineFunc func) {
-        engines[name] = func;
+        Engines()[name] = func;
     }
 
-    static std::map<std::string, EngineFunc> engines;
+    static std::map<std::string, EngineFunc>& Engines() {
+        static std::map<std::string, EngineFunc> engines;
+        return engines;
+    }
 };
 
 #define REGISTER_ENGINE(name, func) \

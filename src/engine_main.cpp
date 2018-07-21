@@ -30,20 +30,20 @@ int main(int argc, char** argv) {
     }
 
     // find engine(optional)
-    if (RegisterEngine::engines.empty()) {
+    if (RegisterEngine::Engines().empty()) {
         std::cout << "no engines are registered." << std::endl;
     }
 
     EngineFunc engine;
     std::string engine_name;
     if (vm["engine"].as<std::string>() == "default") {
-        auto it = RegisterEngine::engines.begin();
+        auto it = RegisterEngine::Engines().begin();
         engine = it->second;
         engine_name = it->first;
     } else {
-        auto it = RegisterEngine::engines.find(vm["engine"].as<std::string>());
-        if (it != RegisterEngine::engines.end()) {
-            it = RegisterEngine::engines.begin();
+        auto it = RegisterEngine::Engines().find(vm["engine"].as<std::string>());
+        if (it != RegisterEngine::Engines().end()) {
+            it = RegisterEngine::Engines().begin();
         } else {
             std::cout << "Failed to find engine: " << vm["engine"].as<std::string>() << std::endl;
             return 2;
