@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# --temp_trace_directory_path ../tmp/trace --temp_info_directory_path ../tmp/info --result_trace_directory_path ../result/trace --result_info_directory_path ../result/info
 import argparse
 import concurrent.futures
 import json
