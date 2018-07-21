@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "region.h"
@@ -13,8 +14,10 @@ enum Voxel : uint8_t {
 };
 
 struct Matrix {
-    Matrix(int R_) : R(R_), buf(R*R*R, Void) {
-    }
+    // Construct an empty Matrix with resolution R.
+    Matrix(int R_);
+    // Construct Matrix from MDL file.
+    Matrix(const std::string& filepath);
 
     Voxel& operator()(int x, int y, int z) {
         return buf[(z * R + y) * R + x];
