@@ -1,9 +1,9 @@
 import argparse
-import concurrent
 import concurrent.futures
 import os
 import shutil
 import subprocess
+import sys
 
 
 def convert(args, input_model_file_name):
@@ -20,6 +20,8 @@ def convert(args, input_model_file_name):
         completed_process = subprocess.run(command, timeout=args.timeout_sec, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.TimeoutExpired as e:
         print(e)
+
+    return completed_process
 
 
 def main():
@@ -47,8 +49,18 @@ def main():
     os.makedirs(args.output_info_file_directory_path, exist_ok=True)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
+        futures = list()
         for input_model_file_name in [f for f in os.listdir(args.input_model_directory_path) if os.path.splitext(f)[1] == '.mdl']:
-            executor.submit(convert, args, input_model_file_name)
+            futures.append(executor.submit(convert, args, input_model_file_name))
+        for future in futures:
+            completed_process = future.result()
+            if completed_process.returncode:
+                for future in futures:
+                    future.cancel()
+                print('!' * 80)
+                print('Failed to execute an engine.')
+                print(completed_process)
+                sys.exit(1)
 
 
 if __name__ == '__main__':
