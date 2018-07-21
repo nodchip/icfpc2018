@@ -12,7 +12,7 @@
     <Name>icfpc2018</Name>
     <RootNamespace>icfpc2018</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--binary_file_path ../src/stupid_engine_v2.exe --input_model_directory_path ../data/problems --output_trace_file_directory_path ../output/trace --output_info_file_directory_path ../output/info --timeout_sec 10 --engine_name default</CommandLineArguments>
+    <CommandLineArguments>--binary_file_path ../src/stupid_engine_v2.exe --input_model_directory_path ../data/problems --output_trace_file_directory_path ../output/trace --output_info_file_directory_path ../output/info --jobs 4</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
