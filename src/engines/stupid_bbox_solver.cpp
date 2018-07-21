@@ -17,7 +17,7 @@ Trace stupid_bbox_solver(const System& system, const Matrix& problem_matrix) {
 
     // move to bbox.
     Region bbox = find_bounding_box(problem_matrix, nullptr).canonical();
-    bfs_shortest_in_void(system.matrix, p, bbox.c1, &trace, nullptr);
+    bfs_shortest_in_void(problem_matrix, p, bbox.c1, &trace, nullptr);
     p = bbox.c1;
     
     Vec3 prev = p;
@@ -51,7 +51,7 @@ Trace stupid_bbox_solver(const System& system, const Matrix& problem_matrix) {
     }
 
     // go home.
-    if (!bfs_shortest_in_void(system.matrix, p, system.final_pos(),
+    if (!bfs_shortest_in_void(problem_matrix, p, system.final_pos(),
         &trace, nullptr)) {
         std::cout << "sorry, stupid algorithm failed.." << std::endl;
         return trace;
