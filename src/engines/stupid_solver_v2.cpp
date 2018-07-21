@@ -137,6 +137,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
                 trace.push_back(CommandSMove{Vec3(xdir, 0, 0)});
                 if (problem_matrix(prev)) {
 		  if(!is_high && is_high_harmonic_needed(system, problem_matrix, is_filled, prev.x, prev.y, prev.z)){
+		    // for debug
 		    cout<<"high harmonic "<<prev.x<<","<<prev.y<<","<<prev.z<<endl;
 		    is_high = true;
 		    trace.push_back(CommandFlip{}); // high.
