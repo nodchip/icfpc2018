@@ -1,6 +1,5 @@
 #include "state.h"
 
-#include "nmms.h"
 #include "matrix.h"
 #include "system.h"
 

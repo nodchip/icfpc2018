@@ -1,7 +1,12 @@
-#include "engine.h"
 #include "stupid_solver.h"
 
-Trace stupid_solver(const System& system, const Matrix& problem_matrix) {
+#include "engine.h"
+#include "nmms.h"
+#include "system.h"
+
+Trace stupid_solver(const Matrix& problem_matrix) {
+    System system(problem_matrix);
+
     // use a single nanobot.
     // always in the high harmonics.
     // zig-zag scanning in the XZ plane.
