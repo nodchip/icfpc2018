@@ -1,6 +1,6 @@
 {
-    "consumed_commands": 89287,
-    "energy": 918746905968,
-    "engine_name": "unknown",
+    "consumed_commands": 118227,
+    "energy": 33282635994,
+    "engine_name": "parallel_stupid",
     "successful": true
 }
