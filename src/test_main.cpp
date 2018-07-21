@@ -69,7 +69,7 @@ TEST(System, StupidSolver) {
 
 TEST(System, StupidSolverV2) {
     Matrix m("../data/problems/LA001_tgt.mdl");
-    auto trace = stupid_solver(System(m.R), m);
+    auto trace = stupid_solver_v2(System(m.R), m);
 
     State state(m);
     EXPECT_FALSE(state.is_finished());
