@@ -26,7 +26,7 @@ TEST(Matrix, LoadAndDumpMatrix) {
 
     // load again to check identity.
     Matrix m2("LA001_tgt_modified.mdl");
-    ASSERT_TRUE(m2);
+    ASSERT_TRUE(m2.is_valid_matrix());
     EXPECT_EQ(m.buf, m2.buf);
 }
 

@@ -29,7 +29,7 @@ struct Matrix {
     Voxel operator()(const Vec3& p) const { return operator()(p.x, p.y, p.z); }
 
     // is this a valid matrix?
-    operator bool() const {
+    bool is_valid_matrix() const {
         return 0 < R && !buf.empty();
     }
 

@@ -80,15 +80,18 @@ int main(int argc, char** argv) {
     }
     auto model_path = options["model"];
     Matrix m(model_path);
-    if (!m) {
+    if (!m.is_valid_matrix()) {
         std::cout << "Failed to open model file: " << model_path << std::endl;
         return 3;
     }
 
     auto trace = engine(m);
+    std::cout << "generated trace." << trace.size() << std::endl;
 
     State state(m);
+    std::cout << "simulation prepare." << std::endl;
     int exit_code = state.simulate(trace);
+    std::cout << "simulation done." << std::endl;
 
     if (options.count("trace-output")) {
         // dump the result.

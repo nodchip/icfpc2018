@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
     }
     auto model_path = options["model"];
     Matrix m(model_path);
-    if (!m) {
+    if (!m.is_valid_matrix()) {
         std::cout << "Failed to open model file: " << model_path << std::endl;
         return 3;
     }
