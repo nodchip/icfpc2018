@@ -61,8 +61,7 @@ TEST(System, StupidSolver) {
     Matrix m("../data/problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
 
-    System sys;
-    sys.start(m.R);
+    System sys(m.R);
     EXPECT_FALSE(is_finished(sys, m));
 
     // sys is not changed in the solver.
@@ -95,8 +94,7 @@ TEST(System, StupidSolverv2) {
     Matrix m("../data/problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
 
-    System sys;
-    sys.start(m.R);
+    System sys(m.R);
     EXPECT_FALSE(is_finished(sys, m));
 
     // sys is not changed in the solver.
