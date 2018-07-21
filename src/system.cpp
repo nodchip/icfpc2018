@@ -59,9 +59,11 @@ namespace NProceedTimestep {
                 bool grounded = false;
                 for (auto offset : n6) {
                     auto c = p + offset;
-                    if (system.ground_and_full_voxels.findSet(c.index(), ground_group)) {
-                        grounded = true;
-                        break;
+                    if (system.matrix.is_in_matrix(c)) {
+                        if (system.ground_and_full_voxels.findSet(c.index(), ground_group)) {
+                            grounded = true;
+                            break;
+                        }
                     }
                 }
                 if (!grounded) {
@@ -306,6 +308,8 @@ bool System::proceed_timestep() {
             std::fprintf(stderr, "Error while processing trace for bot %ld\n", i);
             print_detailed();
             throw std::runtime_error("wrong command");
+	    // if you want trace data...
+	    // return true;
         }
     }
 
@@ -406,3 +410,4 @@ TEST(Commands, Fission) {
     EXPECT_EQ(system.bots[0].seeds.size(), 19);
 }
 #endif // TEST_PROJECT
+// vim: set si et sw=4 ts=4:
