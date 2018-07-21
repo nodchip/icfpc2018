@@ -1,4 +1,6 @@
 #!/bin/sh
+git submodule init
+git submodule update
 cd ${WORKSPACE}/src || exit 1
 make -j || exit 1
 cd ${WORKSPACE}/script || exit 1
