@@ -8,10 +8,6 @@
 #include <gtest/gtest.h>
 
 namespace NOutputTrace {
-    uint8_t nd_encoding(Vec3 nd) {
-        // TODO: assert nd is a ND.
-        return (nd.x + 1) * 9 + (nd.y + 1) * 3 + (nd.z + 1);
-    }
     struct LDEncoding {
         static LDEncoding from_SLD(Vec3 ld) {
             // TODO: assert ld is a SLD.
@@ -43,63 +39,7 @@ namespace NOutputTrace {
     private:
         LDEncoding(uint8_t a_, uint8_t i_) : a(a_), i(i_) {}
     };
-
-    struct EmitCommand : public boost::static_visitor<bool> {
-        std::vector<uint8_t>& buffer;
-
-        EmitCommand(std::vector<uint8_t>& buffer_)
-            : buffer(buffer_) {}
-
-        bool operator()(CommandHalt) { buffer.push_back(0b11111111); return true; }
-        bool operator()(CommandWait) { buffer.push_back(0b11111110); return true; }
-        bool operator()(CommandFlip) { buffer.push_back(0b11111101); return true; }
-        bool operator()(CommandSMove cmd) {
-            auto enc = LDEncoding::from_LLD(cmd.lld);
-            buffer.push_back(0b00000100 | (enc.a << 4));
-            buffer.push_back(enc.i);
-            return true;
-        };
-        bool operator()(CommandLMove cmd) {
-            auto enc1 = LDEncoding::from_SLD(cmd.sld1);
-            auto enc2 = LDEncoding::from_SLD(cmd.sld2);
-            buffer.push_back(0b00001100 | (enc2.a << 6) | (enc1.a << 4));
-            buffer.push_back((enc2.i << 4) | enc1.i);
-            return true;
-        };
-        bool operator()(CommandFission cmd) {
-            //ASSERT(0 <= cmd.m && cmd.m <= 255);
-            buffer.push_back(0b00000101 | (nd_encoding(cmd.nd) << 3));
-            buffer.push_back(cmd.m);
-            return true;
-        };
-        bool operator()(CommandFill cmd) {
-            buffer.push_back(0b00000011 | (nd_encoding(cmd.nd) << 3));
-            return true;
-        };
-        bool operator()(CommandFusionP cmd) {
-            buffer.push_back(0b00000111 | (nd_encoding(cmd.nd) << 3));
-            return true;
-        };
-        bool operator()(CommandFusionS cmd) {
-            buffer.push_back(0b00000110 | (nd_encoding(cmd.nd) << 3));
-            return true;
-        };
-    };
-}
-
-bool output_trace(std::string output_path, const Trace& trace) {
-    std::vector<uint8_t> buf;
-    NOutputTrace::EmitCommand visitor(buf);
-    for (const auto& command : trace) {
-        boost::apply_visitor(visitor, command);
-    }
-
-    std::FILE* fp = std::fopen(output_path.c_str(), "wb");
-    std::fwrite(buf.data(), 1, buf.size(), fp);
-    std::fclose(fp);
-
-    return true;
-}
+}  // namespace NOutputTrace
 
 Matrix load_model(std::string input_path) {
     std::FILE* fp = std::fopen(input_path.c_str(), "rb");

@@ -5,5 +5,7 @@
 
 #include "command.h"
 
-typedef std::deque<Command> Trace;
-bool output_trace(std::string output_path, const Trace& trace);
+class Trace : public std::deque<Command> {
+ public:
+  bool output_trace(std::string output_path);
+};

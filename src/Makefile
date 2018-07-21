@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-Wall -Wno-sign-compare
+CXXFLAGS=-O2 -Wall -Wno-sign-compare
 CXXFLAGS+=$(pkg-config --libs --cflags boost)
 CXXFLAGS+=-I .
 CXXFLAGS+=-I ../libs/
@@ -15,7 +15,7 @@ endif
 
 BUILD_PATH=build
 
-SRCS=command.cpp matrix.cpp nanobot.cpp nmms.cpp region.cpp vec3.cpp system.cpp trace.cpp 
+SRCS=command.cpp matrix.cpp nanobot.cpp nmms.cpp region.cpp vec3.cpp system.cpp trace.cpp
 SRCS+=engine.cpp
 
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)

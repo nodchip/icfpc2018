@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 // project
 #include "engine.h"
+#include "trace.h"
 #include "nmms.h"
 
 int main(int argc, char** argv) {
@@ -96,7 +97,7 @@ int main(int argc, char** argv) {
         dump_model(dump_model_path, sys.matrix);
 
         // trace.
-        output_trace(dump_trace_path, trace);
+        trace.output_trace(dump_trace_path);
     }
 
     if (vm.count("info")) {

@@ -1,10 +1,10 @@
-#include "nmms.h"
 // std
 #include <cstdio>
 // 3rd
 #include <gtest/gtest.h>
 // TODO(peria): Split test for solvers
 // project
+#include "trace.h"
 #include "engines/stupid_solver.h"
 #include "engines/stupid_solver_v2.h"
 
@@ -48,7 +48,7 @@ TEST(Trace, OutputTraceExample) {
     trace.push_back(CommandSMove{Vec3(0, 0, -10)}); // 0
     trace.push_back(CommandHalt{}); // 0
 
-    EXPECT_TRUE(output_trace("output.nbt", trace));
+    EXPECT_TRUE(trace.output_trace("output.nbt"));
 }
 
 TEST(System, StupidSolver) {
@@ -76,13 +76,13 @@ TEST(System, StupidSolver) {
     EXPECT_TRUE(is_finished(sys, m));
 
     // complete trace.
-    EXPECT_TRUE(output_trace("LA001_stupid_solver.nbt", trace));
+    EXPECT_TRUE(trace.output_trace("LA001_stupid_solver.nbt"));
 
     // broken trace.
     for (int i = 0; i < 10; ++i) {
         trace.pop_back();
     }
-    EXPECT_TRUE(output_trace("LA001_stupid_solver_broken.nbt", trace));
+    EXPECT_TRUE(trace.output_trace("LA001_stupid_solver_broken.nbt"));
 }
 
 TEST(System, StupidSolverv2) {
@@ -109,13 +109,13 @@ TEST(System, StupidSolverv2) {
     EXPECT_TRUE(is_finished(sys, m));
 
     // complete trace.
-    EXPECT_TRUE(output_trace("LA001_stupid_solver_v2.nbt", trace));
+    EXPECT_TRUE(trace.output_trace("LA001_stupid_solver_v2.nbt"));
 
     // broken trace.
     for (int i = 0; i < 10; ++i) {
         trace.pop_back();
     }
-    EXPECT_TRUE(output_trace("LA001_stupid_solver_broken_v2.nbt", trace));
+    EXPECT_TRUE(trace.output_trace("LA001_stupid_solver_broken_v2.nbt"));
 }
 
 int main(int argc, char **argv) {
