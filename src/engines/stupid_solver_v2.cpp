@@ -142,6 +142,7 @@ Trace stupid_solver_v2(const Matrix& problem_matrix) {
     vector<int> filled(system.matrix.R+1);
     vector<int> blocknum(system.matrix.R+1);
     vector<bool> is_filled(system.matrix.R * system.matrix.R * system.matrix.R);
+    
     for(int y = 0; y < system.matrix.R ; ++y){
       for(int x = 0; x < system.matrix.R ; ++x){
 	for(int z = 0; z < system.matrix.R ; ++z){

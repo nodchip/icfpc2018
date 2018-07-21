@@ -24,14 +24,11 @@ all: dirs test engines evaluate
 ######################
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
-engines: stupid_engine stupid_bbox_engine stupid_engine_v2 parallel_stupid_engine
+engines: stupid_engine stupid_engine_v2 parallel_stupid_engine
 
 ######################
 # ADD YOUR ENGINE HERE
 stupid_engine: engine_main.cpp engines/stupid_solver.cpp $(OBJS)
-	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
-
-stupid_bbox_engine: engine_main.cpp engines/stupid_bbox_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 stupid_engine_v2: engine_main.cpp engines/stupid_solver_v2.cpp $(OBJS)
