@@ -4,7 +4,7 @@
 // 3rd
 #include <gtest/gtest.h>
 // project
-#include "stupid_solver.h"
+#include "engines/stupid_solver.h"
 
 TEST(Matrix, LoadAndDumpMatrix) {
     Matrix m = load_model("../problems/LA001_tgt.mdl");
@@ -67,6 +67,7 @@ TEST(System, StupidSolver) {
             break;
         }
     }
+    sys.print_detailed();
 
     // dump the result.
     dump_model("LA001_stupid_solver.mdl", sys.matrix);
