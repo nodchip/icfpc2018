@@ -25,7 +25,7 @@ Region find_bounding_box(const Matrix& m, std::vector<int>* per_y_voxels_optiona
             per_y_voxels_optional->push_back(y_count);
         }
     }
-    return Region(Vec3(mins[0], mins[1], mins[2]), Vec3(maxs[0], maxs[0], maxs[2]));
+    return Region(Vec3(mins[0], mins[1], mins[2]), Vec3(maxs[0], maxs[1], maxs[2]));
 }
 
 // vim: set si et sw=4 ts=4:
