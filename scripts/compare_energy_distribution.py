@@ -38,14 +38,14 @@ def main():
     y_shift = 1.0 / (len(df) + 1)
     width = y_shift
     for i, row in df.iterrows():
-        values = [row[k] for k in column_names[::-1]]
+        values = [row[k] for k in column_names]
         ax.barh(y_pos + y_shift * i, values, width, align='center', edgecolor='black',
             label='{}: sum={:.3g}'.format(row['File'], np.sum(values)))
     ax.set_yticks(y_pos)
     ax.set_yticklabels(column_names)
     ax.legend()
     ax.set_title('consumed energy')
-    fig.savefig('out.png')
+    fig.savefig('consumed_energy.png')
     plt.show()
 
 if __name__ == '__main__':
