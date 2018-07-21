@@ -9,7 +9,7 @@
 #include "engines/stupid_solver_v2.h"
 
 TEST(Matrix, LoadAndDumpMatrix) {
-    Matrix m = load_model("../problems/LA001_tgt.mdl");
+    Matrix m = load_model("../data/problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
     std::printf("Model R=%d\n", m.R);
     EXPECT_EQ(m.R, 20);
@@ -52,7 +52,7 @@ TEST(Trace, OutputTraceExample) {
 }
 
 TEST(System, StupidSolver) {
-    Matrix m = load_model("../problems/LA001_tgt.mdl");
+    Matrix m = load_model("../data/problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
 
     System sys;
@@ -86,7 +86,7 @@ TEST(System, StupidSolver) {
 }
 
 TEST(System, StupidSolverv2) {
-    Matrix m = load_model("../problems/LA001_tgt.mdl");
+    Matrix m = load_model("../data/problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
 
     System sys;
