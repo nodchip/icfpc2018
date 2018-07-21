@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('agg')
+matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -33,7 +33,7 @@ def main():
     df = df[list(('File', ) + column_names)]
     print(df)
 
-    fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+    fig, ax = plt.subplots(1, 1, figsize=(5, 8))
     y_pos = np.arange(len(column_names))
     y_shift = 1.0 / (len(df) + 1)
     width = y_shift
@@ -45,6 +45,7 @@ def main():
     ax.set_yticklabels(column_names)
     ax.legend()
     ax.set_title('consumed energy')
+    fig.tight_layout()
     fig.savefig('consumed_energy.png')
     plt.show()
 
