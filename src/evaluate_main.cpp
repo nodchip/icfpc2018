@@ -70,8 +70,7 @@ int main(int argc, char** argv) {
     }
 
     // init
-    System sys;
-    sys.start(m.R);
+    System sys(m.R);
 
     // simulate the plan.
     sys.trace = trace;
