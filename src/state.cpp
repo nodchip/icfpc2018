@@ -14,13 +14,25 @@ State::State(const Matrix& src_matrix, const Matrix& tgt_matrix)
 }
 
 int State::simulate(const Trace& t) {
-    system.trace = t;
-    while (!system.trace.empty()) {
-        if (system.proceed_timestep()) {
-            break;
+    try {
+        system.trace = t;
+        while (!system.trace.empty()) {
+            if (system.proceed_timestep()) {
+                break;
+            }
         }
+        system.print_detailed();
+    } catch (const std::exception& e) {
+        std::cout << "Exception: " << e.what() << std::endl;
+        std::cout << "dump the consumed trace." << std::endl;
+        Trace consumed;
+        auto it = t.begin();
+        std::advance(it, system.trace.size());
+        std::copy(t.begin(), it, std::back_inserter(consumed));
+        consumed.output_trace("exception.nbt");
+        consumed.output_trace("exception.nbt.json");
+        throw;
     }
-    system.print_detailed();
 
     int exit_code = 0;
     bool is_successful = is_finished();
