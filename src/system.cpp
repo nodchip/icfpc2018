@@ -3,6 +3,7 @@
 #include <numeric>
 
 #include "debug_message.h"
+#include "command.h"
 #include "nanobot.h"
 
 namespace NProceedTimestep {
@@ -50,7 +51,7 @@ struct GroundConnectivityChecker {
 };
 
 struct FusionStage {
-    static constexpr int kBotIDs = 21;
+    static constexpr int kBotIDs = 40;
     int fusion[kBotIDs][kBotIDs];
 
     FusionStage() {
@@ -93,21 +94,77 @@ struct FusionStage {
     }
 };
 
+struct GroupStage {
+    enum {ACTION_FILL, ACTION_VOID};
+    // canonical Region. => [bid]
+    std::unordered_map<Region, std::vector<BotID>> stage[2];
+
+    GroupStage() {
+    }
+
+    bool add_bot(Bot& bot, Vec3 nd, Vec3 fd, int action_type) {
+        ASSERT_ERROR_RETURN(is_valid_nd(nd), false);
+        ASSERT_ERROR_RETURN(is_valid_fd(fd), false);
+        auto r = Region(bot.pos + nd, bot.pos + nd + fd).canonical();
+        stage[action_type][r].push_back(bot.bid);
+        return true;
+    }
+
+    bool update(System& sys, int action_type) {
+        for (auto it = stage[action_type].begin(); it != stage[action_type].end(); ++it) {
+            const Region& r = it->first;
+            ASSERT_ERROR_RETURN(sys.matrix.is_in_matrix(r.c1) & sys.matrix.is_in_matrix(r.c2), false);
+            const auto& bids = it->second;
+            const int nbots = bids.size();
+            ASSERT_ERROR_RETURN(nbots == 2 || nbots == 4 || nbots == 8, false);
+            for (auto bid : bids) {
+                auto& bot = sys.bots[sys.bot_index_by(bid)];
+                ASSERT_ERROR_RETURN(!r.is_in_region(bot.pos), false);
+            }
+
+            CANONICAL_REGION_FOR(it->first, x, y, z) {
+                if (action_type == ACTION_FILL) {
+                   if (sys.matrix(x, y, z) == Void) {
+                       // XXX: ground check..
+                       sys.matrix(x, y, z) = Full;
+                       sys.energy += Costs::k_GFillVoid;
+                   } else {
+                       sys.energy += Costs::k_GFillFull;
+                   }
+                } else {
+                   if (sys.matrix(x, y, z) == Full) {
+                       // XXX: ground check..
+                       sys.matrix(x, y, z) = Void;
+                       sys.energy += Costs::k_GVoidFull;
+                   } else {
+                       sys.energy += Costs::k_GVoidVoid;
+                   }
+                }
+            }
+        }
+
+        return true;
+    }
+};
+
 struct UpdateSystem : public boost::static_visitor<bool> {
     System& sys;
     Bot& bot;
     bool& halt_requested;
 
     FusionStage& fusion_stage;
+    GroupStage& group_stage;
     GroundConnectivityChecker& ground_connectivity_checker;
 
     UpdateSystem(System& sys_, Bot& bot_, bool& halt_requested_,
                  FusionStage& fusion_stage_,
+                 GroupStage& group_stage_,
                  GroundConnectivityChecker& ground_connectivity_checker_)
              : sys(sys_)
              , bot(bot_)
              , halt_requested(halt_requested_)
              , fusion_stage(fusion_stage_)
+             , group_stage(group_stage_)
              , ground_connectivity_checker(ground_connectivity_checker_) {
     }
 
@@ -178,6 +235,28 @@ struct UpdateSystem : public boost::static_visitor<bool> {
             sys.energy += Costs::k_FillFull;
         }
         return true;
+    };
+    bool operator()(CommandVoid cmd) {
+        auto c = bot.pos + cmd.nd;
+        if (!sys.matrix.is_in_matrix(c)) {
+            LOG_ERROR("[CommandVoid] target voxel out of range");
+            return false;
+        }
+        if (sys.matrix(c) == Full) {
+            sys.matrix(c) = Void;
+            // XXX: Voiding violates the assumption of union-find...
+            // ground_connectivity_checker.fill(c);
+            sys.energy += Costs::k_VoidFull;
+        } else {
+            sys.energy += Costs::k_VoidVoid;
+        }
+        return true;
+    };
+    bool operator()(CommandGFill cmd) {
+        return group_stage.add_bot(bot, cmd.nd, cmd.fd, GroupStage::ACTION_FILL);
+    };
+    bool operator()(CommandGVoid cmd) {
+        return group_stage.add_bot(bot, cmd.nd, cmd.fd, GroupStage::ACTION_VOID);
     };
     bool operator()(CommandFission cmd) {
         auto c = bot.pos + cmd.nd;
@@ -259,6 +338,7 @@ void System::global_energy_update() {
 bool System::proceed_timestep() {
     bool halt = false;
     NProceedTimestep::FusionStage fusion_stage;
+    NProceedTimestep::GroupStage group_stage;
     NProceedTimestep::GroundConnectivityChecker ground_connectivity_checker;
 
     // systemwide energy (count the nuber of bots before fusion/fission).
@@ -272,7 +352,7 @@ bool System::proceed_timestep() {
         Command cmd = trace.front(); trace.pop_front();
         ++consumed_commands; // FusionP and FusionS are treated as separate commands.
 
-        NProceedTimestep::UpdateSystem visitor(*this, bots[i], halt, fusion_stage, ground_connectivity_checker);
+        NProceedTimestep::UpdateSystem visitor(*this, bots[i], halt, fusion_stage, group_stage, ground_connectivity_checker);
         if (!boost::apply_visitor(visitor, cmd)) {
             std::fprintf(stderr, "Error while processing trace for bot %ld\n", i);
             print_detailed();
@@ -283,6 +363,8 @@ bool System::proceed_timestep() {
     }
 
     fusion_stage.update(*this);
+    group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_FILL);
+    group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_VOID);
 
     // if there are any floating voxels added in this phase while harmonics is low,
     // it is ill-formed.

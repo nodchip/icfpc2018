@@ -3,7 +3,11 @@
 #include <string>
 #include <iostream>
 
+Matrix::Matrix() : R(0), buf() {
+}
 Matrix::Matrix(int R_) : R(R_), buf(R * R * R, Void) {
+}
+Matrix::Matrix(int R_, Voxel filled_value) : R(R_), buf(R * R * R, filled_value) {
 }
 
 Matrix::Matrix(const std::string& input_path) : R(0xff) {

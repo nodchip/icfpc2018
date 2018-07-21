@@ -10,6 +10,7 @@
 #include "matrix.h"
 #include "trace.h"
 #include "state.h"
+#include "debug_message.h"
 
 using Options = std::map<std::string, std::string>;
 
@@ -40,6 +41,7 @@ int main(int argc, char** argv) {
     Options options = ParseCommand(argc, argv);
     // ("help", "produce help message");
     // ("model", po::value<std::string>(), "model.mdl");
+    // ("src-model", po::value<std::string>(), "model.mdl");
     // ("trace-output", po::value<std::string>(), "trace.nbt");
     // ("engine", po::value<std::string>()->default_value("default"), "engine");
     // ("info", po::value<std::string>()->default_value("info"), "info path");
@@ -73,22 +75,35 @@ int main(int argc, char** argv) {
         engine_name = it->first;
     }
 
-    // load
-    if (!options.count("model")) {
-        std::cout << "--model required." << std::endl;
-        return 3;
-    }
-    auto model_path = options["model"];
-    Matrix m(model_path);
-    if (!m.is_valid_matrix()) {
-        std::cout << "Failed to open model file: " << model_path << std::endl;
-        return 3;
+    // load (source) model
+    Matrix src_model;
+    if (options.count("src-model")) {
+        auto model_path = options["src-model"];
+        src_model = Matrix(model_path);
+        if (!src_model.is_valid_matrix()) {
+            std::cout << "Failed to open model file: " << model_path << std::endl;
+            return 3;
+        }
     }
 
-    auto trace = engine(m);
-    std::cout << "generated trace." << trace.size() << std::endl;
+    // load (target) model
+    Matrix tgt_model;
+    if (options.count("model")) {
+        auto model_path = options["model"];
+        tgt_model = Matrix(model_path);
+        if (!tgt_model.is_valid_matrix()) {
+            std::cout << "Failed to open model file: " << model_path << std::endl;
+            return 3;
+        }
+    }
 
-    State state(m);
+    auto problem_type = determine_problem_type_and_prepare_matrices(src_model, tgt_model);
+    ASSERT_ERROR_RETURN(problem_type != ProblemType::Invalid, 3);
+
+    auto trace = engine(problem_type, src_model, tgt_model);
+    std::cout << "generated trace: " << trace.size() << std::endl;
+
+    State state(src_model, tgt_model);
     std::cout << "simulation prepare." << std::endl;
     int exit_code = state.simulate(trace);
     std::cout << "simulation done." << std::endl;

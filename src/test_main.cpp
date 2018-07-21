@@ -121,10 +121,12 @@ TEST(Commands, FissionAndFusion) {
 }
 
 TEST(System, StupidSolver) {
-    Matrix m("../data/problems/LA001_tgt.mdl");
-    auto trace = stupid_solver(m);
+    Matrix m_tgt("../data/problems/LA001_tgt.mdl");
+    Matrix m_src;
+    auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
+    auto trace = stupid_solver(problem_type, m_src, m_tgt);
 
-    State state(m);
+    State state(m_src, m_tgt);
     EXPECT_FALSE(state.is_finished());
     state.simulate(trace);
 
@@ -132,10 +134,12 @@ TEST(System, StupidSolver) {
 }
 
 TEST(System, StupidSolverV2) {
-    Matrix m("../data/problems/LA001_tgt.mdl");
-    auto trace = stupid_solver_v2(m);
+    Matrix m_tgt("../data/problems/LA001_tgt.mdl");
+    Matrix m_src;
+    auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
+    auto trace = stupid_solver_v2(problem_type, m_src, m_tgt);
 
-    State state(m);
+    State state(m_src, m_tgt);
     EXPECT_FALSE(state.is_finished());
     state.simulate(trace);
 
@@ -143,10 +147,12 @@ TEST(System, StupidSolverV2) {
 }
 
 TEST(System, ParallelStupidSolver) {
-    Matrix m("../data/problems/LA001_tgt.mdl");
-    auto trace = parallel_stupid_solver(m);
+    Matrix m_tgt("../data/problems/LA001_tgt.mdl");
+    Matrix m_src;
+    auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
+    auto trace = parallel_stupid_solver(problem_type, m_src, m_tgt);
 
-    State state(m);
+    State state(m_src, m_tgt);
     EXPECT_FALSE(state.is_finished());
     state.simulate(trace);
 

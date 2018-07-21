@@ -3,8 +3,12 @@
 #include "engine.h"
 #include "nmms.h"
 #include "system.h"
+#include "state.h"
+#include "debug_message.h"
 
-Trace stupid_solver(const Matrix& problem_matrix) {
+Trace stupid_solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& problem_matrix) {
+    ASSERT_ERROR_RETURN(problem_type == ProblemType::Assembly, Trace());
+    
     printf("stupid_solver\n");
     System system(problem_matrix.R);
 

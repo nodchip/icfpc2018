@@ -9,6 +9,8 @@
 #include "nmms.h"
 #include "region.h"
 #include "system.h"
+#include "state.h"
+#include "debug_message.h"
 #include "union_find.h"
 using namespace std;
 
@@ -123,7 +125,9 @@ void unfset(const System& system, UnionFind &unf, const vector<bool> &is_filled,
   }
 }
 
-Trace stupid_solver_v2(const Matrix& problem_matrix) {
+Trace stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const Matrix& problem_matrix) {
+    ASSERT_ERROR_RETURN(problem_type == ProblemType::Assembly, Trace());
+
     System system(problem_matrix.R);
     // use a single nanobot.
     // always in the high harmonics.

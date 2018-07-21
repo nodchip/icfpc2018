@@ -15,6 +15,13 @@ Vec3 nd_decoding(uint8_t b) {
     int x = b / 9 - 1;
     return Vec3(x, y, z);
 }
+std::array<uint8_t, 3> fd_encoding(Vec3 fd) {
+    ASSERT_ERROR(is_valid_fd(fd));
+    return {uint8_t(fd.x + 30), uint8_t(fd.y + 30), uint8_t(fd.z + 30)};
+}
+Vec3 fd_decoding(uint8_t b0, uint8_t b1, uint8_t b2) {
+    return Vec3(int(b0) - 30, int(b1) - 30, int(b2) - 30);
+}
 
 struct LDDecoding {
     static Vec3 from_SLD(uint8_t a, uint8_t i) {
@@ -96,6 +103,26 @@ struct EmitCommand : public boost::static_visitor<bool> {
         buffer.push_back(0b00000011 | (nd_encoding(cmd.nd) << 3));
          return true;
     };
+    bool operator()(CommandVoid cmd) {
+        buffer.push_back(0b00000010 | (nd_encoding(cmd.nd) << 3));
+         return true;
+    };
+    bool operator()(CommandGFill cmd) {
+        buffer.push_back(0b00000001 | (nd_encoding(cmd.nd) << 3));
+        auto b = NOutputTrace::fd_encoding(cmd.fd);
+        buffer.push_back(b[0]);
+        buffer.push_back(b[1]);
+        buffer.push_back(b[2]);
+         return true;
+    };
+    bool operator()(CommandGVoid cmd) {
+        buffer.push_back(0b00000000 | (nd_encoding(cmd.nd) << 3));
+        auto b = NOutputTrace::fd_encoding(cmd.fd);
+        buffer.push_back(b[0]);
+        buffer.push_back(b[1]);
+        buffer.push_back(b[2]);
+         return true;
+    };
     bool operator()(CommandFusionP cmd) {
         buffer.push_back(0b00000111 | (nd_encoding(cmd.nd) << 3));
         return true;
@@ -141,6 +168,26 @@ bool DecodeTrace(Trace& trace, std::vector<uint8_t>& buffer) {
         } else if ((prefixcode & 0b111) == 0b011) {
             trace.push_back(CommandFill{
                 NOutputTrace::nd_decoding(prefixcode >> 3)
+                });
+        } else if ((prefixcode & 0b111) == 0b010) {
+            trace.push_back(CommandVoid{
+                NOutputTrace::nd_decoding(prefixcode >> 3)
+                });
+        } else if ((prefixcode & 0b111) == 0b001) {
+            const uint8_t b0 = get_next(i);
+            const uint8_t b1 = get_next(i);
+            const uint8_t b2 = get_next(i);
+            trace.push_back(CommandGFill{
+                NOutputTrace::nd_decoding(prefixcode >> 3),
+                NOutputTrace::fd_decoding(b0, b1, b2)
+                });
+        } else if ((prefixcode & 0b111) == 0b000) {
+            const uint8_t b0 = get_next(i);
+            const uint8_t b1 = get_next(i);
+            const uint8_t b2 = get_next(i);
+            trace.push_back(CommandGVoid{
+                NOutputTrace::nd_decoding(prefixcode >> 3),
+                NOutputTrace::fd_decoding(b0, b1, b2)
                 });
         } else if ((prefixcode & 0b111) == 0b111) {
             trace.push_back(CommandFusionP{

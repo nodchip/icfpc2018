@@ -2,9 +2,9 @@
 #include <cstdio>
 
 #define ASSERT_ERROR(expr) \
-	do { if (!expr) { std::fprintf(stderr, "[ERROR] " #expr); } } while (false)
+	do { if (!(expr)) { std::fprintf(stderr, "[ERROR] " #expr); } } while (false)
 #define ASSERT_ERROR_RETURN(expr, val) \
-	do { if (!expr) { std::fprintf(stderr, "[ERROR] " #expr); return (val); } } while (false)
+	do { if (!(expr)) { std::fprintf(stderr, "[ERROR] " #expr); return (val); } } while (false)
 #define LOG_ERROR(msg, ...) \
 	do { std::fprintf(stderr, "[ERROR]" msg, ##__VA_ARGS__); std::fprintf(stderr, "\n"); } while (false)
 

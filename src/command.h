@@ -20,6 +20,17 @@ struct CommandFission {
 struct CommandFill {
     Vec3 nd;
 };
+struct CommandVoid {
+    Vec3 nd;
+};
+struct CommandGFill {
+    Vec3 nd;
+    Vec3 fd;
+};
+struct CommandGVoid {
+    Vec3 nd;
+    Vec3 fd;
+};
 struct CommandFusionP {
     Vec3 nd;
 };
@@ -39,6 +50,12 @@ namespace Costs {
     constexpr int k_LMoveOffset = 2;
     constexpr int k_FillVoid = 12;
     constexpr int k_FillFull = 6;
+    constexpr int k_VoidVoid = 3;
+    constexpr int k_VoidFull = -12;
+    constexpr int k_GFillVoid = 12;
+    constexpr int k_GFillFull = 6;
+    constexpr int k_GVoidVoid = 3;
+    constexpr int k_GVoidFull = -12;
     constexpr int k_Fission = 24;
     constexpr int k_Fusion = -24;
 }
@@ -51,6 +68,9 @@ typedef boost::variant<
     CommandLMove,
     CommandFission,
     CommandFill,
+    CommandVoid,
+    CommandGFill,
+    CommandGVoid,
     CommandFusionP,
     CommandFusionS> Command;
 
@@ -70,5 +90,10 @@ inline bool is_valid_short_ld(Vec3 d) {
 inline bool is_valid_nd(Vec3 d) {
     int m = mlen(d);
     return 0 < m && m <= 2 && clen(d) == 1;
+} 
+// nd: Far Coordinate Differences
+inline bool is_valid_fd(Vec3 d) {
+    return 0 < mlen(d) && clen(d) <= 30;
+
 } 
 

@@ -3,6 +3,8 @@
 #include "engine.h"
 #include "nmms.h"
 #include "system.h"
+#include "state.h"
+#include "debug_message.h"
 #include <utility>
 #include <algorithm>
 
@@ -171,7 +173,9 @@ vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector<
   return out;
 }
 
-Trace parallel_stupid_solver(const Matrix& problem_matrix) {
+Trace parallel_stupid_solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& problem_matrix) {
+    ASSERT_ERROR_RETURN(problem_type == ProblemType::Assembly, Trace());
+
     System system(problem_matrix.R);
     Trace trace;
     //trace.push_back(CommandFlip{}); // high.

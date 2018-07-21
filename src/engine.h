@@ -5,10 +5,12 @@
 #include <map>
 #include <string>
 
+#include "state.h"
+
 struct Matrix;
 struct Trace;
 
-using EngineFunc = std::function<Trace(const Matrix& problem_matrix)>;
+using EngineFunc = std::function<Trace(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix)>;
 
 struct RegisterEngine {
     RegisterEngine(std::string name, EngineFunc func);
