@@ -44,7 +44,7 @@ def main():
         for engine in engines:
             info_directory_paths.append(os.path.join(args.info_directory_path_base, engine))
 
-        for input_model_file_name in [f for f in os.listdir(args.input_model_directory_path) if os.path.splitext(f)[1] == '.mdl']:
+        for input_model_file_name in sorted([f for f in os.listdir(args.input_model_directory_path) if os.path.splitext(f)[1] == '.mdl']):
             model_title = input_model_file_name[:input_model_file_name.index('_')]
             print('<tr>', file=f)
             print('<td>{}</td>'.format(model_title), file=f)
