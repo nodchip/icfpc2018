@@ -1,3 +1,4 @@
+#include "engine.h"
 #include "stupid_solver.h"
 
 Trace stupid_solver(const System& system, const Matrix& problem_matrix) {
@@ -60,4 +61,6 @@ Trace stupid_solver(const System& system, const Matrix& problem_matrix) {
     trace.push_back(CommandHalt{});
     return trace;
 }
+
+REGISTER_ENGINE(stupid, stupid_solver);
 // vim: set si et sw=4 ts=4:
