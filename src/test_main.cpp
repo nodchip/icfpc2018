@@ -49,6 +49,12 @@ TEST(Trace, OutputTraceExample) {
     trace.push_back(CommandHalt{}); // 0
 
     EXPECT_TRUE(trace.output_trace("output.nbt"));
+
+    Trace trace2;
+    EXPECT_TRUE(trace2.input_trace("output.nbt"));
+    EXPECT_TRUE(trace2.output_trace("output2.nbt"));
+
+    //EXPECT_EQ(trace, trace2);
 }
 
 TEST(System, StupidSolver) {

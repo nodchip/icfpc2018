@@ -8,6 +8,29 @@ uint8_t nd_encoding(Vec3 nd) {
     // TODO: assert nd is a ND.
     return (nd.x + 1) * 9 + (nd.y + 1) * 3 + (nd.z + 1);
 }
+Vec3 nd_decoding(uint8_t b) {
+    int z = b % 3 - 1;
+    int y = b / 3 % 3 - 1;
+    int x = b / 9 - 1;
+    return Vec3(x, y, z);
+}
+
+struct LDDecoding {
+    static Vec3 from_SLD(uint8_t a, uint8_t i) {
+        if (a == 0b01) { return Vec3(i - 5, 0, 0); }
+        if (a == 0b10) { return Vec3(0, i - 5, 0); }
+        if (a == 0b11) { return Vec3(0, 0, i - 5); }
+        //ASSERT(false);
+        return Vec3(0, 0, 0);
+    }
+    static Vec3 from_LLD(uint8_t a, uint8_t i) {
+        if (a == 0b01) { return Vec3(i - 15, 0, 0); }
+        if (a == 0b10) { return Vec3(0, i - 15, 0); }
+        if (a == 0b11) { return Vec3(0, 0, i - 15); }
+        //ASSERT(false);
+        return Vec3(0, 0, 0);
+    }
+};
 
 struct LDEncoding {
     static LDEncoding from_SLD(Vec3 ld) {
@@ -84,6 +107,62 @@ struct EmitCommand : public boost::static_visitor<bool> {
     };
 };
 
+
+bool DecodeTrace(Trace& trace, std::vector<uint8_t>& buffer) {
+    auto get_next = [&buffer](size_t& i) {
+        ++i;
+        if (i >= buffer.size()) {
+            throw std::runtime_error("unexpected end");
+        }
+        return buffer[i];
+    };
+    for (size_t i = 0; i < buffer.size(); ++i) {
+        const uint8_t prefixcode = buffer[i];
+        if (prefixcode == 0b11111111) {
+            trace.push_back(CommandHalt{});
+        } else if (prefixcode == 0b11111110) {
+            trace.push_back(CommandWait{});
+        } else if (prefixcode == 0b11111101) {
+            trace.push_back(CommandFlip{});
+        } else if ((prefixcode & 0b1111) == 0b0100) {
+            const uint8_t nextcode = get_next(i);
+            trace.push_back(CommandSMove{
+                NOutputTrace::LDDecoding::from_LLD(
+                    (prefixcode >> 4) & 0b11,
+                    nextcode & 0b11111)});
+        } else if ((prefixcode & 0b1111) == 0b1100) {
+            const uint8_t nextcode = get_next(i);
+            trace.push_back(CommandLMove{
+                NOutputTrace::LDDecoding::from_SLD(
+                    (prefixcode >> 4) & 0b11,
+                    nextcode & 0b1111),
+                NOutputTrace::LDDecoding::from_SLD(
+                    (prefixcode >> 6) & 0b11,
+                    (nextcode >> 4) & 0b1111)});
+        } else if ((prefixcode & 0b111) == 0b011) {
+            trace.push_back(CommandFill{
+                NOutputTrace::nd_decoding(prefixcode >> 3)
+                });
+        } else if ((prefixcode & 0b111) == 0b111) {
+            trace.push_back(CommandFusionP{
+                NOutputTrace::nd_decoding(prefixcode >> 3)
+                });
+        } else if ((prefixcode & 0b111) == 0b110) {
+            trace.push_back(CommandFusionS{
+                NOutputTrace::nd_decoding(prefixcode >> 3)
+                });
+        } else if ((prefixcode & 0b111) == 0b101) {
+            const uint8_t nextcode = get_next(i);
+            trace.push_back(CommandFission{
+                NOutputTrace::nd_decoding(prefixcode >> 3),
+                nextcode
+                });
+        }
+    }
+    return true;
+}
+
+
 }  // namespace NOutputTrace
 
 bool Trace::output_trace(std::string output_path) {
@@ -99,3 +178,23 @@ bool Trace::output_trace(std::string output_path) {
 
     return true;
 }
+
+
+bool Trace::input_trace(std::string input_path) {
+    std::FILE* fp = std::fopen(input_path.c_str(), "rb");
+    std::fseek(fp, 0, SEEK_END);
+    const size_t fsize = std::ftell(fp);
+    std::fseek(fp, 0, SEEK_SET);
+
+    std::vector<uint8_t> buf(fsize, 0);
+    if (fsize != std::fread(buf.data(), 1, buf.size(), fp)) {
+        std::printf("error while reading a trace file: %s\n", input_path.c_str());
+        return false;
+    }
+    std::fclose(fp);
+
+    this->clear();
+    return NOutputTrace::DecodeTrace(*this, buf);
+}
+
+// vim: set si et sw=4 ts=4:
