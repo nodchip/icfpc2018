@@ -15,6 +15,7 @@ struct RegisterEngine {
         Engines()[name] = func;
     }
 
+    // Singleton
     static std::map<std::string, EngineFunc>& Engines() {
         static std::map<std::string, EngineFunc> engines;
         return engines;
