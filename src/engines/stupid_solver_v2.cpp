@@ -45,7 +45,7 @@ bool is_high_harmonic_needed(const System& system, const Matrix& problem_matrix,
   return true;
 }
 
-Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
+Trace stupid_solver_v3(const System& system, const Matrix& problem_matrix) {
     // use a single nanobot.
     // always in the high harmonics.
     // zig-zag scanning in the XZ plane.  
@@ -56,6 +56,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     bool is_high = false;
     vector<int> filled(system.matrix.R+1);
     vector<int> blocknum(system.matrix.R+1);
+    vector<int> dept(system.matrix.R * system.matrix.R);
     for(int y = 0; y < system.matrix.R ; ++y){
       for(int x = 0; x < system.matrix.R ; ++x){
 	for(int z = 0; z < system.matrix.R ; ++z){
