@@ -23,7 +23,6 @@ Trace stupid_solver(ProblemType problem_type, const Matrix& src_matrix, const Ma
 
     Vec3 p(system.bots[0].pos);
     Vec3 prev = p;
-    p.print();
     while (true) {
         int zdir = p.y % 2 == 0 ? +1 : -1;
         while (0 <= p.z + zdir && p.z + zdir < system.matrix.R) {

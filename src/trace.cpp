@@ -1,6 +1,9 @@
 #include "trace.h"
 
 #include <vector>
+#include <iomanip>
+#include <fstream>
+#include <nlohmann/json.hpp>
 #include "debug_message.h"
 
 namespace NOutputTrace {
@@ -133,6 +136,56 @@ struct EmitCommand : public boost::static_visitor<bool> {
     };
 };
 
+struct EmitCommandJSON : public boost::static_visitor<bool> {
+    nlohmann::json& json;
+
+    static nlohmann::json Vec3_to_JSON(Vec3 v) {
+        return nlohmann::json::array({v.x, v.y, v.z});
+    }
+    EmitCommandJSON(nlohmann::json& json_)
+        : json(json_) {}
+
+    bool operator()(CommandHalt) { json.push_back({"Halt"}); return true; }
+    bool operator()(CommandWait) { json.push_back({"Wait"}); return true; }
+    bool operator()(CommandFlip) { json.push_back({"Flip"}); return true; }
+    bool operator()(CommandSMove cmd) {
+        json.push_back({"SMove", Vec3_to_JSON(cmd.lld)});
+        return true;
+    };
+    bool operator()(CommandLMove cmd) {
+        json.push_back({"LMove", Vec3_to_JSON(cmd.sld1), Vec3_to_JSON(cmd.sld2)});
+        return true;
+    };
+    bool operator()(CommandFission cmd) {
+        json.push_back({"Fission", Vec3_to_JSON(cmd.nd)});
+        return true;
+    };
+    bool operator()(CommandFill cmd) {
+        json.push_back({"Fill", Vec3_to_JSON(cmd.nd)});
+        return true;
+    };
+    bool operator()(CommandVoid cmd) {
+        json.push_back({"Void", Vec3_to_JSON(cmd.nd)});
+        return true;
+    };
+    bool operator()(CommandGFill cmd) {
+        json.push_back({"GFill", Vec3_to_JSON(cmd.nd), Vec3_to_JSON(cmd.fd)});
+        return true;
+    };
+    bool operator()(CommandGVoid cmd) {
+        json.push_back({"GVoid", Vec3_to_JSON(cmd.nd), Vec3_to_JSON(cmd.fd)});
+        return true;
+    };
+    bool operator()(CommandFusionP cmd) {
+        json.push_back({"FusionP", Vec3_to_JSON(cmd.nd)});
+        return true;
+    };
+    bool operator()(CommandFusionS cmd) {
+        json.push_back({"FusionS", Vec3_to_JSON(cmd.nd)});
+        return true;
+    };
+};
+
 
 bool DecodeTrace(Trace& trace, std::vector<uint8_t>& buffer) {
     auto get_next = [&buffer](size_t& i) {
@@ -221,6 +274,19 @@ bool Trace::output_trace(std::string output_path) {
     std::FILE* fp = std::fopen(output_path.c_str(), "wb");
     std::fwrite(buf.data(), 1, buf.size(), fp);
     std::fclose(fp);
+
+    return true;
+}
+
+bool Trace::output_trace_json(std::string output_path) {
+    nlohmann::json j;
+    NOutputTrace::EmitCommandJSON visitor(j);
+    for (const auto& command : *this) {
+        boost::apply_visitor(visitor, command);
+    }
+
+    std::ofstream ofs(output_path);
+    ofs << j.dump(4);
 
     return true;
 }

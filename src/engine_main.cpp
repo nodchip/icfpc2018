@@ -132,10 +132,12 @@ int main(int argc, char** argv) {
         // dump the result.
         auto dump_model_path = options["trace-output"] + ".mdl";
         auto dump_trace_path = options["trace-output"];
+        auto dump_trace_json_path = options["trace-output"] + ".json";
         state.system.matrix.dump(dump_model_path);
 
         // trace.
         trace.output_trace(dump_trace_path);
+        trace.output_trace_json(dump_trace_json_path);
     }
 
     if (options.count("info")) {
