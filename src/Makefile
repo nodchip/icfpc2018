@@ -1,4 +1,5 @@
-CXXFLAGS=-Wall
+CXX=g++
+CXXFLAGS=-Wall -Wno-sign-compare
 CXXFLAGS+=$(pkg-config --libs --cflags boost)
 CXXFLAGS+=-I .
 CXXFLAGS+=-I ../libs/
@@ -8,9 +9,9 @@ LDFLAGS+=-lpthread -lboost_program_options
 
 BUILD_PATH=build
 
-SRCS=nmms.cpp
-SRCS+=vec3.cpp
+SRCS=command.cpp matrix.cpp nmms.cpp vec3.cpp
 SRCS+=engine.cpp
+
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
 TEST_SRCS=../libs/googletest/googletest/src/gtest-all.cc
@@ -27,7 +28,7 @@ engines: stupid_engine
 ######################
 # ADD YOUR ENGINE HERE
 stupid_engine: engine_main.cpp engines/stupid_solver.cpp $(OBJS) $(TEST_OBJS)
-	g++ $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 
 .PHONY: dirs
@@ -36,10 +37,10 @@ dirs:
 	@mkdir -p $(BUILD_PATH)/engines
 
 test: test_main.cpp engines/stupid_solver.cpp $(OBJS) $(TEST_OBJS)
-	g++ $(CXXFLAGS) -Wall -Wno-sign-compare $^ -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 $(BUILD_PATH)/%.o: %.cpp %.h
-	g++ $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 .PHONY: clean
 clean:

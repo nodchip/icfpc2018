@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/variant.hpp>
+#include "vec3.h"
 
 struct CommandHalt {};
 struct CommandWait {};
