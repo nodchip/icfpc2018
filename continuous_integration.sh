@@ -8,6 +8,6 @@ for engine in ${ENGINES}
 do
 	for problem in ${PROBLEMS}
 	do
-		./${engine} --model ../data/problems/${problem}_tgt.mdl --engine default --info output.json --trace-output LA001_out.nbt || exit 1
-		done
+		./${engine} --model ../data/problems/${problem}_tgt.mdl || exit 1
+	done
 done
