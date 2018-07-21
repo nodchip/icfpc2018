@@ -306,6 +306,8 @@ bool System::proceed_timestep() {
             std::fprintf(stderr, "Error while processing trace for bot %ld\n", i);
             print_detailed();
             throw std::runtime_error("wrong command");
+	    // if you want trace data...
+	    // return true;
         }
     }
 
