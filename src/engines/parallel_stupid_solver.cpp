@@ -220,6 +220,9 @@ Trace parallel_stupid_solver(const Matrix& problem_matrix) {
     std::sort(time_and_loc.begin(), time_and_loc.end());
     std::vector<long long int> flips;
     flips= get_time_to_flip(system.matrix.R, unf, time_and_loc);
+    if(flips.size()==0){
+      flips.push_back(-1);
+    }
     for(auto f : flips){
       cout<<f<<",";
     }
