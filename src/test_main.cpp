@@ -57,6 +57,33 @@ TEST(Trace, OutputTraceExample) {
     // EXPECT_EQ(trace, trace2);
 }
 
+TEST(Commands, FissionAndFusion) {
+    System system(4);
+    // index to fission out
+    int m = 2;
+
+    // Fission
+    system.trace.push_back(CommandFission{Vec3 {0, 0, 1}, m});
+    EXPECT_FALSE(system.proceed_timestep());
+
+    // system.print_detailed();
+
+    ASSERT_EQ(system.bots.size(), 2);
+    EXPECT_EQ(system.bots[0].seeds.size(), 18 - m);
+    EXPECT_EQ(system.bots[1].seeds.size(), m);
+    EXPECT_EQ(system.trace.size(), 0);
+
+    // Fusion
+    system.trace.push_back(CommandFusionP{Vec3 {0, 0, 1}});
+    system.trace.push_back(CommandFusionS{Vec3 {0, 0, -1}});
+    EXPECT_FALSE(system.proceed_timestep());
+
+    // system.print_detailed();
+
+    EXPECT_EQ(system.bots.size(), 1);
+    EXPECT_EQ(system.bots[0].seeds.size(), 19);
+}
+
 TEST(System, StupidSolver) {
     Matrix m("../data/problems/LA001_tgt.mdl");
     auto trace = stupid_solver(m);
