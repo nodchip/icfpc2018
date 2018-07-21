@@ -12,6 +12,11 @@
 struct System {
     explicit System(int R);
 
+    void global_energy_update();
+
+    // @return true if halted.
+    bool proceed_timestep();
+
     // @return bot index of bid.
     int bot_index_by(BotID bid) const;
 

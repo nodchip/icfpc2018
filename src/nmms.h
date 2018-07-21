@@ -5,14 +5,6 @@
 
 #include "system.h"
 
-void global_energy_update(System& system);
-
-// @return true if halted.
-bool proceed_timestep(System& system);
-
-// @return true if halted.
-bool simulate_all(System& system);
-
 // 6neighbors
 bool bfs_shortest_in_void(const Matrix& m, Vec3 start_pos, Vec3 stop_pos,
     Trace* trace_opt, std::vector<Vec3>* trajectory_opt);
