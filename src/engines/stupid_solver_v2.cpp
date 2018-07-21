@@ -151,7 +151,31 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 
     // move to bbox.
     Region bbox = find_bounding_box(problem_matrix, nullptr).canonical();
+
+    if(bbox.c1.x > 0){
+      bbox.c1.x -= 1;
+    }
     
+    if(bbox.c1.y > 0){
+      bbox.c1.y -= 1;
+    }
+    
+    if(bbox.c1.z > 0){
+      bbox.c1.z -= 1;
+    }
+
+    if(bbox.c2.x < system.matrix.R-1){
+      bbox.c2.x += 1;
+    }
+    if(bbox.c2.y < system.matrix.R-1){
+      bbox.c2.y += 1;
+    }
+    if(bbox.c2.z < system.matrix.R-1){
+      bbox.c2.z += 1;
+    }
+
+    
+    /*
     bbox.c1.x = 0;
     bbox.c1.y = 0;
     bbox.c1.z = 0;
@@ -159,7 +183,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     bbox.c2.x = system.matrix.R-1;
     bbox.c2.y = system.matrix.R-1;
     bbox.c2.z = system.matrix.R-1;
-    
+    */
     bfs_shortest_in_void(problem_matrix, p, bbox.c1, &trace, nullptr);
     p = bbox.c1;
     
@@ -244,6 +268,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 	    }
         }
 	if(all_done){
+	  cout<<"all done"<<endl;
 	  break;
 	}
         if (p.y + 1 < system.matrix.R ) {
@@ -253,14 +278,16 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 	    
 	    if(is_plane_finished){
 	      // go to edge point (not so good...)
+	      
 	      if(p.y % 2 == 0){
 		push_back_safe_long_move(-p.x + bbox.c1.x, 0, -p.z + bbox.c1.z, trace);
 		p.x = bbox.c1.x; p.z = bbox.c1.z;
+		
 	      }else{
 		push_back_safe_long_move(bbox.c2.z % 2 == 0 ? -p.x + bbox.c1.x : + bbox.c2.x- p.x , 0, bbox.c2.z - p.z, trace);
 		p.z = bbox.c2.z;
-		p.x = bbox.c2.z % 2 == 0 ? bbox.c1.x : bbox.c2.x;
-	      }
+		p.x = (bbox.c2.z % 2 == 0 ? bbox.c1.x : bbox.c2.x);
+	      }	
 	    }
         } else {
             break;
