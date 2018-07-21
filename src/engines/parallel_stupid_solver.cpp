@@ -113,19 +113,19 @@ void unfset(const int R, UnionFind &unf, vector<bool> &is_filled, int x, int y, 
     }
   }
 
-  
+
   if(y > 0) {
     if(is_filled[( x * R + y - 1 ) * R + z]){
       unf.unionSet(( x * R + ( y-1 )) * R + z + 1 , (x * R + y) * R + z + 1);
     }
   }
-  
+
   if(y < R - 1) {
     if(is_filled[( x * R + y + 1 ) * R + z]){
       unf.unionSet(( x * R + ( y+1 )) * R + z + 1 , (x * R + y) * R + z + 1);
     }
   }
-  
+
 
   if(z > 0) {
     if(is_filled[( x * R + y ) * R + z - 1]){
@@ -143,13 +143,13 @@ void unfset(const int R, UnionFind &unf, vector<bool> &is_filled, int x, int y, 
 
 vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector< std::pair<long long int, Vec3> > &time_and_loc){
   std::vector<bool> is_filled(R * R * R);
-  
+
   std::vector<long long int> out;
   bool is_harmonic = false;
   for(long long int i = 0; i< time_and_loc.size()-1; ++i ){
     // unite
     unfset(R, unf, is_filled, time_and_loc[i].second.x, time_and_loc[i].second.y, time_and_loc[i].second.z);
-    
+
     // check
     // cout<<time_and_loc[i].first<<","<<time_and_loc[i].second.x<<","<<time_and_loc[i].second.y<<","<<time_and_loc[i].second.z<<endl;
     if(time_and_loc[i].first != time_and_loc[i+1].first){
@@ -175,13 +175,13 @@ Trace parallel_stupid_solver(const Matrix& problem_matrix) {
     System system(problem_matrix.R);
     Trace trace;
     //trace.push_back(CommandFlip{}); // high.
-    
+
     // union find
     UnionFind unf(system.matrix.R*system.matrix.R*system.matrix.R + 1);
 
     // time and location
     std::vector< std::pair<long long int, Vec3> > time_and_loc;
-    
+
     // spread nanobots
     // ASSERT(system.bots.size() == 1);
     const int R = system.matrix.R;
@@ -202,8 +202,9 @@ Trace parallel_stupid_solver(const Matrix& problem_matrix) {
             trace.push_back(CommandFission{unitX, N - ++num_active_nanobots});
             positions[index + 1] = positions[index] + unitX;
         } else {
-            trace.push_back(CommandSMove{unitX});
-            positions[index] += unitX;
+            int diff = min<int>(15, boundaries[index] - positions[index].x);
+            trace.push_back(CommandSMove{Vec3 {diff, 0, 0}});
+            positions[index].x += diff;
         }
     }
 
@@ -251,7 +252,7 @@ Trace parallel_stupid_solver(const Matrix& problem_matrix) {
             if (t < traces[i].size()) {
                 trace.push_back(traces[i][t]);
             } else {
-                trace.push_back(CommandWait{});		
+                trace.push_back(CommandWait{});
             }
         }
     }
@@ -273,7 +274,7 @@ Trace parallel_stupid_solver(const Matrix& problem_matrix) {
             trace.push_back(trace_to_join[t]);
         }
         for (int j = 0; j < i - 1; ++j) {
-            
+
 	    if(flipped){
 	      // flip before merge
 	      trace.push_back(CommandFlip{});
