@@ -1,6 +1,8 @@
 #include "engine.h"
 #include "stupid_solver_v2.h"
 #include "../union_find.h"
+#include "region.h"
+#include "bounding_box.h"
 #include <vector>
 #include <iostream>
 using namespace std;
@@ -114,17 +116,23 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     }
 
     Vec3 p(system.bots[0].pos);
+
+    // move to bbox.
+    Region bbox = find_bounding_box(problem_matrix, nullptr).canonical();
+    bfs_shortest_in_void(system.matrix, p, bbox.c1, &trace, nullptr);
+    p = bbox.c1;
+    
     Vec3 prev = p;
+    
     while (true) {
         int zdir = p.y % 2 == 0 ? +1 : -1;
 	bool is_plane_finished = false;
 	if(filled[p.y] == blocknum[p.y]){
 	  is_plane_finished = true;
 	}
-
-        while (0 <= p.z + zdir && p.z + zdir < system.matrix.R) {
+        while (bbox.c1.z <= p.z + zdir && p.z + zdir <= bbox.c2.z) {
             int xdir = p.z % 2 == 0 ? +1 : -1;
-            while (0 <= p.x + xdir && p.x + xdir < system.matrix.R) {
+	    while (bbox.c1.x <= p.x + xdir && p.x + xdir <= bbox.c2.x) {
                 p.x += xdir;
                 trace.push_back(CommandSMove{Vec3(xdir, 0, 0)});
                 if (problem_matrix(prev)) {
@@ -194,12 +202,12 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 	    if(is_plane_finished){
 	      // go to edge point (not so good...)
 	      if(p.y % 2 == 0){
-		trace.push_back(CommandSMove{Vec3(-p.x, 0, -p.z)});
-		p.x = 0; p.z = 0;
+		trace.push_back(CommandSMove{Vec3(-p.x + bbox.c1.x, 0, -p.z + bbox.c1.z)});
+		p.x = bbox.c1.x; p.z = bbox.c1.z;
 	      }else{
-		trace.push_back(CommandSMove{Vec3( (system.matrix.R-1) % 2 == 0 ? -p.x : system.matrix.R - p.x -1, 0, system.matrix.R - p.z -1)});
-		p.z = system.matrix.R - 1;
-		p.x = (system.matrix.R-1) % 2 == 0 ? 0 : system.matrix.R -1;
+		trace.push_back(CommandSMove{Vec3( bbox.c2.z % 2 == 0 ? -p.x + bbox.c1.x : + bbox.c2.x- p.x , 0, bbox.c2.z - p.z)});
+		p.z = bbox.c2.z;
+		p.x = bbox.c2.z % 2 == 0 ? bbox.c1.x : bbox.c2.x;
 	      }
 	    }
         } else {
