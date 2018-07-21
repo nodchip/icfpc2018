@@ -44,4 +44,6 @@ $(BUILD_PATH)/%.o: %.cpp %.h
 .PHONY: clean
 clean:
 	rm -f $(OBJS)
+	rm -f $(BUILD_PATH)/*.o
+	rm -f $(BUILD_PATH)/engines/*.o
 	rm -f test
