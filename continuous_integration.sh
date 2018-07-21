@@ -8,6 +8,7 @@ for engine in ${ENGINES}
 do
 	for problem in ${PROBLEMS}
 	do
+		echo 'Executing ${engine} with ${problem}'
 		./${engine} --model ../data/problems/${problem}_tgt.mdl || exit 1
 	done
 done
