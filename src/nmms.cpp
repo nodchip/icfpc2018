@@ -7,50 +7,6 @@
 // 3rd
 #include <gtest/gtest.h>
 
-std::vector<Vec3> neighbors26() {
-    std::vector<Vec3> neighbors;
-    for (int z = -1; z <= 1; ++z) {
-        for (int y = -1; y <= 1; ++y) {
-            for (int x = -1; x <= 1; ++x) {
-                if (x != 0 || y != 0 || z != 0) {
-                    neighbors.emplace_back(x, y, z);
-                }
-            }
-        }
-    }
-    return neighbors;
-}
-
-std::vector<Vec3> neighbors18() {
-    std::vector<Vec3> neighbors;
-    for (int z = -1; z <= 1; ++z) {
-        for (int y = -1; y <= 1; ++y) {
-            for (int x = -1; x <= 1; ++x) {
-                if (x != 0 || y != 0 || z != 0) {
-                    if (x == 0 || y == 0 || z == 0) {
-                        neighbors.emplace_back(x, y, z);
-                    }
-                }
-            }
-        }
-    }
-    return neighbors;
-}
-
-std::vector<Vec3> neighbors6() {
-    std::vector<Vec3> neighbors;
-    for (int z = -1; z <= 1; ++z) {
-        for (int y = -1; y <= 1; ++y) {
-            for (int x = -1; x <= 1; ++x) {
-                if ((x != 0) + (y != 0) + (z != 0) == 1) {
-                    neighbors.emplace_back(x, y, z);
-                }
-            }
-        }
-    }
-    return neighbors;
-}
-
 namespace NOutputTrace {
     uint8_t nd_encoding(Vec3 nd) {
         // TODO: assert nd is a ND.
@@ -137,7 +93,7 @@ bool output_trace(std::string output_path, const Trace& trace) {
     for (const auto& command : trace) {
         boost::apply_visitor(visitor, command);
     }
-    
+
     std::FILE* fp = std::fopen(output_path.c_str(), "wb");
     std::fwrite(buf.data(), 1, buf.size(), fp);
     std::fclose(fp);
@@ -253,7 +209,7 @@ namespace NProceedTimestep {
                         if (idx_remain < 0 || idx_erase < 0) return false;
 
                         std::copy(sys.bots[idx_erase].seeds.begin(),
-                             sys.bots[idx_erase].seeds.end(), 
+                             sys.bots[idx_erase].seeds.end(),
                              std::back_inserter(sys.bots[idx_remain].seeds));
                         sys.bots[idx_remain].seeds.push_back(
                             sys.bots[idx_erase].bid);
@@ -280,8 +236,8 @@ namespace NProceedTimestep {
              , bot(bot_)
              , halt_requested(halt_requested_)
              , fusion_stage(fusion_stage_) {
-             } 
-        bool operator()(CommandHalt) { 
+             }
+        bool operator()(CommandHalt) {
             if (sys.bots.size() != 1 || sys.bots[0].pos != sys.final_pos()) return false;
             halt_requested = true;
             return true;
@@ -289,7 +245,7 @@ namespace NProceedTimestep {
         bool operator()(CommandWait) {
              return true;
         }
-        bool operator()(CommandFlip) { 
+        bool operator()(CommandFlip) {
             // XXX: whether flipping twice in the same timestep is allowed is not clearly stated.
             sys.harmonics_high = !sys.harmonics_high;
             return true;
@@ -329,9 +285,9 @@ namespace NProceedTimestep {
             if (n_bots == 0 || n_bots <= cmd.m || cmd.m < 0) return false;
             if (!sys.matrix.is_in_matrix(c)) return false;
             // original  [bid1, bid2, .. bidm, bidm+1, .. bidn]
-            // new bot    bid1 
+            // new bot    bid1
             // new seed        [bid2, .. bidm]
-            // orig.seed                       [bidm+1, .. bidn]    
+            // orig.seed                       [bidm+1, .. bidn]
             std::sort(bot.seeds.begin(), bot.seeds.end());
             auto it = bot.seeds.begin();
             Bot new_bot = {*it, c, {}};

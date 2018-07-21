@@ -7,6 +7,7 @@ LDFLAGS+=-lpthread
 BUILD_PATH=build
 
 SRCS=nmms.cpp stupid_solver.cpp
+SRCS+=vec3.cpp
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
 TEST_SRCS=../libs/googletest/googletest/src/gtest-all.cc
@@ -29,4 +30,3 @@ $(BUILD_PATH)/%.o: %.cpp
 clean:
 	rm -f $(OBJS)
 	rm -f test
-
