@@ -5,7 +5,12 @@ CXXFLAGS+=-I .
 CXXFLAGS+=-I ../libs/
 CXXFLAGS+=-I ../libs/googletest/googletest/include
 CXXFLAGS+=-I ../libs/googletest/googletest
-LDFLAGS+=-lpthread -lboost_program_options
+LDFLAGS+=-lpthread
+ifeq ($(OS),Windows_NT)
+  LDFLAGS+=-lboost_program_options-mt
+else
+  LDFLAGS+=-lboost_program_options
+endif
 
 BUILD_PATH=build
 
