@@ -27,10 +27,10 @@ int State::simulate(const Trace& t) {
         std::cout << "dump the consumed trace." << std::endl;
         Trace consumed;
         auto it = t.begin();
-        std::advance(it, system.trace.size());
+        std::advance(it, t.size() - system.trace.size());
         std::copy(t.begin(), it, std::back_inserter(consumed));
         consumed.output_trace("exception.nbt");
-        consumed.output_trace("exception.nbt.json");
+        consumed.output_trace_json("exception.nbt.json");
         throw;
     }
 
