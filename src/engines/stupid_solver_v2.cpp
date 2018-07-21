@@ -96,7 +96,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     std::vector<Vec3> trajectory;
     if (!bfs_shortest_in_void(system.matrix, p, system.final_pos(),
         &trace, &trajectory)) {
-        printf("sorry, stupid algorithm failed..\n");
+        std::cout << "sorry, stupid algorithm failed.." << std::endl;
         return trace;
     }
 

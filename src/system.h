@@ -47,9 +47,12 @@ struct System {
     }
 
     void print() {
-        std::printf("System energy=%ld, harmonics=%s, bots=%ld, trace=%ld commands=%ld\n",
-            energy, harmonics_high ? "high" : "low",
-            bots.size(), trace.size(), consumed_commands);
+        std::cout << "System energy=" << energy
+                  << ", harmonics=" << (harmonics_high ? "high" : "low")
+                  << ", bots=" << bots.size()
+                  << ", trace=" << trace.size()
+                  << " commands=" << consumed_commands
+                  << std::endl;
     }
     void print_detailed() {
         print();

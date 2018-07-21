@@ -1,5 +1,5 @@
 // std
-#include <cstdio>
+#include <iostream>
 // 3rd
 #include <gtest/gtest.h>
 // TODO(peria): Split test for solvers
@@ -11,7 +11,7 @@
 TEST(Matrix, LoadAndDumpMatrix) {
     Matrix m = load_model("../data/problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
-    std::printf("Model R=%d\n", m.R);
+    std::cout << "Model R=" << m.R << std::endl;
     EXPECT_EQ(m.R, 20);
 
     // add some voxels.
