@@ -9,6 +9,7 @@
 // project
 #include "engine.h"
 #include "matrix.h"
+#include "state.h"
 #include "trace.h"
 #include "nmms.h"
 
@@ -69,32 +70,15 @@ int main(int argc, char** argv) {
         return 4;
     }
 
-    // init
-    System sys(m.R);
-
-    // simulate the plan.
-    sys.trace = trace;
-    while (!sys.trace.empty()) {
-        if (proceed_timestep(sys)) {
-            break;
-        }
-    }
-    sys.print_detailed();
-
-    int exit_code = 0;
-    bool is_successful = is_finished(sys, m);
-    if (is_successful) {
-        std::cout << "Success." << std::endl;
-    } else {
-        std::cout << "Final state is not valid." << std::endl;
-        exit_code = 4;
-    }
+    State state(m);
+    int exit_code = state.simulate(trace);
+    state.system.print_detailed();
 
     if (options.count("info")) {
         nlohmann::json j = {
-            {"energy", sys.energy},
-            {"consumed_commands", sys.consumed_commands},
-            {"successful", is_successful},
+            {"energy", state.system.energy},  // should be state.energy
+            {"consumed_commands", state.system.consumed_commands},
+            {"successful", exit_code == 0},
             {"engine_name", "unknown"},
         };
         std::ofstream ofs(options["info"]);

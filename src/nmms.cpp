@@ -41,18 +41,6 @@ namespace NOutputTrace {
     };
 }  // namespace NOutputTrace
 
-bool is_finished(const System& system, const Matrix& problem_matrix) {
-    // TODO: check R.
-
-    if (system.harmonics_high) return false;
-    if (!system.bots.empty()) return false;
-    // TODO: check trace == epsilon (???)
-    if (system.matrix != problem_matrix) return false;
-
-    return true;
-}
-
-
 namespace NProceedTimestep {
 
     constexpr int k_BotIDs = 21;

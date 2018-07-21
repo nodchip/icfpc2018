@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>0cc3b36e-bbd2-4d7e-bbd7-956af8f4764e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>model_to_trace.py</StartupFile>
+    <StartupFile>update_result.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -12,7 +12,7 @@
     <Name>icfpc2018</Name>
     <RootNamespace>icfpc2018</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--binary_file_path ../src/stupid_engine_v2.exe --input_model_directory_path ../data/problems --output_trace_file_directory_path ../output/trace --output_info_file_directory_path ../output/info --jobs 4</CommandLineArguments>
+    <CommandLineArguments>--temp_trace_directory_path ../tmp/trace --temp_info_directory_path ../tmp/info --result_trace_directory_path ../result/trace --result_info_directory_path ../result/info</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -25,6 +25,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="model_to_trace.py" />
+    <Compile Include="update_result.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

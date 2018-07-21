@@ -2,16 +2,15 @@
 #include <iostream>
 // 3rd
 #include <gtest/gtest.h>
-// TODO(peria): Split test for solvers
 // project
+#include "state.h"
 #include "trace.h"
+// TODO(peria): Split test for solvers
 #include "engines/stupid_solver.h"
 #include "engines/stupid_solver_v2.h"
 
 TEST(Matrix, LoadAndDumpMatrix) {
     Matrix m("../data/problems/LA001_tgt.mdl");
-    ASSERT_TRUE(m);
-    std::cout << "Model R=" << m.R << std::endl;
     EXPECT_EQ(m.R, 20);
 
     // add some voxels.
@@ -54,72 +53,29 @@ TEST(Trace, OutputTraceExample) {
     EXPECT_TRUE(trace2.input_trace("output.nbt"));
     EXPECT_TRUE(trace2.output_trace("output2.nbt"));
 
-    //EXPECT_EQ(trace, trace2);
+    // EXPECT_EQ(trace, trace2);
 }
 
 TEST(System, StupidSolver) {
     Matrix m("../data/problems/LA001_tgt.mdl");
-    ASSERT_TRUE(m);
+    auto trace = stupid_solver(System(m.R), m);
 
-    System sys(m.R);
-    EXPECT_FALSE(is_finished(sys, m));
+    State state(m);
+    EXPECT_FALSE(state.is_finished());
+    state.simulate(trace);
 
-    // sys is not changed in the solver.
-    auto trace = stupid_solver(sys, m);
-
-    // simulate the plan.
-    sys.trace = trace;
-    while (!sys.trace.empty()) {
-        if (proceed_timestep(sys)) {
-            break;
-        }
-    }
-    sys.print_detailed();
-
-    // dump the result.
-    sys.matrix.dump("LA001_stupid_solver.mdl");
-    EXPECT_TRUE(is_finished(sys, m));
-
-    // complete trace.
-    EXPECT_TRUE(trace.output_trace("LA001_stupid_solver.nbt"));
-
-    // broken trace.
-    for (int i = 0; i < 10; ++i) {
-        trace.pop_back();
-    }
-    EXPECT_TRUE(trace.output_trace("LA001_stupid_solver_broken.nbt"));
+    EXPECT_TRUE(state.is_finished());
 }
 
-TEST(System, StupidSolverv2) {
+TEST(System, StupidSolverV2) {
     Matrix m("../data/problems/LA001_tgt.mdl");
-    ASSERT_TRUE(m);
+    auto trace = stupid_solver(System(m.R), m);
 
-    System sys(m.R);
-    EXPECT_FALSE(is_finished(sys, m));
+    State state(m);
+    EXPECT_FALSE(state.is_finished());
+    state.simulate(trace);
 
-    // sys is not changed in the solver.
-    auto trace = stupid_solver_v2(sys, m);
-
-    // simulate the plan.
-    sys.trace = trace;
-    while (!sys.trace.empty()) {
-        if (proceed_timestep(sys)) {
-            break;
-        }
-    }
-
-    // dump the result.
-    sys.matrix.dump("LA001_stupid_solver_v2.mdl");
-    EXPECT_TRUE(is_finished(sys, m));
-
-    // complete trace.
-    EXPECT_TRUE(trace.output_trace("LA001_stupid_solver_v2.nbt"));
-
-    // broken trace.
-    for (int i = 0; i < 10; ++i) {
-        trace.pop_back();
-    }
-    EXPECT_TRUE(trace.output_trace("LA001_stupid_solver_broken_v2.nbt"));
+    EXPECT_TRUE(state.is_finished());
 }
 
 int main(int argc, char **argv) {

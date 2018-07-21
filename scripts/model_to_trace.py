@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# --binary_file_path ../src/stupid_engine.exe --input_model_directory_path ../data/problems --output_trace_file_directory_path ../tmp/trace --output_info_file_directory_path ../tmp/info --jobs 4
 import argparse
 import concurrent.futures
 import os

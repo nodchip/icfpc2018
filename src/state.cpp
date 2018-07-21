@@ -5,19 +5,19 @@
 #include "system.h"
 
 State::State(const Matrix& m)
-  : problem(m), sys(m.R) {}
+  : problem(m), system(m.R) {}
 
 int State::simulate(const Trace& t) {
-    sys.trace = t;
-    while (!sys.trace.empty()) {
-        if (proceed_timestep(sys)) {
+    system.trace = t;
+    while (!system.trace.empty()) {
+        if (proceed_timestep(system)) {
             break;
         }
     }
-    sys.print_detailed();
+    system.print_detailed();
 
     int exit_code = 0;
-    bool is_successful = is_finished(sys, problem);
+    bool is_successful = is_finished();
     if (is_successful) {
         std::cout << "Success." << std::endl;
     } else {
@@ -26,4 +26,17 @@ int State::simulate(const Trace& t) {
     }
 
     return exit_code;
+}
+
+bool State::is_finished() const {
+    if (system.harmonics_high)
+        return false;
+    if (!system.bots.empty())
+        return false;
+    // if (!system.trace.empty())
+    //     return false;
+    if (system.matrix != problem)
+        return false;
+
+    return true;
 }
