@@ -67,6 +67,7 @@ TEST(System, StupidSolver) {
             break;
         }
     }
+    sys.print_detailed();
 
     // dump the result.
     dump_model("LA001_stupid_solver.mdl", sys.matrix);
