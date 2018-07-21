@@ -4,6 +4,47 @@
 #include <iostream>
 using namespace std;
 
+bool is_high_harmonic_needed(const System& system, const Matrix& problem_matrix, const int x, const int y, const int z){
+  if(y == 0){
+    return false;
+  }
+  if(x > 0) {
+    if(problem_matrix(x-1,y,z)){
+      return false;
+    }
+  }
+  if(x < system.matrix.R - 1) {
+    if(problem_matrix(x + 1, y, z)){
+      return false;
+    }
+  }
+  
+  if(y > 0) {
+    if(problem_matrix(x, y-1, z)){
+      return false;
+    }
+  }
+  if(y < system.matrix.R - 1) {
+    if(problem_matrix(x, y+1, z)){
+      return false;
+    }
+  }
+  
+  if(z > 0) {
+    if(problem_matrix(x, y, z-1)){
+      return false;
+    }
+  }
+    
+  if(x < system.matrix.R - 1) {
+    if(problem_matrix(x, y, z+1)){
+      return false;
+    }
+  }
+  
+  return true;
+}
+
 Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     // use a single nanobot.
     // always in the high harmonics.
@@ -12,7 +53,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     // if xz plane is finished go to next step
 
     Trace trace;
-    trace.push_back(CommandFlip{}); // high.
+    bool is_high = false;
     vector<int> filled(system.matrix.R+1);
     vector<int> blocknum(system.matrix.R+1);
     for(int y = 0; y < system.matrix.R ; ++y){
@@ -40,6 +81,11 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
                 p.x += xdir;
                 trace.push_back(CommandSMove{Vec3(xdir, 0, 0)});
                 if (problem_matrix(prev)) {
+		  if(!is_high && is_high_harmonic_needed(system, problem_matrix, prev.x, prev.y, prev.z)){
+		    cout<<"high harmonic "<<prev.x<<","<<prev.y<<","<<prev.z<<endl;
+		    is_high = true;
+		    trace.push_back(CommandFlip{}); // high.
+		  }
                     trace.push_back(CommandFill{prev - p});
 		    filled[p.y] +=1;
 		    // finished
@@ -59,6 +105,10 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
             p.z += zdir;
             trace.push_back(CommandSMove{Vec3(0, 0, zdir)});
             if (problem_matrix(prev)) {
+	      if(!is_high && is_high_harmonic_needed(system, problem_matrix, prev.x, prev.y, prev.z)){
+		is_high = true;
+		trace.push_back(CommandFlip{}); // high.
+	      }
                 trace.push_back(CommandFill{prev - p});
 		filled[p.y] += 1;
 		// finished
@@ -107,7 +157,9 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     }
 
     // finalize at the origin pos.
-    trace.push_back(CommandFlip{});
+    if(is_high){
+      trace.push_back(CommandFlip{});
+    }
     trace.push_back(CommandHalt{});
     return trace;
 }
