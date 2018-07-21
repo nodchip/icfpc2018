@@ -24,17 +24,17 @@ all: dirs test engines evaluate
 ######################
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
-engines: stupid_engine stupid_bbox_engine stupid_engine_v2
+engines: stupid_engine stupid_engine_v2 parallel_stupid_engine
 
 ######################
 # ADD YOUR ENGINE HERE
 stupid_engine: engine_main.cpp engines/stupid_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-stupid_bbox_engine: engine_main.cpp engines/stupid_bbox_solver.cpp $(OBJS)
+stupid_engine_v2: engine_main.cpp engines/stupid_solver_v2.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-stupid_engine_v2: engine_main.cpp engines/stupid_solver_v2.cpp $(OBJS)
+parallel_stupid_engine: engine_main.cpp engines/parallel_stupid_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 
@@ -43,7 +43,7 @@ dirs:
 	@mkdir -p $(BUILD_PATH)
 	@mkdir -p $(BUILD_PATH)/engines
 
-test: test_main.cpp engines/stupid_solver.cpp engines/stupid_solver_v2.cpp $(OBJS) $(TEST_OBJS)
+test: test_main.cpp engines/stupid_solver.cpp engines/stupid_solver_v2.cpp engines/parallel_stupid_solver.cpp $(OBJS) $(TEST_OBJS)
 	$(CXX) -DTEST_PROJECT $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 evaluate: evaluate_main.cpp $(OBJS) $(TEST_OBJS)

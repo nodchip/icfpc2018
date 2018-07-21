@@ -9,40 +9,6 @@
 #endif // TEST_PROJECT
 #include "debug_message.h"
 
-namespace NOutputTrace {
-    struct LDEncoding {
-        static LDEncoding from_SLD(Vec3 ld) {
-            // TODO: assert ld is a SLD.
-            if (ld.x != 0) {
-                return LDEncoding(0b01, ld.x + 5);
-            } else if (ld.y != 0) {
-                return LDEncoding(0b10, ld.y + 5);
-            } else if (ld.z != 0) {
-                return LDEncoding(0b11, ld.z + 5);
-            }
-            //ASSERT(false);
-            return LDEncoding(0xff, 0xff);
-        }
-        static LDEncoding from_LLD(Vec3 ld) {
-            // TODO: assert ld is a LLD.
-            if (ld.x != 0) {
-                return LDEncoding(0b01, ld.x + 15);
-            } else if (ld.y != 0) {
-                return LDEncoding(0b10, ld.y + 15);
-            } else if (ld.z != 0) {
-                return LDEncoding(0b11, ld.z + 15);
-            }
-            //ASSERT(false);
-            return LDEncoding(0xff, 0xff);
-        }
-        uint8_t a = 0; // axis
-        uint8_t i = 0; // length
-
-    private:
-        LDEncoding(uint8_t a_, uint8_t i_) : a(a_), i(i_) {}
-    };
-}  // namespace NOutputTrace
-
 namespace NProceedTimestep {
 
     struct GroundConnectivityChecker {
@@ -162,6 +128,8 @@ namespace NProceedTimestep {
         bool operator()(CommandSMove cmd) {
             if (!sys.matrix.is_in_matrix(bot.pos + cmd.lld)) {
                 LOG_ERROR("[CommandSMove] target position out of range.");
+                bot.pos.print();
+                cmd.lld.print();
                 return false;
             }
             if (sys.matrix.any_full(Region(bot.pos, bot.pos + cmd.lld))) {
@@ -354,6 +322,7 @@ void System::sort_by_bid() {
 
 void System::print() {
     std::cout << "System energy=" << energy
+              << ", R=" << matrix.R
               << ", harmonics=" << (harmonics_high ? "high" : "low")
               << ", bots=" << bots.size()
               << ", trace=" << trace.size()

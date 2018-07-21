@@ -2,6 +2,7 @@
 
 #include "matrix.h"
 #include "system.h"
+#include "debug_message.h"
 
 State::State(const Matrix& m)
   : problem(m), system(m.R) {}
@@ -28,14 +29,20 @@ int State::simulate(const Trace& t) {
 }
 
 bool State::is_finished() const {
-    if (system.harmonics_high)
+    if (system.harmonics_high) {
+        LOG_ERROR("harmonics are still high.");
         return false;
-    if (!system.bots.empty())
+    }
+    if (!system.bots.empty()) {
+        LOG_ERROR("bots are remaining.");
         return false;
+    }
     // if (!system.trace.empty())
     //     return false;
-    if (system.matrix != problem)
+    if (system.matrix != problem) {
+        LOG_ERROR("matrix is different from the target");
         return false;
+    }
 
     return true;
 }

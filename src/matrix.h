@@ -29,7 +29,7 @@ struct Matrix {
     Voxel operator()(const Vec3& p) const { return operator()(p.x, p.y, p.z); }
 
     // is this a valid matrix?
-    operator bool() const {
+    bool is_valid_matrix() const {
         return 0 < R && !buf.empty();
     }
 
@@ -51,6 +51,18 @@ struct Matrix {
     }
 
     bool dump(std::string output_path);
+
+    bool operator==(const Matrix& other) const {
+        if (R != other.R)
+            return false;
+        if (buf != other.buf)
+            return false;
+        return true;
+    }
+
+    bool operator!=(const Matrix& other) const {
+        return !operator==(other);
+    }
 
 
     int R;
