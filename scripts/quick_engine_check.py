@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import os
 import sys
 import subprocess
@@ -21,9 +22,11 @@ def resolve_engine(engine_name):
 
 def job(args):
     cmds, engine_path, f = args
-    res = subprocess.run(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=os.path.dirname(engine_path))
+    cwd = os.path.dirname(engine_path)
+    if len(cwd) == 0:
+        cwd = None
+    res = subprocess.run(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
     return args, res
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -53,7 +56,7 @@ if __name__ == '__main__':
         trace_path = os.path.abspath(os.path.join(args.trace_output_dir, '{}.nbt'.format(name)))
         info_path = os.path.abspath(os.path.join(args.info_output_dir, '{}.json'.format(name)))
 
-        cmds = [engine_path, '--model', model_path, '--trace-output', trace_path, '--info', info_path]
+        cmds = [os.path.abspath(engine_path), '--model', model_path, '--trace-output', trace_path, '--info', info_path]
         commands.append((cmds, engine_path, f))
 
     with multiprocessing.Pool(args.jobs) as pool:
