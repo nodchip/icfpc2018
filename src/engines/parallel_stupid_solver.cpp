@@ -12,20 +12,23 @@ const Vec3 unitX(1, 0, 0);
 const Vec3 unitY(0, 1, 0);
 const Vec3 unitZ(0, 0, 1);
 
-void naive_move(const Vec3& destination, Vec3& position, Trace& trace) {
+  void naive_move(const Vec3& destination, Vec3& position, Trace& trace, long long int &t) {
     const Vec3 dx = (destination.x > position.x) ? unitX : -unitX;
     while (position.x != destination.x) {
         trace.push_back(CommandSMove{dx});
+	++t;
         position += dx;
     }
     const Vec3 dy = (destination.y > position.y) ? unitY : -unitY;
     while (position.y != destination.y) {
         trace.push_back(CommandSMove{dy});
+	++t;
         position += dy;
     }
     const Vec3 dz = (destination.z > position.z) ? unitZ : -unitZ;
     while (position.z != destination.z) {
         trace.push_back(CommandSMove{dz});
+	++t;
         position += dz;
     }
 }
@@ -57,7 +60,7 @@ Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
 
     // print
     Trace trace;
-    naive_move(lower, position, trace);
+    naive_move(lower, position, trace, t);
     int dx = -1;
     int dz = -1;
     for (int y = lower.y + 1; y <= upper.y; ++y) {
@@ -69,6 +72,7 @@ Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
             dx *= -1;
             if (z > lower.z) {
                 trace.push_back(CommandSMove{Vec3(0, 0, dz)});
+		++t;
                 position += Vec3(0, 0, dz);
             }
             for (int x = lower.x; x < upper.x; ++x) {
@@ -93,10 +97,9 @@ Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
 
 
 void unfset(const int R, UnionFind &unf, vector<bool> &is_filled, int x, int y, int z){
-  is_filled[(x * R + y) * R + z] = true;
+
   if(y == 0){
     unf.unionSet(0, x * R * R + z + 1);
-    return;
   }
 
   if(x > 0) {
@@ -110,16 +113,19 @@ void unfset(const int R, UnionFind &unf, vector<bool> &is_filled, int x, int y, 
     }
   }
 
+  
   if(y > 0) {
     if(is_filled[( x * R + y - 1 ) * R + z]){
       unf.unionSet(( x * R + ( y-1 )) * R + z + 1 , (x * R + y) * R + z + 1);
     }
   }
+  
   if(y < R - 1) {
     if(is_filled[( x * R + y + 1 ) * R + z]){
       unf.unionSet(( x * R + ( y+1 )) * R + z + 1 , (x * R + y) * R + z + 1);
     }
   }
+  
 
   if(z > 0) {
     if(is_filled[( x * R + y ) * R + z - 1]){
@@ -132,6 +138,7 @@ void unfset(const int R, UnionFind &unf, vector<bool> &is_filled, int x, int y, 
       unf.unionSet(( x * R + y) * R + z + 2, (x * R + y) * R + z + 1);
     }
   }
+  is_filled[(x * R + y) * R + z] = true;
 }
 
 vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector< std::pair<long long int, Vec3> > &time_and_loc){
@@ -144,11 +151,12 @@ vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector<
     unfset(R, unf, is_filled, time_and_loc[i].second.x, time_and_loc[i].second.y, time_and_loc[i].second.z);
     
     // check
+    // cout<<time_and_loc[i].first<<","<<time_and_loc[i].second.x<<","<<time_and_loc[i].second.y<<","<<time_and_loc[i].second.z<<endl;
     if(time_and_loc[i].first != time_and_loc[i+1].first){
       if(unf.size(0)-1 == i + 1){
 	// no harmonic
 	if(is_harmonic){
-	  out.push_back(time_and_loc[i].first);
+	  out.push_back(time_and_loc[i].first + 1);
 	  is_harmonic = false;
 	}
       }else{
@@ -166,7 +174,7 @@ vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector<
 Trace parallel_stupid_solver(const Matrix& problem_matrix) {
     System system(problem_matrix.R);
     Trace trace;
-    trace.push_back(CommandFlip{}); // high.
+    //trace.push_back(CommandFlip{}); // high.
     
     // union find
     UnionFind unf(system.matrix.R*system.matrix.R*system.matrix.R + 1);
@@ -210,16 +218,32 @@ Trace parallel_stupid_solver(const Matrix& problem_matrix) {
         highest = std::max(highest, positions[i].y);
     }
     std::sort(time_and_loc.begin(), time_and_loc.end());
-    std::vector<long long int> flips = get_time_to_flip(system.matrix.R, unf, time_and_loc);
+    std::vector<long long int> flips;
+    flips= get_time_to_flip(system.matrix.R, unf, time_and_loc);
+    for(auto f : flips){
+      cout<<f<<",";
+    }
+    cout<<endl;
     std::size_t max_trace_size = 0;
+    long long int dump = 0;
     for (int i = 0; i < N; ++i) {
-        naive_move(Vec3(positions[i].x, highest, positions[i].z),
-             positions[i], traces[i]);
+      naive_move(Vec3(positions[i].x, highest, positions[i].z),
+		 positions[i], traces[i], dump);
         max_trace_size = std::max(max_trace_size, traces[i].size());
     }
 
     // merge
+    bool flipped = false;
+    int flipcnt = 0;
     for (std::size_t t = 0; t < max_trace_size; ++t) {
+      if(t == flips[flipcnt]){
+	trace.push_back(CommandFlip{});
+	flipped = !flipped;
+	for (int i = 1; i < N; ++i) {
+	  trace.push_back(CommandWait{});
+	}
+	++flipcnt;
+      }
         for (int i = 0; i < N; ++i) {
             if (t < traces[i].size()) {
                 trace.push_back(traces[i][t]);
@@ -230,10 +254,9 @@ Trace parallel_stupid_solver(const Matrix& problem_matrix) {
     }
 
     // go home
-    bool flipped = false;
     for (int i = N - 1; i > 0; --i) {
         Trace trace_to_join;
-        naive_move(positions[i - 1], positions[i], trace_to_join);
+        naive_move(positions[i - 1], positions[i], trace_to_join,dump);
         if (auto* command = boost::get<CommandSMove>(&trace_to_join.back())) {
             positions[i] -= command->lld;
             trace_to_join.pop_back();
@@ -248,10 +271,10 @@ Trace parallel_stupid_solver(const Matrix& problem_matrix) {
         }
         for (int j = 0; j < i - 1; ++j) {
             
-	    if(!flipped){
+	    if(flipped){
 	      // flip before merge
 	      trace.push_back(CommandFlip{});
-	      flipped = true;
+	      flipped = false;
 
 	    }else{
 	      trace.push_back(CommandWait{});
@@ -260,11 +283,12 @@ Trace parallel_stupid_solver(const Matrix& problem_matrix) {
         trace.push_back(CommandFusionP{positions[i] - positions[i - 1]});
         trace.push_back(CommandFusionS{positions[i - 1] - positions[i]});
     }
-    naive_move(Vec3(0, 0, 0), positions[0], trace);
+    naive_move(Vec3(0, 0, 0), positions[0], trace, dump);
 
-    if (!flipped){
+    if (flipped){
       // flip before merge
       trace.push_back(CommandFlip{});
+      flipped = false;
     }
     // finalize at the origin pos.
     trace.push_back(CommandHalt{});
