@@ -1,44 +1,43 @@
 #include "engine.h"
 #include "stupid_solver_v2.h"
-#include "../union_find.h"
 #include <vector>
 #include <iostream>
 using namespace std;
 
-bool is_high_harmonic_needed(const System& system, const Matrix& problem_matrix, const vector<bool> &is_filled, const int x, const int y, const int z){
+bool is_high_harmonic_needed(const System& system, const Matrix& problem_matrix, const int x, const int y, const int z){
   if(y == 0){
     return false;
   }
   if(x > 0) {
-    if(is_filled[( (x - 1) * system.matrix.R + y ) * system.matrix.R + z]){
+    if(problem_matrix(x-1,y,z)){
       return false;
     }
   }
   if(x < system.matrix.R - 1) {
-    if(is_filled[( (x + 1) * system.matrix.R + y ) * system.matrix.R + z]){
+    if(problem_matrix(x + 1, y, z)){
       return false;
     }
   }
   
   if(y > 0) {
-    if(is_filled[( x * system.matrix.R + y - 1 ) * system.matrix.R + z]){
+    if(problem_matrix(x, y-1, z)){
       return false;
     }
   }
   if(y < system.matrix.R - 1) {
-    if(is_filled[( x * system.matrix.R + y + 1 ) * system.matrix.R + z]){
+    if(problem_matrix(x, y+1, z)){
       return false;
     }
   }
   
   if(z > 0) {
-    if(is_filled[( x * system.matrix.R + y ) * system.matrix.R + z - 1]){
+    if(problem_matrix(x, y, z-1)){
       return false;
     }
   }
     
-  if(z < system.matrix.R - 1) {
-    if(is_filled[( x * system.matrix.R + y ) * system.matrix.R + z + 1]){
+  if(x < system.matrix.R - 1) {
+    if(problem_matrix(x, y, z+1)){
       return false;
     }
   }
@@ -52,15 +51,11 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     // zig-zag scanning in the XZ plane.  
     // only fill the "previous" voxels.
     // if xz plane is finished go to next step
-    // judge if harmonic is needed or not and switch it automatically
-  
+
     Trace trace;
-    //UnionFind unf(system.matrix.R*system.matrix.R*system.matrix.R + 1);
-    
     bool is_high = false;
     vector<int> filled(system.matrix.R+1);
     vector<int> blocknum(system.matrix.R+1);
-    vector<bool> is_filled(system.matrix.R * system.matrix.R * system.matrix.R);
     for(int y = 0; y < system.matrix.R ; ++y){
       for(int x = 0; x < system.matrix.R ; ++x){
 	for(int z = 0; z < system.matrix.R ; ++z){
@@ -86,24 +81,16 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
                 p.x += xdir;
                 trace.push_back(CommandSMove{Vec3(xdir, 0, 0)});
                 if (problem_matrix(prev)) {
-		  if(!is_high && is_high_harmonic_needed(system, problem_matrix, is_filled, prev.x, prev.y, prev.z)){
+		  if(!is_high && is_high_harmonic_needed(system, problem_matrix, prev.x, prev.y, prev.z)){
 		    cout<<"high harmonic "<<prev.x<<","<<prev.y<<","<<prev.z<<endl;
 		    is_high = true;
 		    trace.push_back(CommandFlip{}); // high.
 		  }
                     trace.push_back(CommandFill{prev - p});
-		    is_filled[(prev.x * system.matrix.R + prev.y ) * system.matrix.R + prev.z] = true;
 		    filled[p.y] +=1;
-		    /*
-		    if(p.y == 0){
-		      unf.unionSet(0, (p.x * system.matrix.R + p.y) + p.z + 1);
-		    }
-		    */
 		    // finished
 		    if(filled[p.y] == blocknum[p.y]){
 		      is_plane_finished = true;
-		    }else{
-		      
 		    }
                 }
                 prev = p;
@@ -118,19 +105,12 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
             p.z += zdir;
             trace.push_back(CommandSMove{Vec3(0, 0, zdir)});
             if (problem_matrix(prev)) {
-	      if(!is_high && is_high_harmonic_needed(system, problem_matrix, is_filled, prev.x, prev.y, prev.z)){
+	      if(!is_high && is_high_harmonic_needed(system, problem_matrix, prev.x, prev.y, prev.z)){
 		is_high = true;
 		trace.push_back(CommandFlip{}); // high.
 	      }
                 trace.push_back(CommandFill{prev - p});
-		is_filled[(prev.x * system.matrix.R + prev.y ) * system.matrix.R + prev.z] = true;
 		filled[p.y] += 1;
-		/*
-		if(p.y == 0){
-		  unf.unionSet(0, (p.x * system.matrix.R + p.y) + p.z + 1);
-		}
-		*/
-
 		// finished
 		if(filled[p.y] == blocknum[p.y]){
 		  is_plane_finished = true;
@@ -166,7 +146,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     std::vector<Vec3> trajectory;
     if (!bfs_shortest_in_void(system.matrix, p, system.final_pos(),
         &trace, &trajectory)) {
-        std::cout << "sorry, stupid algorithm failed.." << std::endl;
+        printf("sorry, stupid algorithm failed..\n");
         return trace;
     }
 

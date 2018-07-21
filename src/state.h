@@ -9,6 +9,10 @@ struct State {
 
   int simulate(const Trace& t);
 
+  // @return well-formed state and matters are identical to problem_matrix.
+  //         i.e. ready to submit.
+  bool is_finished() const;
+
   Matrix problem;
-  System sys;
+  System system;
 };
