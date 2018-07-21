@@ -1,9 +1,7 @@
 #include "nmms.h"
 // std
-#include <cstdio>
 #include <map>
 #include <unordered_map>
-#include <numeric>
 // 3rd
 #include <gtest/gtest.h>
 
@@ -40,74 +38,6 @@ namespace NOutputTrace {
         LDEncoding(uint8_t a_, uint8_t i_) : a(a_), i(i_) {}
     };
 }  // namespace NOutputTrace
-
-Matrix load_model(std::string input_path) {
-    std::FILE* fp = std::fopen(input_path.c_str(), "rb");
-
-    uint8_t R = 0xff;
-    std::fread(&R, 1, 1, fp);
-    // TODO:check error, R!=0xff
-
-    std::vector<uint8_t> buf((R * R * R + 8 - 1) / 8, 0);
-    std::fread(buf.data(), 1, buf.size(), fp);
-    std::fclose(fp);
-
-    Matrix m(R);
-
-    for (int z = 0; z < R; ++z) {
-        for (int y = 0; y < R; ++y) {
-            for (int x = 0; x < R; ++x) {
-                const size_t bit = (x * R + y) * R + z;
-                m(x, y, z) = (buf[bit >> 3] & (1 << (bit & 7))) ? Full : Void;
-            }
-        }
-    }
-
-    return m;
-}
-
-bool dump_model(std::string output_path, const Matrix& m) {
-    // assert a valid m.
-    std::vector<uint8_t> buf((m.R * m.R * m.R + 8 - 1) / 8, 0);
-    for (int z = 0; z < m.R; ++z) {
-        for (int y = 0; y < m.R; ++y) {
-            for (int x = 0; x < m.R; ++x) {
-                const size_t bit = (x * m.R + y) * m.R + z;
-                if (m(x, y, z) != Void) {
-                    buf[bit >> 3] |= (1 << (bit & 7));
-                }
-            }
-        }
-    }
-
-    std::FILE* fp = std::fopen(output_path.c_str(), "wb");
-    uint8_t R = m.R;
-    std::fwrite(&R, 1, 1, fp);
-    std::fwrite(buf.data(), 1, buf.size(), fp);
-    std::fclose(fp);
-
-    return true;
-}
-
-bool System::start(int R) {
-    // TODO: assert R > 0
-
-    energy = 0;
-    harmonics_high = false;
-    matrix = Matrix(R);
-
-    Bot first_bot;
-    first_bot.bid = 1;
-    first_bot.pos = start_pos();
-    // [2, 20]
-    first_bot.seeds.resize(19);
-    std::iota(first_bot.seeds.begin(), first_bot.seeds.end(), 2);
-    bots = {first_bot};
-
-    trace.clear();
-
-    return true;
-}
 
 bool is_finished(const System& system, const Matrix& problem_matrix) {
     // TODO: check R.
@@ -256,8 +186,7 @@ namespace NProceedTimestep {
 }
 
 TEST(Commands, Fission) {
-    System system;
-    system.start(4);
+    System system(4);
     int m = 2;
 
     bool halt = false;
