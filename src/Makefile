@@ -9,7 +9,7 @@ LDFLAGS+=-lpthread -lboost_program_options
 
 BUILD_PATH=build
 
-SRCS=command.cpp matrix.cpp nmms.cpp vec3.cpp
+SRCS=command.cpp matrix.cpp nanobot.cpp nmms.cpp region.cpp vec3.cpp system.cpp trace.cpp
 SRCS+=engine.cpp
 
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)

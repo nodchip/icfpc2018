@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include "vec3.h"
+
 typedef uint32_t BotID;
 struct Bot {
     BotID bid = 1;

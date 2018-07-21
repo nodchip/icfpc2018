@@ -3,6 +3,7 @@
 #include <cstdio>
 // 3rd
 #include <gtest/gtest.h>
+// TODO(peria): Split test for solvers
 // project
 #include "engines/stupid_solver.h"
 
@@ -15,9 +16,9 @@ TEST(Matrix, LoadAndDumpMatrix) {
     // add some voxels.
     for (int x = 0; x < m.R / 2; ++x) {
         if (x % 2 == 0) {
-            m(x, 0, 1) = 1;
+            m(x, 0, 1) = Voxel::Full;
         } else {
-            m(Vec3(x, 1, 0)) = 1;
+            m(Vec3(x, 1, 0)) = Voxel::Full;
         }
     }
 
@@ -84,7 +85,7 @@ TEST(System, StupidSolver) {
 }
 
 int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv); 
+    ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
 // vim: set si et sw=4 ts=4:

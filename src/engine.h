@@ -1,11 +1,14 @@
 #ifndef __ENGINE_H__
 #define __ENGINE_H__
+
 #include <functional>
 #include <map>
+#include <string>
 
-#include "nmms.h"
+#include "system.h"
+#include "trace.h"
 
-typedef std::function<Trace(const System& system, const Matrix& problem_matrix)> EngineFunc;
+using EngineFunc = std::function<Trace(const System& system, const Matrix& problem_matrix)>;
 
 struct RegisterEngine {
     RegisterEngine(std::string name, EngineFunc func) {

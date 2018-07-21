@@ -5,8 +5,8 @@
 #include <boost/program_options.hpp>
 #include <nlohmann/json.hpp>
 // project
-#include "nmms.h"
 #include "engine.h"
+#include "nmms.h"
 
 int main(int argc, char** argv) {
     namespace po = boost::program_options;
@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);    
+    po::notify(vm);
 
     if (vm.count("help")) {
         std::cout << desc << "\n";
