@@ -28,10 +28,10 @@ engines: stupid_engine stupid_engine_v2
 
 ######################
 # ADD YOUR ENGINE HERE
-stupid_engine: engine_main.cpp engines/stupid_solver.cpp $(OBJS) $(TEST_OBJS)
+stupid_engine: engine_main.cpp engines/stupid_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-stupid_engine_v2: engine_main.cpp engines/stupid_solver_v2.cpp $(OBJS) $(TEST_OBJS)
+stupid_engine_v2: engine_main.cpp engines/stupid_solver_v2.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 
@@ -41,7 +41,7 @@ dirs:
 	@mkdir -p $(BUILD_PATH)/engines
 
 test: test_main.cpp engines/stupid_solver.cpp engines/stupid_solver_v2.cpp $(OBJS) $(TEST_OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+	$(CXX) -DTEST_PROJECT $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 evaluate: evaluate_main.cpp $(OBJS) $(TEST_OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)

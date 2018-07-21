@@ -3,7 +3,9 @@
 #include <map>
 #include <unordered_map>
 // 3rd
+#ifdef TEST_PROJECT
 #include <gtest/gtest.h>
+#endif // TEST_PROJECT
 
 namespace NOutputTrace {
     struct LDEncoding {
@@ -38,18 +40,6 @@ namespace NOutputTrace {
         LDEncoding(uint8_t a_, uint8_t i_) : a(a_), i(i_) {}
     };
 }  // namespace NOutputTrace
-
-bool is_finished(const System& system, const Matrix& problem_matrix) {
-    // TODO: check R.
-
-    if (system.harmonics_high) return false;
-    if (!system.bots.empty()) return false;
-    // TODO: check trace == epsilon (???)
-    if (system.matrix != problem_matrix) return false;
-
-    return true;
-}
-
 
 namespace NProceedTimestep {
 
@@ -185,6 +175,7 @@ namespace NProceedTimestep {
     };
 }
 
+#ifdef TEST_PROJECT
 TEST(Commands, Fission) {
     System system(4);
     int m = 2;
@@ -223,6 +214,7 @@ TEST(Commands, Fission) {
     ASSERT_EQ(system.bots.size(), 1);
     EXPECT_EQ(system.bots[0].seeds.size(), 19);
 }
+#endif // TEST_PROJECT
 
 void global_energy_update(System& system) {
     if (system.harmonics_high) {
