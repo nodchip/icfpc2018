@@ -52,7 +52,7 @@ struct Matrix {
 
     bool dump(std::string output_path);
 
-    bool operator==(const Matrix& other) {
+    bool operator==(const Matrix& other) const {
         if (R != other.R)
             return false;
         if (buf != other.buf)
@@ -60,7 +60,7 @@ struct Matrix {
         return true;
     }
 
-    bool operator!=(const Matrix& other) {
+    bool operator!=(const Matrix& other) const {
         return !operator==(other);
     }
 
