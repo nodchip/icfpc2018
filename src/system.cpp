@@ -199,6 +199,8 @@ struct UpdateSystem : public boost::static_visitor<bool> {
         }
         if (sys.matrix.any_full(Region(bot.pos, bot.pos + cmd.lld))) {
             LOG_ERROR("[CommandSMove] some full voxels in between the move.");
+            bot.pos.print();
+            cmd.lld.print();
             return false;
         }
         bot.pos += cmd.lld;
