@@ -2,15 +2,14 @@
 #include <cstdio>
 // 3rd
 #include <gtest/gtest.h>
-
+// TODO(peria): Split test for solvers
 // project
-#include "matrix.h"
 #include "trace.h"
 #include "engines/stupid_solver.h"
 #include "engines/stupid_solver_v2.h"
 
 TEST(Matrix, LoadAndDumpMatrix) {
-    Matrix m("../problems/LA001_tgt.mdl");
+    Matrix m = load_model("../problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
     std::printf("Model R=%d\n", m.R);
     EXPECT_EQ(m.R, 20);
@@ -27,7 +26,7 @@ TEST(Matrix, LoadAndDumpMatrix) {
     dump_model("LA001_tgt_modified.mdl", m);
 
     // load again to check identity.
-    Matrix m2("LA001_tgt_modified.mdl");
+    Matrix m2 = load_model("LA001_tgt_modified.mdl");
     ASSERT_TRUE(m2);
     EXPECT_EQ(m.buf, m2.buf);
 }
@@ -53,7 +52,7 @@ TEST(Trace, OutputTraceExample) {
 }
 
 TEST(System, StupidSolver) {
-    Matrix m("../problems/LA001_tgt.mdl");
+    Matrix m = load_model("../problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
 
     System sys;
@@ -87,7 +86,7 @@ TEST(System, StupidSolver) {
 }
 
 TEST(System, StupidSolverv2) {
-    Matrix m("../problems/LA001_tgt.mdl");
+    Matrix m = load_model("../problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
 
     System sys;

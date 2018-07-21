@@ -6,6 +6,7 @@
 #include "system.h"
 
 // TODO(peria): Move to another file
+Matrix load_model(std::string input_path);
 bool dump_model(std::string output_path, const Matrix& m);
 
 
