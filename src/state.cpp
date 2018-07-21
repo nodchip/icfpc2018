@@ -10,7 +10,7 @@ State::State(const Matrix& m)
 int State::simulate(const Trace& t) {
     system.trace = t;
     while (!system.trace.empty()) {
-        if (proceed_timestep(system)) {
+        if (system.proceed_timestep()) {
             break;
         }
     }
