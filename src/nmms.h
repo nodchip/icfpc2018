@@ -5,10 +5,6 @@
 
 #include "system.h"
 
-// TODO(peria): Move to another file
-bool dump_model(std::string output_path, const Matrix& m);
-
-
 // @return well-formed state and matters are identical to problem_matrix.
 //         i.e. ready to submit.
 bool is_finished(const System& system, const Matrix& problem_matrix);

@@ -40,29 +40,6 @@ namespace NOutputTrace {
     };
 }  // namespace NOutputTrace
 
-bool dump_model(std::string output_path, const Matrix& m) {
-    // assert a valid m.
-    std::vector<uint8_t> buf((m.R * m.R * m.R + 8 - 1) / 8, 0);
-    for (int z = 0; z < m.R; ++z) {
-        for (int y = 0; y < m.R; ++y) {
-            for (int x = 0; x < m.R; ++x) {
-                const size_t bit = (x * m.R + y) * m.R + z;
-                if (m(x, y, z) != Void) {
-                    buf[bit >> 3] |= (1 << (bit & 7));
-                }
-            }
-        }
-    }
-
-    std::FILE* fp = std::fopen(output_path.c_str(), "wb");
-    uint8_t R = m.R;
-    std::fwrite(&R, 1, 1, fp);
-    std::fwrite(buf.data(), 1, buf.size(), fp);
-    std::fclose(fp);
-
-    return true;
-}
-
 bool System::start(int R) {
     // TODO: assert R > 0
 

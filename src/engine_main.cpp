@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
         // dump the result.
         auto dump_model_path = options["trace-output"] + ".mdl";
         auto dump_trace_path = options["trace-output"];
-        dump_model(dump_model_path, sys.matrix);
+        sys.matrix.dump(dump_model_path);
 
         // trace.
         trace.output_trace(dump_trace_path);

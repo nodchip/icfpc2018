@@ -23,7 +23,7 @@ TEST(Matrix, LoadAndDumpMatrix) {
         }
     }
 
-    dump_model("LA001_tgt_modified.mdl", m);
+    m.dump("LA001_tgt_modified.mdl");
 
     // load again to check identity.
     Matrix m2("LA001_tgt_modified.mdl");
@@ -72,7 +72,7 @@ TEST(System, StupidSolver) {
     sys.print_detailed();
 
     // dump the result.
-    dump_model("LA001_stupid_solver.mdl", sys.matrix);
+    sys.matrix.dump("LA001_stupid_solver.mdl");
     EXPECT_TRUE(is_finished(sys, m));
 
     // complete trace.
@@ -105,7 +105,7 @@ TEST(System, StupidSolverv2) {
     }
 
     // dump the result.
-    dump_model("LA001_stupid_solver_v2.mdl", sys.matrix);
+    sys.matrix.dump("LA001_stupid_solver_v2.mdl");
     EXPECT_TRUE(is_finished(sys, m));
 
     // complete trace.

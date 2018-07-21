@@ -50,6 +50,9 @@ struct Matrix {
         return false;
     }
 
+    bool dump(std::string output_path);
+
+
     int R;
     std::vector<Voxel> buf;
 };

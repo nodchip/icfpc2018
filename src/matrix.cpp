@@ -29,3 +29,25 @@ Matrix::Matrix(const std::string& input_path) : R(0xff) {
         }
     }
 }
+
+bool Matrix::dump(std::string output_path) {
+    // assert a valid m.
+    std::vector<uint8_t> buffer((R * R * R + 8 - 1) / 8, 0);
+    for (int z = 0; z < R; ++z) {
+        for (int y = 0; y < R; ++y) {
+            for (int x = 0; x < R; ++x) {
+                const size_t bit = (x * R + y) * R + z;
+                if ((*this)(x, y, z) != Void) {
+                    buffer[bit >> 3] |= (1 << (bit & 7));
+                }
+            }
+        }
+    }
+
+    std::FILE* fp = std::fopen(output_path.c_str(), "wb");
+    std::fwrite(&R, 1, 1, fp);
+    std::fwrite(buffer.data(), 1, buffer.size(), fp);
+    std::fclose(fp);
+
+    return true;
+}
