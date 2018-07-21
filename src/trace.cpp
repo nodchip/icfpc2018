@@ -1,11 +1,12 @@
 #include "trace.h"
 
 #include <vector>
+#include "debug_message.h"
 
 namespace NOutputTrace {
 
 uint8_t nd_encoding(Vec3 nd) {
-    // TODO: assert nd is a ND.
+    ASSERT_ERROR(is_valid_nd(nd));
     return (nd.x + 1) * 9 + (nd.y + 1) * 3 + (nd.z + 1);
 }
 Vec3 nd_decoding(uint8_t b) {
@@ -20,21 +21,21 @@ struct LDDecoding {
         if (a == 0b01) { return Vec3(i - 5, 0, 0); }
         if (a == 0b10) { return Vec3(0, i - 5, 0); }
         if (a == 0b11) { return Vec3(0, 0, i - 5); }
-        //ASSERT(false);
+        ASSERT_ERROR(false);
         return Vec3(0, 0, 0);
     }
     static Vec3 from_LLD(uint8_t a, uint8_t i) {
         if (a == 0b01) { return Vec3(i - 15, 0, 0); }
         if (a == 0b10) { return Vec3(0, i - 15, 0); }
         if (a == 0b11) { return Vec3(0, 0, i - 15); }
-        //ASSERT(false);
+        ASSERT_ERROR(false);
         return Vec3(0, 0, 0);
     }
 };
 
 struct LDEncoding {
     static LDEncoding from_SLD(Vec3 ld) {
-        // TODO: assert ld is a SLD.
+        ASSERT_ERROR(is_valid_short_ld(ld));
         if (ld.x != 0) {
             return LDEncoding(0b01, ld.x + 5);
         } else if (ld.y != 0) {
@@ -42,11 +43,10 @@ struct LDEncoding {
         } else if (ld.z != 0) {
           return LDEncoding(0b11, ld.z + 5);
         }
-        //ASSERT(false);
         return LDEncoding(0xff, 0xff);
     }
     static LDEncoding from_LLD(Vec3 ld) {
-        // TODO: assert ld is a LLD.
+        ASSERT_ERROR(is_valid_long_ld(ld));
         if (ld.x != 0) {
             return LDEncoding(0b01, ld.x + 15);
         } else if (ld.y != 0) {
@@ -54,7 +54,6 @@ struct LDEncoding {
         } else if (ld.z != 0) {
             return LDEncoding(0b11, ld.z + 15);
         }
-        //ASSERT(false);
         return LDEncoding(0xff, 0xff);
     }
 
