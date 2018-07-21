@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>0cc3b36e-bbd2-4d7e-bbd7-956af8f4764e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>update_result.py</StartupFile>
+    <StartupFile>compare_engine.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -12,7 +12,7 @@
     <Name>icfpc2018</Name>
     <RootNamespace>icfpc2018</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--temp_trace_directory_path ../tmp/trace --temp_info_directory_path ../tmp/info --result_trace_directory_path ../result/trace --result_info_directory_path ../result/info</CommandLineArguments>
+    <CommandLineArguments>--default_info_directory_path ../result/default_info --info_directory_path_base ../tmp --engines "stupid_engine stupid_engine_v2" --input_model_directory_path ../data/problems --output_html_file_path compare_engine.html</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -24,6 +24,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="compare_engine.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="model_to_trace.py" />
     <Compile Include="update_result.py">
       <SubType>Code</SubType>
