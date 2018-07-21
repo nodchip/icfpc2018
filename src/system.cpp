@@ -162,6 +162,8 @@ namespace NProceedTimestep {
         bool operator()(CommandSMove cmd) {
             if (!sys.matrix.is_in_matrix(bot.pos + cmd.lld)) {
                 LOG_ERROR("[CommandSMove] target position out of range.");
+                bot.pos.print();
+                cmd.lld.print();
                 return false;
             }
             if (sys.matrix.any_full(Region(bot.pos, bot.pos + cmd.lld))) {
@@ -352,6 +354,7 @@ void System::sort_by_bid() {
 
 void System::print() {
     std::cout << "System energy=" << energy
+              << ", R=" << matrix.R
               << ", harmonics=" << (harmonics_high ? "high" : "low")
               << ", bots=" << bots.size()
               << ", trace=" << trace.size()

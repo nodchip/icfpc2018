@@ -4,7 +4,7 @@
 #include "nmms.h"
 
 Trace stupid_bbox_solver(const Matrix& problem_matrix) {
-    System system(problem_matrix);
+    System system(problem_matrix.R);
 
     // use a single nanobot.
     // always in the high harmonics.
@@ -16,6 +16,9 @@ Trace stupid_bbox_solver(const Matrix& problem_matrix) {
     trace.push_back(CommandFlip{}); // high.
 
     Vec3 p(system.bots[0].pos);
+
+    // debug matrix.
+    Matrix debug_matrix(system.matrix.R);
 
     // move to bbox.
     Region bbox = find_bounding_box(problem_matrix, nullptr).canonical();
@@ -32,6 +35,7 @@ Trace stupid_bbox_solver(const Matrix& problem_matrix) {
                 trace.push_back(CommandSMove{Vec3(xdir, 0, 0)});
                 if (problem_matrix(prev)) {
                     trace.push_back(CommandFill{prev - p});
+                    debug_matrix(prev) = Full;
                 }
                 prev = p;
             }
@@ -40,6 +44,7 @@ Trace stupid_bbox_solver(const Matrix& problem_matrix) {
             trace.push_back(CommandSMove{Vec3(0, 0, zdir)});
             if (problem_matrix(prev)) {
                 trace.push_back(CommandFill{prev - p});
+                debug_matrix(prev) = Full;
             }
             prev = p;
         }
@@ -59,6 +64,8 @@ Trace stupid_bbox_solver(const Matrix& problem_matrix) {
         return trace;
     }
 
+    debug_matrix.dump("dump.mdl");
+
     // finalize at the origin pos.
     trace.push_back(CommandFlip{});
     trace.push_back(CommandHalt{});
@@ -66,3 +73,4 @@ Trace stupid_bbox_solver(const Matrix& problem_matrix) {
 }
 
 REGISTER_ENGINE(stupid_bbox, stupid_bbox_solver);
+// vim: set si et sw=4 ts=4:

@@ -5,7 +5,8 @@
 #include "system.h"
 
 Trace stupid_solver(const Matrix& problem_matrix) {
-    System system(problem_matrix);
+    printf("stupid_solver\n");
+    System system(problem_matrix.R);
 
     // use a single nanobot.
     // always in the high harmonics.
@@ -18,6 +19,7 @@ Trace stupid_solver(const Matrix& problem_matrix) {
 
     Vec3 p(system.bots[0].pos);
     Vec3 prev = p;
+    p.print();
     while (true) {
         int zdir = p.y % 2 == 0 ? +1 : -1;
         while (0 <= p.z + zdir && p.z + zdir < system.matrix.R) {

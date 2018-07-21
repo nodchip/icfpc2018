@@ -124,7 +124,7 @@ void unfset(const System& system, UnionFind &unf, const vector<bool> &is_filled,
 }
 
 Trace stupid_solver_v2(const Matrix& problem_matrix) {
-    System system(problem_matrix);
+    System system(problem_matrix.R);
     // use a single nanobot.
     // always in the high harmonics.
     // zig-zag scanning in the XZ plane.
