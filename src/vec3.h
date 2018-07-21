@@ -32,6 +32,13 @@ struct Vec3 {
         return z < rhs.z;
     }
 
+    Vec3 operator+() const {
+        return *this;
+    }
+    Vec3 operator-() const {
+        return Vec3(-x, -y, -z);
+    }
+
     Vec3 operator+(const Vec3& rhs) const {
         return Vec3(x + rhs.x, y + rhs.y, z + rhs.z);
     }

@@ -8,6 +8,7 @@
 // TODO(peria): Split test for solvers
 #include "engines/stupid_solver.h"
 #include "engines/stupid_solver_v2.h"
+#include "engines/parallel_stupid_solver.h"
 
 TEST(Matrix, LoadAndDumpMatrix) {
     Matrix m("../data/problems/LA001_tgt.mdl");
@@ -70,6 +71,17 @@ TEST(System, StupidSolver) {
 TEST(System, StupidSolverV2) {
     Matrix m("../data/problems/LA001_tgt.mdl");
     auto trace = stupid_solver_v2(m);
+
+    State state(m);
+    EXPECT_FALSE(state.is_finished());
+    state.simulate(trace);
+
+    EXPECT_TRUE(state.is_finished());
+}
+
+TEST(System, ParallelStupidSolver) {
+    Matrix m("../data/problems/LA001_tgt.mdl");
+    auto trace = parallel_stupid_solver(m);
 
     State state(m);
     EXPECT_FALSE(state.is_finished());
