@@ -45,7 +45,7 @@ bool is_high_harmonic_needed(const System& system, const Matrix& problem_matrix,
   return true;
 }
 
-Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
+Trace stupid_solver_v3(const System& system, const Matrix& problem_matrix) {
     // use a single nanobot.
     // always in the high harmonics.
     // zig-zag scanning in the XZ plane.  
