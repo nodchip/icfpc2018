@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 // project
 #include "stupid_solver.h"
+#include "stupid_solver_v2.h"
 
 TEST(Matrix, LoadAndDumpMatrix) {
     Matrix m = load_model("../problems/LA001_tgt.mdl");
@@ -59,6 +60,39 @@ TEST(System, StupidSolver) {
 
     // sys is not changed in the solver.
     auto trace = stupid_solver(sys, m);
+
+    // simulate the plan.
+    sys.trace = trace;
+    while (!sys.trace.empty()) {
+        if (proceed_timestep(sys)) {
+            break;
+        }
+    }
+
+    // dump the result.
+    dump_model("LA001_stupid_solver.mdl", sys.matrix);
+    EXPECT_TRUE(is_finished(sys, m));
+
+    // complete trace.
+    EXPECT_TRUE(output_trace("LA001_stupid_solver.nbt", trace));
+
+    // broken trace.
+    for (int i = 0; i < 10; ++i) {
+        trace.pop_back();
+    }
+    EXPECT_TRUE(output_trace("LA001_stupid_solver_broken.nbt", trace));
+}
+
+TEST(System, StupidSolverv2) {
+    Matrix m = load_model("../problems/LA001_tgt.mdl");
+    ASSERT_TRUE(m);
+
+    System sys;
+    sys.start(m.R);
+    EXPECT_FALSE(is_finished(sys, m));
+
+    // sys is not changed in the solver.
+    auto trace = stupid_solver_v2(sys, m);
 
     // simulate the plan.
     sys.trace = trace;

@@ -21,9 +21,9 @@ dirs:
 	@mkdir -p $(BUILD_PATH)
 
 test: test_main.cpp $(OBJS) $(TEST_OBJS)
-	g++ $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+	g++ $(CXXFLAGS) -Wall -Wno-sign-compare $^ -o $@ $(LDFLAGS)
 
-$(BUILD_PATH)/%.o: %.cpp
+$(BUILD_PATH)/%.o: %.cpp %.h
 	g++ $(CXXFLAGS) -c $< -o $@
 
 .PHONY: clean
