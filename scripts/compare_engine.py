@@ -46,7 +46,7 @@ def main():
 
         for input_model_file_name in sorted([f for f in os.listdir(args.input_model_directory_path) if os.path.splitext(f)[1] == '.mdl']):
             model_title = input_model_file_name[:input_model_file_name.index('_')]
-            print('<tr>', file=f)
+            print('<tr align="right">', file=f)
             print('<td>{}</td>'.format(model_title), file=f)
             energies = list()
             best_energy = 1e100
