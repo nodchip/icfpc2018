@@ -5,9 +5,9 @@
 using namespace std;
 // copied from http://www.prefield.com/algorithm/container/union_find.html
 struct UnionFind {
-  vector<int> data;
-UnionFind(int size) : data(size, -1) { }
-  bool unionSet(int x, int y) {
+  vector<long long int> data;
+UnionFind(long long int size) : data(size, -1) { }
+  bool unionSet(long long int x, long long int y) {
     x = root(x); y = root(y);
     if (x != y) {
       if (data[y] < data[x]) swap(x, y);
@@ -16,13 +16,13 @@ UnionFind(int size) : data(size, -1) { }
     return x != y;
   }
   
-  bool findSet(int x, int y) {
+  bool findSet(long long int x, long long int y) {
     return root(x) == root(y);
   }
-  int root(int x) {
+  long long int root(long long int x) {
     return data[x] < 0 ? x : data[x] = root(data[x]);
   }
-  int size(int x) {
+  long long int size(long long int x) {
     return -data[root(x)];
   }
 };

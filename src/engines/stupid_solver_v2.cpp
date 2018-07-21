@@ -46,6 +46,47 @@ bool is_high_harmonic_needed(const System& system, const Matrix& problem_matrix,
   return true;
 }
 
+void unfset(const System& system, UnionFind &unf, const vector<bool> &is_filled, int x, int y, int z){
+  if(y == 0){
+    unf.unionSet(0, x * system.matrix.R * system.matrix.R + z + 1);
+    return;
+  }
+  
+  if(x > 0) {
+    if(is_filled[( (x - 1) * system.matrix.R + y ) * system.matrix.R + z]){
+      unf.unionSet(( (x-1) * system.matrix.R + y) * system.matrix.R + z + 1 , (x * system.matrix.R + y) * system.matrix.R + z + 1);
+    }
+  }
+  if(x < system.matrix.R - 1) {
+    if(is_filled[( (x + 1) * system.matrix.R + y ) * system.matrix.R + z]){
+      unf.unionSet(( (x+1) * system.matrix.R + y) * system.matrix.R + z + 1 , (x * system.matrix.R + y) * system.matrix.R + z + 1);
+    }
+  }
+  
+  if(y > 0) {
+    if(is_filled[( x * system.matrix.R + y - 1 ) * system.matrix.R + z]){
+      unf.unionSet(( x * system.matrix.R + ( y-1 )) * system.matrix.R + z + 1 , (x * system.matrix.R + y) * system.matrix.R + z + 1);
+    }
+  }
+  if(y < system.matrix.R - 1) {
+    if(is_filled[( x * system.matrix.R + y + 1 ) * system.matrix.R + z]){
+      unf.unionSet(( x * system.matrix.R + ( y+1 )) * system.matrix.R + z + 1 , (x * system.matrix.R + y) * system.matrix.R + z + 1);
+    }
+  }
+  
+  if(z > 0) {
+    if(is_filled[( x * system.matrix.R + y ) * system.matrix.R + z - 1]){
+      unf.unionSet(( x * system.matrix.R + y) * system.matrix.R + z , (x * system.matrix.R + y) * system.matrix.R + z + 1);
+    }
+  }
+    
+  if(z < system.matrix.R - 1) {
+    if(is_filled[( x * system.matrix.R + y ) * system.matrix.R + z + 1]){
+      unf.unionSet(( x * system.matrix.R + y) * system.matrix.R + z + 2, (x * system.matrix.R + y) * system.matrix.R + z + 1);
+    }
+  }
+}
+
 Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     // use a single nanobot.
     // always in the high harmonics.
@@ -55,9 +96,10 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     // judge if harmonic is needed or not and switch it automatically
   
     Trace trace;
-    //UnionFind unf(system.matrix.R*system.matrix.R*system.matrix.R + 1);
+    UnionFind unf(system.matrix.R*system.matrix.R*system.matrix.R + 1);
     
     bool is_high = false;
+    long long int total_filled = 0;
     vector<int> filled(system.matrix.R+1);
     vector<int> blocknum(system.matrix.R+1);
     vector<bool> is_filled(system.matrix.R * system.matrix.R * system.matrix.R);
@@ -94,11 +136,13 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
                     trace.push_back(CommandFill{prev - p});
 		    is_filled[(prev.x * system.matrix.R + prev.y ) * system.matrix.R + prev.z] = true;
 		    filled[p.y] +=1;
-		    /*
-		    if(p.y == 0){
-		      unf.unionSet(0, (p.x * system.matrix.R + p.y) + p.z + 1);
+		    total_filled += 1;
+		    unfset(system, unf, is_filled, prev.x, prev.y, prev.z);
+		    if(unf.size(0)-1 == total_filled && is_high){
+		      is_high = false;
+		      trace.push_back(CommandFlip{}); // low.
 		    }
-		    */
+		    		    
 		    // finished
 		    if(filled[p.y] == blocknum[p.y]){
 		      is_plane_finished = true;
@@ -125,11 +169,12 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
                 trace.push_back(CommandFill{prev - p});
 		is_filled[(prev.x * system.matrix.R + prev.y ) * system.matrix.R + prev.z] = true;
 		filled[p.y] += 1;
-		/*
-		if(p.y == 0){
-		  unf.unionSet(0, (p.x * system.matrix.R + p.y) + p.z + 1);
+		total_filled += 1;
+		unfset(system, unf, is_filled, prev.x, prev.y, prev.z);
+		if(unf.size(0)-1 == total_filled && is_high){
+		  is_high = false;
+		  trace.push_back(CommandFlip{}); // low.
 		}
-		*/
 
 		// finished
 		if(filled[p.y] == blocknum[p.y]){
