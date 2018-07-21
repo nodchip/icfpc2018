@@ -6,6 +6,7 @@
 #ifdef TEST_PROJECT
 #include <gtest/gtest.h>
 #endif // TEST_PROJECT
+#include "debug_message.h"
 
 namespace NOutputTrace {
     struct LDEncoding {
@@ -140,7 +141,10 @@ namespace NProceedTimestep {
              , ground_connectivity_checker(ground_connectivity_checker_) {
              }
         bool operator()(CommandHalt) {
-            if (sys.bots.size() != 1 || sys.bots[0].pos != sys.final_pos()) return false;
+            if (sys.bots.size() != 1 || sys.bots[0].pos != sys.final_pos()) {
+                LOG_ERROR("[CommandHalt] preconditions are not met.");
+                return false;
+            }
             halt_requested = true;
             return true;
         }
@@ -153,8 +157,14 @@ namespace NProceedTimestep {
             return true;
         }
         bool operator()(CommandSMove cmd) {
-            if (!sys.matrix.is_in_matrix(bot.pos + cmd.lld)) return false;
-            if (sys.matrix.any_full(Region(bot.pos, bot.pos + cmd.lld))) return false;
+            if (!sys.matrix.is_in_matrix(bot.pos + cmd.lld)) {
+                LOG_ERROR("[CommandSMove] target position out of range.");
+                return false;
+            }
+            if (sys.matrix.any_full(Region(bot.pos, bot.pos + cmd.lld))) {
+                LOG_ERROR("[CommandSMove] some full voxels in between the move.");
+                return false;
+            }
             bot.pos += cmd.lld;
             sys.energy += Costs::k_SMove * mlen(cmd.lld);
             return true;
@@ -162,17 +172,32 @@ namespace NProceedTimestep {
         bool operator()(CommandLMove cmd) {
             auto c1 = bot.pos + cmd.sld1;
             auto c2 = c1 + cmd.sld2;
-            if (!sys.matrix.is_in_matrix(c1)) return false;
-            if (!sys.matrix.is_in_matrix(c2)) return false;
-            if (sys.matrix.any_full(Region(bot.pos, c1))) return false;
-            if (sys.matrix.any_full(Region(c1, c2))) return false;
+            if (!sys.matrix.is_in_matrix(c1)) {
+                LOG_ERROR("[CommandLMove] c1 out of range");
+                return false;
+            }
+            if (!sys.matrix.is_in_matrix(c2)) {
+                LOG_ERROR("[CommandLMove] c2 out of range");
+                return false;
+            }
+            if (sys.matrix.any_full(Region(bot.pos, c1))) {
+                LOG_ERROR("[CommandLMove] some full voxels in between the move.");
+                return false;
+            }
+            if (sys.matrix.any_full(Region(c1, c2))) {
+                LOG_ERROR("[CommandLMove] some full voxels in between the move.");
+                return false;
+            }
             bot.pos = c2;
             sys.energy += Costs::k_LMove * (mlen(cmd.sld1) + Costs::k_LMoveOffset + mlen(cmd.sld2));
             return true;
         };
         bool operator()(CommandFill cmd) {
             auto c = bot.pos + cmd.nd;
-            if (!sys.matrix.is_in_matrix(c)) return false;
+            if (!sys.matrix.is_in_matrix(c)) {
+                LOG_ERROR("[CommandFill] target voxel out of range");
+                return false;
+            }
             if (sys.matrix(c) == Void) {
                 sys.matrix(c) = Full;
                 ground_connectivity_checker.fill(c);
@@ -185,8 +210,14 @@ namespace NProceedTimestep {
         bool operator()(CommandFission cmd) {
             auto c = bot.pos + cmd.nd;
             const int n_bots = int(bot.seeds.size());
-            if (n_bots == 0 || n_bots <= cmd.m || cmd.m < 0) return false;
-            if (!sys.matrix.is_in_matrix(c)) return false;
+            if (n_bots == 0 || n_bots <= cmd.m || cmd.m < 0) {
+                LOG_ERROR("[CommandFission] preconditions are not met");
+                return false;
+            }
+            if (!sys.matrix.is_in_matrix(c)) {
+                LOG_ERROR("[CommandFission] target voxel out of range");
+                return false;
+            }
             // original  [bid1, bid2, .. bidm, bidm+1, .. bidn]
             // new bot    bid1
             // new seed        [bid2, .. bidm]
@@ -205,13 +236,19 @@ namespace NProceedTimestep {
         };
         bool operator()(CommandFusionP cmd) {
             auto c = bot.pos + cmd.nd;
-            if (!sys.matrix.is_in_matrix(c)) return false;
+            if (!sys.matrix.is_in_matrix(c)) {
+                LOG_ERROR("[CommandFusionP] target voxel out of range");
+                return false;
+            }
             fusion_stage.addPS(bot.bid, sys.bid_at(c));
             return true;
         };
         bool operator()(CommandFusionS cmd) {
             auto c = bot.pos + cmd.nd;
-            if (!sys.matrix.is_in_matrix(c)) return false;
+            if (!sys.matrix.is_in_matrix(c)) {
+                LOG_ERROR("[CommandFusionS] target voxel out of range");
+                return false;
+            }
             fusion_stage.addSP(bot.bid, sys.bid_at(c));
             return true;
         };
@@ -288,6 +325,8 @@ bool proceed_timestep(System& system) {
 
         NProceedTimestep::UpdateSystem visitor(system, system.bots[i], halt, fusion_stage, ground_connectivity_checker);
         if (!boost::apply_visitor(visitor, cmd)) {
+            std::fprintf(stderr, "Error while processing trace for bot %ld\n", i);
+            system.print_detailed();
             throw std::runtime_error("wrong command");
         }
     }
