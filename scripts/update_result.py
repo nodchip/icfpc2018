@@ -20,10 +20,10 @@ def main():
                         help='Directory path containing current best trace files.')
     args = parser.parse_args()
 
-    for model_name in [os.path.splitext(f)[0]
-                       for f
-                       in os.listdir(args.temp_trace_directory_path)
-                       if os.path.splitext(f)[1] == '.nbt']:
+    for model_name in sorted([os.path.splitext(f)[0]
+                              for f
+                              in os.listdir(args.temp_trace_directory_path)
+                              if os.path.splitext(f)[1] == '.nbt']):
         temp_info_file_path = os.path.join(args.temp_info_directory_path, model_name + '.json')
         with open(temp_info_file_path, 'rt') as f:
             temp = json.load(f)
