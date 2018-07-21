@@ -124,6 +124,12 @@ int main(int argc, char** argv) {
     std::cout << "generated trace: " << trace.size() << std::endl;
 
     State state(src_model, tgt_model);
+    auto energy_logger = std::make_shared<AccumulateEnergyLogger>();
+    if (options.count("energy")) {
+        std::cout << "recording energy consumption." << std::endl;
+        state.system.set_energy_logger(energy_logger);
+    }
+
     std::cout << "simulation prepare." << std::endl;
     int exit_code = state.simulate(trace);
     std::cout << "simulation done." << std::endl;
@@ -138,6 +144,10 @@ int main(int argc, char** argv) {
         // trace.
         trace.output_trace(dump_trace_path);
         trace.output_trace_json(dump_trace_json_path);
+    }
+
+    if (options.count("energy")) {
+        energy_logger->dump(options["energy"]);
     }
 
     if (options.count("info")) {

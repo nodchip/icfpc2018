@@ -1,6 +1,8 @@
 #include "system.h"
 
 #include <numeric>
+#include <fstream>
+#include <nlohmann/json.hpp>
 
 #include "debug_message.h"
 #include "command.h"
@@ -87,7 +89,7 @@ struct FusionStage {
                 sys.bots[idx_remain].seeds.push_back(sys.bots[idx_erase].bid);
                 sys.bots.erase(sys.bots.begin() + idx_erase);
 
-                sys.energy += Costs::k_Fusion;
+                sys.add_energy(EnergyTag::Fusion, Costs::k_Fusion);
             }
         }
         return true;
@@ -122,25 +124,30 @@ struct GroupStage {
                 ASSERT_ERROR_RETURN(!r.is_in_region(bot.pos), false);
             }
 
+            int64_t fillvoid = 0, fillfull = 0, voidfull = 0, voidvoid = 0;
             CANONICAL_REGION_FOR(it->first, x, y, z) {
                 if (action_type == ACTION_FILL) {
                    if (sys.matrix(x, y, z) == Void) {
                        // XXX: ground check..
                        sys.matrix(x, y, z) = Full;
-                       sys.energy += Costs::k_GFillVoid;
+                       fillvoid += Costs::k_GFillVoid;
                    } else {
-                       sys.energy += Costs::k_GFillFull;
+                       fillfull += Costs::k_GFillFull;
                    }
                 } else {
                    if (sys.matrix(x, y, z) == Full) {
                        // XXX: ground check..
                        sys.matrix(x, y, z) = Void;
-                       sys.energy += Costs::k_GVoidFull;
+                       voidfull += Costs::k_GVoidFull;
                    } else {
-                       sys.energy += Costs::k_GVoidVoid;
+                       voidvoid += Costs::k_GVoidVoid;
                    }
                 }
             }
+            if (fillvoid != 0) { sys.add_energy(EnergyTag::GFillVoid, fillvoid); }
+            if (fillfull != 0) { sys.add_energy(EnergyTag::GFillFull, fillfull); }
+            if (voidfull != 0) { sys.add_energy(EnergyTag::GVoidFull, voidfull); }
+            if (voidvoid != 0) { sys.add_energy(EnergyTag::GVoidVoid, voidvoid); }
         }
 
         return true;
@@ -195,7 +202,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
             return false;
         }
         bot.pos += cmd.lld;
-        sys.energy += Costs::k_SMove * mlen(cmd.lld);
+        sys.add_energy(EnergyTag::SMove, Costs::k_SMove * mlen(cmd.lld));
         return true;
     };
     bool operator()(CommandLMove cmd) {
@@ -218,7 +225,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
             return false;
         }
         bot.pos = c2;
-        sys.energy += Costs::k_LMove * (mlen(cmd.sld1) + Costs::k_LMoveOffset + mlen(cmd.sld2));
+        sys.add_energy(EnergyTag::LMove, Costs::k_LMove * (mlen(cmd.sld1) + Costs::k_LMoveOffset + mlen(cmd.sld2)));
         return true;
     };
     bool operator()(CommandFill cmd) {
@@ -230,9 +237,9 @@ struct UpdateSystem : public boost::static_visitor<bool> {
         if (sys.matrix(c) == Void) {
             sys.matrix(c) = Full;
             ground_connectivity_checker.fill(c);
-            sys.energy += Costs::k_FillVoid;
+            sys.add_energy(EnergyTag::FillVoid, Costs::k_FillVoid);
         } else {
-            sys.energy += Costs::k_FillFull;
+            sys.add_energy(EnergyTag::FillFull, Costs::k_FillFull);
         }
         return true;
     };
@@ -246,9 +253,9 @@ struct UpdateSystem : public boost::static_visitor<bool> {
             sys.matrix(c) = Void;
             // XXX: Voiding violates the assumption of union-find...
             // ground_connectivity_checker.fill(c);
-            sys.energy += Costs::k_VoidFull;
+            sys.add_energy(EnergyTag::VoidFull, Costs::k_VoidFull);
         } else {
-            sys.energy += Costs::k_VoidVoid;
+            sys.add_energy(EnergyTag::VoidVoid, Costs::k_VoidVoid);
         }
         return true;
     };
@@ -282,7 +289,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
             it = bot.seeds.erase(it);
         }
         sys.bots.push_back(new_bot);
-        sys.energy += Costs::k_Fission;
+        sys.add_energy(EnergyTag::Fission, Costs::k_Fission);
         return true;
     };
     bool operator()(CommandFusionP cmd) {
@@ -307,6 +314,25 @@ struct UpdateSystem : public boost::static_visitor<bool> {
 
 }  // namespace NProceedTimestep
 
+void AccumulateEnergyLogger::dump(std::string output_path) {
+    std::string names[] = {
+        "Halt", "Wait", "Flip", "SMove", "LMove",
+        "FillVoid", "FillFull",
+        "VoidFull", "VoidVoid",
+        "GFillVoid", "GFillFull",
+        "GVoidFull", "GVoidVoid",
+        "Fission", "Fusion",
+        "HighHarmonics", "LowHarmonics", "Bots",
+    };
+    nlohmann::json j = {};
+    for (int i = 0; i < int(EnergyTag::N); ++i) {
+        j[names[i]] = consumption[i];
+    }
+
+    std::ofstream ofs(output_path);
+    ofs << j.dump(4);
+}
+
 System::System(int R)
   : energy(0), harmonics_high(false), matrix(R)
   , ground_and_full_voxels(Vec3::index_end()) {
@@ -328,11 +354,11 @@ System::System(int R)
 
 void System::global_energy_update() {
     if (harmonics_high) {
-        energy += Costs::k_HighHarmonics * matrix.R * matrix.R * matrix.R;
+        add_energy(EnergyTag::HighHarmonics, Costs::k_HighHarmonics * matrix.R * matrix.R * matrix.R);
     } else {
-        energy += Costs::k_LowHarmonics * matrix.R * matrix.R * matrix.R;
+        add_energy(EnergyTag::LowHarmonics, Costs::k_LowHarmonics * matrix.R * matrix.R * matrix.R);
     }
-    energy += Costs::k_Bot * bots.size();
+    add_energy(EnergyTag::Bots, Costs::k_Bot * bots.size());
 }
 
 bool System::proceed_timestep() {

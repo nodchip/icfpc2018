@@ -128,11 +128,16 @@ TEST(System, StupidSolver) {
     auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
     auto trace = stupid_solver(problem_type, m_src, m_tgt);
 
+    auto energy_logger = std::make_shared<AccumulateEnergyLogger>();
+
     State state(m_src, m_tgt);
     EXPECT_FALSE(state.is_finished());
+    state.system.set_energy_logger(energy_logger);
     state.simulate(trace);
 
     EXPECT_TRUE(state.is_finished());
+
+    energy_logger->dump("stupid_solver_energy_log.json");
 }
 
 TEST(System, StupidSolverV2) {

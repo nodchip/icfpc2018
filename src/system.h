@@ -9,8 +9,42 @@
 #include "vec3.h"
 #include "union_find.h"
 
+enum class EnergyTag {
+    Halt, Wait, Flip, SMove, LMove,
+    FillVoid, FillFull,
+    VoidFull, VoidVoid,
+    GFillVoid, GFillFull,
+    GVoidFull, GVoidVoid,
+    Fission, Fusion,
+    HighHarmonics, LowHarmonics, Bots,
+    N
+};
+
+struct EnergyLogger {
+    virtual ~EnergyLogger() {}
+    virtual void log_energy(EnergyTag tag, int64_t value) {}
+};
+
+struct AccumulateEnergyLogger : public EnergyLogger {
+    AccumulateEnergyLogger() {
+        for (int i = 0; i < int(EnergyTag::N); ++i) {
+            consumption[i] = 0;
+        }
+    }
+    void log_energy(EnergyTag tag, int64_t value) override {
+        consumption[int(tag)] += value;
+    }
+    void dump(std::string output_path);
+    std::map<int, int64_t> consumption;
+};
+
 struct System {
     explicit System(int R);
+
+    void set_energy_logger(std::shared_ptr<EnergyLogger> energy_logger_) {
+        log_energy = true;
+        energy_logger = energy_logger_;
+    }
 
     void global_energy_update();
 
@@ -29,6 +63,14 @@ struct System {
     void print();
     void print_detailed();
 
+    // record energy update with a tag.
+    void add_energy(EnergyTag tag, int64_t value) {
+        energy += value;
+        if (log_energy) {
+            energy_logger->log_energy(tag, value);
+        }
+    }
+
     static Vec3 start_pos() { return Vec3(0, 0, 0); }
     static Vec3 final_pos() { return Vec3(0, 0, 0); }
 
@@ -37,6 +79,9 @@ struct System {
     Matrix matrix = {0};
     std::vector<Bot> bots;
     Trace trace;
+
+    std::shared_ptr<EnergyLogger> energy_logger;
+    bool log_energy = false;
 
     UnionFind ground_and_full_voxels;
 
