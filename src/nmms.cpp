@@ -43,6 +43,46 @@ namespace NOutputTrace {
 
 namespace NProceedTimestep {
 
+    struct GroundConnectivityChecker {
+        std::vector<Vec3> filled_voxels;
+
+        void fill(Vec3 p) {
+            filled_voxels.push_back(p);
+        }
+
+        bool new_voxels_are_grounded(/* no const for union find */System& system) {
+            const auto n6 = neighbors6();
+            const uint32_t ground_group = Vec3(0, 0, 0).index();
+            for (auto& p : filled_voxels) {
+                bool grounded = false;
+                for (auto offset : n6) {
+                    auto c = p + offset;
+                    if (system.ground_and_full_voxels.findSet(c.index(), ground_group)) {
+                        grounded = true;
+                        break;
+                    }
+                }
+                if (!grounded) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool update(System& system) {
+            const auto n6 = neighbors6();
+            for (auto& p : filled_voxels) {
+                for (auto offset : n6) {
+                    auto c = p + offset;
+                    if (system.matrix(c)) {
+                        system.ground_and_full_voxels.unionSet(p.index(), c.index());
+                    }
+                }
+            }
+            return true;
+        }
+    };
+
     constexpr int k_BotIDs = 21;
     struct FusionStage {
         FusionStage() {
@@ -89,13 +129,15 @@ namespace NProceedTimestep {
         bool& halt_requested;
 
         FusionStage& fusion_stage;
+        GroundConnectivityChecker& ground_connectivity_checker;
 
         UpdateSystem(System& sys_, Bot& bot_, bool& halt_requested_,
-                FusionStage& fusion_stage_)
+                FusionStage& fusion_stage_, GroundConnectivityChecker& ground_connectivity_checker_)
              : sys(sys_)
              , bot(bot_)
              , halt_requested(halt_requested_)
-             , fusion_stage(fusion_stage_) {
+             , fusion_stage(fusion_stage_)
+             , ground_connectivity_checker(ground_connectivity_checker_) {
              }
         bool operator()(CommandHalt) {
             if (sys.bots.size() != 1 || sys.bots[0].pos != sys.final_pos()) return false;
@@ -133,6 +175,7 @@ namespace NProceedTimestep {
             if (!sys.matrix.is_in_matrix(c)) return false;
             if (sys.matrix(c) == Void) {
                 sys.matrix(c) = Full;
+                ground_connectivity_checker.fill(c);
                 sys.energy += Costs::k_FillVoid;
             } else {
                 sys.energy += Costs::k_FillFull;
@@ -181,10 +224,11 @@ TEST(Commands, Fission) {
     int m = 2;
 
     bool halt = false;
+    NProceedTimestep::GroundConnectivityChecker ground_connectivity_checker;
     // fission
     {
         NProceedTimestep::FusionStage fusion_stage;
-        NProceedTimestep::UpdateSystem visitor(system, system.bots[0], halt, fusion_stage);
+        NProceedTimestep::UpdateSystem visitor(system, system.bots[0], halt, fusion_stage, ground_connectivity_checker);
         Command cmd = CommandFission{Vec3 {0, 0, 1}, m};
         EXPECT_TRUE(boost::apply_visitor(visitor, cmd));
     }
@@ -198,12 +242,12 @@ TEST(Commands, Fission) {
     // fusion.
     NProceedTimestep::FusionStage fusion_stage;
     {
-        NProceedTimestep::UpdateSystem visitor(system, system.bots[0], halt, fusion_stage);
+        NProceedTimestep::UpdateSystem visitor(system, system.bots[0], halt, fusion_stage, ground_connectivity_checker);
         Command cmd = CommandFusionS{Vec3 {0, 0, 1}};
         EXPECT_TRUE(boost::apply_visitor(visitor, cmd));
     }
     {
-        NProceedTimestep::UpdateSystem visitor(system, system.bots[1], halt, fusion_stage);
+        NProceedTimestep::UpdateSystem visitor(system, system.bots[1], halt, fusion_stage, ground_connectivity_checker);
         Command cmd = CommandFusionP{Vec3 {0, 0, -1}};
         EXPECT_TRUE(boost::apply_visitor(visitor, cmd));
     }
@@ -228,6 +272,7 @@ void global_energy_update(System& system) {
 bool proceed_timestep(System& system) {
     bool halt = false;
     NProceedTimestep::FusionStage fusion_stage;
+    NProceedTimestep::GroundConnectivityChecker ground_connectivity_checker;
 
     // systemwide energy (count the nuber of bots before fusion/fission).
     global_energy_update(system);
@@ -235,18 +280,27 @@ bool proceed_timestep(System& system) {
     // bots consume trace in the ascending order of bids.
     system.sort_by_bid();
 
+
     const size_t n = system.bots.size();
     for (size_t i = 0; i < n; ++i) {
         Command cmd = system.trace.front(); system.trace.pop_front();
         ++system.consumed_commands; // FusionP and FusionS are treated as separate commands.
 
-        NProceedTimestep::UpdateSystem visitor(system, system.bots[i], halt, fusion_stage);
+        NProceedTimestep::UpdateSystem visitor(system, system.bots[i], halt, fusion_stage, ground_connectivity_checker);
         if (!boost::apply_visitor(visitor, cmd)) {
             throw std::runtime_error("wrong command");
         }
     }
 
     fusion_stage.update(system);
+
+    // if there are any floating voxels added in this phase while harmonics is low,
+    // it is ill-formed.
+    if (!system.harmonics_high && !ground_connectivity_checker.new_voxels_are_grounded(system)) {
+        std::printf("Detected violation in ground connectivity in low-harmonics mode!\n");
+        //throw std::runtime_error("Detected violation in ground connectivity in low-harmonics mode!");
+    }
+    ground_connectivity_checker.update(system);
 
     if (halt) {
         system.bots.clear();
