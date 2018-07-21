@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
+#include <iostream>
 #include <vector>
 
 struct Vec3 {
@@ -52,9 +52,7 @@ struct Vec3 {
         return *this;
     }
 
-    void print() const {
-        std::printf("(%d, %d, %d)\n", x, y, z);
-    }
+    void print() const;
 
     struct hash {
         size_t operator()(const Vec3& s) const {
@@ -63,6 +61,14 @@ struct Vec3 {
         }
     };
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Vec3& v) {
+    return std::cout << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+}
+
+inline void Vec3::print() const {
+    std::cout << *this << std::endl;
+}
 
 // Manhattan distance
 inline int mlen(Vec3 v) {

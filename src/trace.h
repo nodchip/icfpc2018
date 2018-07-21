@@ -8,4 +8,5 @@
 class Trace : public std::deque<Command> {
  public:
   bool output_trace(std::string output_path);
+  bool input_trace(std::string input_path);
 };

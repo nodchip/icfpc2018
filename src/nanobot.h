@@ -10,11 +10,10 @@ struct Bot {
     std::vector<BotID> seeds;
 
     void print() {
-        std::printf("Bot#%d at (%d, %d, %d), seeds=[",
-            bid, pos.x, pos.y, pos.z);
+        std::cout << "Bot#" << bid << " at " << pos << ", seeds=[";
         for (auto seed_bid : seeds) {
-            std::printf("%d, ", seed_bid);
+            std::cout << seed_bid << ", ";
         }
-        std::printf("]\n");
+        std::cout << "]" << std::endl;
     }
 };

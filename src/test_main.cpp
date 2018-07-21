@@ -1,5 +1,5 @@
 // std
-#include <cstdio>
+#include <iostream>
 // 3rd
 #include <gtest/gtest.h>
 // TODO(peria): Split test for solvers
@@ -9,9 +9,9 @@
 #include "engines/stupid_solver_v2.h"
 
 TEST(Matrix, LoadAndDumpMatrix) {
-    Matrix m = load_model("../data/problems/LA001_tgt.mdl");
+    Matrix m("../data/problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
-    std::printf("Model R=%d\n", m.R);
+    std::cout << "Model R=" << m.R << std::endl;
     EXPECT_EQ(m.R, 20);
 
     // add some voxels.
@@ -23,10 +23,10 @@ TEST(Matrix, LoadAndDumpMatrix) {
         }
     }
 
-    dump_model("LA001_tgt_modified.mdl", m);
+    m.dump("LA001_tgt_modified.mdl");
 
     // load again to check identity.
-    Matrix m2 = load_model("LA001_tgt_modified.mdl");
+    Matrix m2("LA001_tgt_modified.mdl");
     ASSERT_TRUE(m2);
     EXPECT_EQ(m.buf, m2.buf);
 }
@@ -49,14 +49,19 @@ TEST(Trace, OutputTraceExample) {
     trace.push_back(CommandHalt{}); // 0
 
     EXPECT_TRUE(trace.output_trace("output.nbt"));
+
+    Trace trace2;
+    EXPECT_TRUE(trace2.input_trace("output.nbt"));
+    EXPECT_TRUE(trace2.output_trace("output2.nbt"));
+
+    //EXPECT_EQ(trace, trace2);
 }
 
 TEST(System, StupidSolver) {
-    Matrix m = load_model("../data/problems/LA001_tgt.mdl");
+    Matrix m("../data/problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
 
-    System sys;
-    sys.start(m.R);
+    System sys(m.R);
     EXPECT_FALSE(is_finished(sys, m));
 
     // sys is not changed in the solver.
@@ -72,7 +77,7 @@ TEST(System, StupidSolver) {
     sys.print_detailed();
 
     // dump the result.
-    dump_model("LA001_stupid_solver.mdl", sys.matrix);
+    sys.matrix.dump("LA001_stupid_solver.mdl");
     EXPECT_TRUE(is_finished(sys, m));
 
     // complete trace.
@@ -86,11 +91,10 @@ TEST(System, StupidSolver) {
 }
 
 TEST(System, StupidSolverv2) {
-    Matrix m = load_model("../data/problems/LA001_tgt.mdl");
+    Matrix m("../data/problems/LA001_tgt.mdl");
     ASSERT_TRUE(m);
 
-    System sys;
-    sys.start(m.R);
+    System sys(m.R);
     EXPECT_FALSE(is_finished(sys, m));
 
     // sys is not changed in the solver.
@@ -105,7 +109,7 @@ TEST(System, StupidSolverv2) {
     }
 
     // dump the result.
-    dump_model("LA001_stupid_solver_v2.mdl", sys.matrix);
+    sys.matrix.dump("LA001_stupid_solver_v2.mdl");
     EXPECT_TRUE(is_finished(sys, m));
 
     // complete trace.

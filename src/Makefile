@@ -1,25 +1,25 @@
 CXX=g++
-CXXFLAGS=-O2 -Wall -Wno-sign-compare
+CXXFLAGS=-O2 -Wall -Wno-sign-compare -std=c++17
 CXXFLAGS+=$(pkg-config --libs --cflags boost)
 CXXFLAGS+=-I .
-CXXFLAGS+=-I ../libs/
+CXXFLAGS+=-I ../libs
 CXXFLAGS+=-I ../libs/googletest/googletest/
 CXXFLAGS+=-I ../libs/googletest/googletest/include
-CXXFLAGS+= -std=c++17
 LDFLAGS+=-lpthread
 
 BUILD_PATH=build
+LIB_PATH=../libs
 
 SRCS=command.cpp matrix.cpp nanobot.cpp nmms.cpp region.cpp vec3.cpp system.cpp trace.cpp
 SRCS+=engine.cpp
 
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
-TEST_SRCS=../libs/googletest/googletest/src/gtest-all.cc
+TEST_SRCS=$(LIB_PATH)/googletest/googletest/src/gtest-all.cc
 TEST_OBJS=$(TEST_SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
 .PHONY: all
-all: dirs test engines
+all: dirs test engines evaluate
 
 ######################
 # ADD YOUR ENGINE TARGET HERE
@@ -34,9 +34,6 @@ stupid_engine: engine_main.cpp engines/stupid_solver.cpp $(OBJS) $(TEST_OBJS)
 stupid_engine_v2: engine_main.cpp engines/stupid_solver_v2.cpp $(OBJS) $(TEST_OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-small: small.cpp engines/stupid_solver.cpp $(OBJS) $(TEST_OBJS)
-	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
-
 
 .PHONY: dirs
 dirs:
@@ -44,6 +41,9 @@ dirs:
 	@mkdir -p $(BUILD_PATH)/engines
 
 test: test_main.cpp engines/stupid_solver.cpp engines/stupid_solver_v2.cpp $(OBJS) $(TEST_OBJS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+evaluate: evaluate_main.cpp $(OBJS) $(TEST_OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 $(BUILD_PATH)/%.o: %.cpp %.h

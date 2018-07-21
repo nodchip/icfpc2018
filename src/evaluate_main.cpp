@@ -1,3 +1,4 @@
+// ./evaluate --model <model input path> --trace <trace input path> --info <info output path>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -38,39 +39,10 @@ Options ParseCommand(int argc, char** argv) {
 
 int main(int argc, char** argv) {
     Options options = ParseCommand(argc, argv);
-    // ("help", "produce help message");
-    // ("model", po::value<std::string>(), "model.mdl");
-    // ("trace-output", po::value<std::string>(), "trace.nbt");
-    // ("engine", po::value<std::string>()->default_value("default"), "engine");
-    // ("info", po::value<std::string>()->default_value("info"), "info path");
 
     if (options.count("help")) {
         std::cout << "produce help message" << "\n";
         return 1;
-    }
-
-    // find engine(optional)
-    if (RegisterEngine::Engines().empty()) {
-        std::cout << "no engines are registered." << std::endl;
-    }
-
-    EngineFunc engine;
-    std::string engine_name;
-    if (options.count("engine") == 0 || options["engine"] == "default") {
-        auto it = RegisterEngine::Engines().begin();
-        engine = it->second;
-        engine_name = it->first;
-    } else {
-        auto it = RegisterEngine::Engines().find(options["engine"]);
-        if (it != RegisterEngine::Engines().end()) {
-            it = RegisterEngine::Engines().begin();
-        } else {
-            std::cout << "Failed to find engine: "
-                      << options["engine"] << std::endl;
-            return 2;
-        }
-        engine = it->second;
-        engine_name = it->first;
     }
 
     // load
@@ -85,11 +57,20 @@ int main(int argc, char** argv) {
         return 3;
     }
 
+    // load trace
+    if (!options.count("trace")) {
+        std::cout << "--trace required." << std::endl;
+        return 4;
+    }
+    auto trace_path = options["trace"];
+    Trace trace;
+    if (!trace.input_trace(trace_path)) {
+        std::cout << "Failed to open trace file: " << trace_path << std::endl;
+        return 4;
+    }
+
     // init
     System sys(m.R);
-
-    // sys is not changed in the solver.
-    auto trace = engine(sys, m);
 
     // simulate the plan.
     sys.trace = trace;
@@ -109,22 +90,12 @@ int main(int argc, char** argv) {
         exit_code = 4;
     }
 
-    if (options.count("trace-output")) {
-        // dump the result.
-        auto dump_model_path = options["trace-output"] + ".mdl";
-        auto dump_trace_path = options["trace-output"];
-        sys.matrix.dump(dump_model_path);
-
-        // trace.
-        trace.output_trace(dump_trace_path);
-    }
-
     if (options.count("info")) {
         nlohmann::json j = {
             {"energy", sys.energy},
             {"consumed_commands", sys.consumed_commands},
             {"successful", is_successful},
-            {"engine_name", engine_name},
+            {"engine_name", "unknown"},
         };
         std::ofstream ofs(options["info"]);
         ofs << std::setw(4) << j;
