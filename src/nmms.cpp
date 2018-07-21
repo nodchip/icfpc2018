@@ -2,7 +2,6 @@
 // std
 #include <map>
 #include <unordered_map>
-#include <numeric>
 // 3rd
 #include <gtest/gtest.h>
 
@@ -39,26 +38,6 @@ namespace NOutputTrace {
         LDEncoding(uint8_t a_, uint8_t i_) : a(a_), i(i_) {}
     };
 }  // namespace NOutputTrace
-
-bool System::start(int R) {
-    // TODO: assert R > 0
-
-    energy = 0;
-    harmonics_high = false;
-    matrix = Matrix(R);
-
-    Bot first_bot;
-    first_bot.bid = 1;
-    first_bot.pos = start_pos();
-    // [2, 20]
-    first_bot.seeds.resize(19);
-    std::iota(first_bot.seeds.begin(), first_bot.seeds.end(), 2);
-    bots = {first_bot};
-
-    trace.clear();
-
-    return true;
-}
 
 bool is_finished(const System& system, const Matrix& problem_matrix) {
     // TODO: check R.
@@ -207,8 +186,7 @@ namespace NProceedTimestep {
 }
 
 TEST(Commands, Fission) {
-    System system;
-    system.start(4);
+    System system(4);
     int m = 2;
 
     bool halt = false;
