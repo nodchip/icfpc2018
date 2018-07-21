@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 // project
 #include "engine.h"
+#include "matrix.h"
 #include "trace.h"
 #include "nmms.h"
 
@@ -59,7 +60,7 @@ int main(int argc, char** argv) {
         return 3;
     }
     auto model_path = vm["model"].as<std::string>();
-    Matrix m = load_model(model_path);
+    Matrix m(model_path);
     if (!m) {
         std::cout << "Failed to open model file: " << model_path << std::endl;
         return 3;

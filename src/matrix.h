@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "region.h"
@@ -13,8 +14,8 @@ enum Voxel : uint8_t {
 };
 
 struct Matrix {
-    Matrix(int R_) : R(R_), buf(R*R*R, Void) {
-    }
+    Matrix(int R_);
+    Matrix(const std::string& file_path);
 
     Voxel& operator()(int x, int y, int z) {
         return buf[(z * R + y) * R + x];
