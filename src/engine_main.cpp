@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
         // dump the result.
         auto dump_model_path = options["trace-output"] + ".mdl";
         auto dump_trace_path = options["trace-output"];
-        sys.matrix.dump(dump_model_path);
+        state.system.matrix.dump(dump_model_path);
 
         // trace.
         trace.output_trace(dump_trace_path);
@@ -107,8 +107,8 @@ int main(int argc, char** argv) {
 
     if (options.count("info")) {
         nlohmann::json j = {
-            {"energy", state.sys.energy},
-            {"consumed_commands", state.sys.consumed_commands},
+            {"energy", state.system.energy},  // should be state.energy
+            {"consumed_commands", state.system.consumed_commands},
             {"successful", exit_code == 0},
             {"engine_name", engine_name},
         };

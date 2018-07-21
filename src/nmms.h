@@ -5,10 +5,6 @@
 
 #include "system.h"
 
-// @return well-formed state and matters are identical to problem_matrix.
-//         i.e. ready to submit.
-bool is_finished(const System& system, const Matrix& problem_matrix);
-
 void global_energy_update(System& system);
 
 // @return true if halted.
