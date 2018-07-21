@@ -7,6 +7,35 @@
 #include <iostream>
 using namespace std;
 
+void push_back_safe_long_move(int x, int y, int z, Trace &trace){
+  int spx = abs(x / 15);
+  for(int i=0;i<spx;++i){
+    trace.push_back(CommandSMove{Vec3(x<0 ? -15 : 15, 0, 0)});
+    x += ( x < 0 ? 15 : -15);
+  }
+  if(x!=0){
+    trace.push_back(CommandSMove{Vec3(x, 0, 0)});
+  }
+
+  int spy = abs(y / 15);
+  for(int i=0;i<spy;++i){
+    trace.push_back(CommandSMove{Vec3(0, y<0 ? -15 : 15, 0)});
+    y += ( y < 0 ? 15 : -15);
+  }
+  if(y !=0 ){
+    trace.push_back(CommandSMove{Vec3(0, y, 0)});
+  }
+  
+  int spz = abs(z / 15);
+  for(int i=0;i<spz;++i){
+    trace.push_back(CommandSMove{Vec3(0, 0, z<0 ? -15 : 15)});
+    z += ( z < 0 ? 15 : -15);
+  }
+  if(z !=0 ){
+    trace.push_back(CommandSMove{Vec3(0, 0, z)});
+  }
+}
+
 bool is_high_harmonic_needed(const System& system, const Matrix& problem_matrix, const vector<bool> &is_filled, const int x, const int y, const int z){
   if(y == 0){
     return false;
@@ -102,6 +131,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     
     bool is_high = false;
     long long int total_filled = 0;
+    long long int total_size = 0;
     vector<int> filled(system.matrix.R+1);
     vector<int> blocknum(system.matrix.R+1);
     vector<bool> is_filled(system.matrix.R * system.matrix.R * system.matrix.R);
@@ -113,12 +143,21 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 	  }
 	}
       }
+      total_size += blocknum[y];
     }
 
     Vec3 p(system.bots[0].pos);
 
     // move to bbox.
     Region bbox = find_bounding_box(problem_matrix, nullptr).canonical();
+    bbox.c1.x = 0;
+    bbox.c1.y = 0;
+    bbox.c1.z = 0;
+
+    bbox.c2.x = system.matrix.R-1;
+    bbox.c2.y = system.matrix.R-1;
+    bbox.c2.z = system.matrix.R-1;
+    
     bfs_shortest_in_void(system.matrix, p, bbox.c1, &trace, nullptr);
     p = bbox.c1;
     
@@ -155,8 +194,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 		    // finished
 		    if(filled[p.y] == blocknum[p.y]){
 		      is_plane_finished = true;
-		    }else{
-		      
+		      cout<<"finished "<<p.x<<","<<p.y<<","<<p.z<<endl;
 		    }
                 }
                 prev = p;
@@ -188,6 +226,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 		// finished
 		if(filled[p.y] == blocknum[p.y]){
 		  is_plane_finished = true;
+		  cout<<"finished "<<p.x<<","<<p.y<<","<<p.z<<endl;
 		}
             }
             prev = p;
@@ -203,10 +242,10 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 	    if(is_plane_finished){
 	      // go to edge point (not so good...)
 	      if(p.y % 2 == 0){
-		trace.push_back(CommandSMove{Vec3(-p.x + bbox.c1.x, 0, -p.z + bbox.c1.z)});
+		push_back_safe_long_move(-p.x + bbox.c1.x, 0, -p.z + bbox.c1.z, trace);
 		p.x = bbox.c1.x; p.z = bbox.c1.z;
 	      }else{
-		trace.push_back(CommandSMove{Vec3( bbox.c2.z % 2 == 0 ? -p.x + bbox.c1.x : + bbox.c2.x- p.x , 0, bbox.c2.z - p.z)});
+		push_back_safe_long_move(bbox.c2.z % 2 == 0 ? -p.x + bbox.c1.x : + bbox.c2.x- p.x , 0, bbox.c2.z - p.z, trace);
 		p.z = bbox.c2.z;
 		p.x = bbox.c2.z % 2 == 0 ? bbox.c1.x : bbox.c2.x;
 	      }
@@ -216,24 +255,19 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
         }
     }
 
-    // go home.
-    std::vector<Vec3> trajectory;
-    if (!bfs_shortest_in_void(system.matrix, p, system.final_pos(),
-        &trace, &trajectory)) {
-        std::cout << "sorry, stupid algorithm failed.." << std::endl;
-        return trace;
-    }
-
-    if (false) {
-        for (auto p : trajectory) {
-            p.print();
-        }
-    }
-
     // finalize at the origin pos.
     if(is_high){
       trace.push_back(CommandFlip{});
     }
+    
+    cout<<"gohome"<<endl;
+    // go home.
+    if (!bfs_shortest_in_void(system.matrix, p, system.final_pos(),
+			      &trace, nullptr)) {
+      std::cout << "sorry, stupid algorithm failed.." << std::endl;
+      return trace;
+    }
+
     trace.push_back(CommandHalt{});
     return trace;
 }
