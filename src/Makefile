@@ -34,9 +34,6 @@ stupid_engine: engine_main.cpp engines/stupid_solver.cpp $(OBJS) $(TEST_OBJS)
 stupid_engine_v2: engine_main.cpp engines/stupid_solver_v2.cpp $(OBJS) $(TEST_OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-small: small.cpp engines/stupid_solver.cpp $(OBJS) $(TEST_OBJS)
-	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
-
 
 .PHONY: dirs
 dirs:
