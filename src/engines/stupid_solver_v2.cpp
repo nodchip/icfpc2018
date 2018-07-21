@@ -130,6 +130,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     UnionFind unf(system.matrix.R*system.matrix.R*system.matrix.R + 1);
     
     bool is_high = false;
+    bool all_done = false;
     long long int total_filled = 0;
     long long int total_size = 0;
     vector<int> filled(system.matrix.R+1);
@@ -185,6 +186,10 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 		    is_filled[(prev.x * system.matrix.R + prev.y ) * system.matrix.R + prev.z] = true;
 		    filled[p.y] +=1;
 		    total_filled += 1;
+		    if(total_filled == total_size){
+		      all_done = true;
+		    }
+
 		    unfset(system, unf, is_filled, prev.x, prev.y, prev.z);
 		    if(unf.size(0)-1 == total_filled && is_high){
 		      is_high = false;
@@ -198,11 +203,11 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 		    }
                 }
                 prev = p;
-		if(is_plane_finished){
+		if(is_plane_finished || all_done){
 		  break;
 		}
             }
-	    if(is_plane_finished){
+	    if(is_plane_finished || all_done){
 	      break;
 	    }
             // turn around.
@@ -217,6 +222,9 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 		is_filled[(prev.x * system.matrix.R + prev.y ) * system.matrix.R + prev.z] = true;
 		filled[p.y] += 1;
 		total_filled += 1;
+		if(total_filled == total_size){
+		  all_done = true;
+		}
 		unfset(system, unf, is_filled, prev.x, prev.y, prev.z);
 		if(unf.size(0)-1 == total_filled && is_high){
 		  is_high = false;
@@ -230,10 +238,13 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 		}
             }
             prev = p;
-	    if(is_plane_finished){
+	    if(is_plane_finished || all_done){
 	      break;
 	    }
         }
+	if(all_done){
+	  break;
+	}
         if (p.y + 1 < system.matrix.R ) {
             // up.
             p.y += 1;
