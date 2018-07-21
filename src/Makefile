@@ -1,12 +1,12 @@
 CXXFLAGS=-Wall
 CXXFLAGS+=$(pkg-config --libs --cflags boost)
-CXXFLAGS+=-I ../libs/googletest/googletest/include
+CXXFLAGS+=-I ../libs/googletest/googletest/include -std=c++17
 CXXFLAGS+=-I ../libs/googletest/googletest
 LDFLAGS+=-lpthread
 
 BUILD_PATH=build
 
-SRCS=nmms.cpp stupid_solver.cpp
+SRCS=nmms.cpp stupid_solver.cpp stupid_solver_v2.cpp
 SRCS+=vec3.cpp
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
