@@ -52,6 +52,18 @@ struct Matrix {
 
     bool dump(std::string output_path);
 
+    bool operator==(const Matrix& other) {
+        if (R != other.R)
+            return false;
+        if (buf != other.buf)
+            return false;
+        return true;
+    }
+
+    bool operator!=(const Matrix& other) {
+        return !operator==(other);
+    }
+
 
     int R;
     std::vector<Voxel> buf;
