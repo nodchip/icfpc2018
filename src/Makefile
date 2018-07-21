@@ -10,7 +10,7 @@ LDFLAGS+=-lpthread
 BUILD_PATH=build
 LIB_PATH=../libs
 
-SRCS=command.cpp matrix.cpp nanobot.cpp nmms.cpp region.cpp vec3.cpp state.cpp system.cpp trace.cpp
+SRCS=command.cpp matrix.cpp nanobot.cpp nmms.cpp region.cpp vec3.cpp state.cpp system.cpp trace.cpp bounding_box.cpp
 SRCS+=engine.cpp
 
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)
@@ -24,11 +24,14 @@ all: dirs test engines evaluate
 ######################
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
-engines: stupid_engine stupid_engine_v2
+engines: stupid_engine stupid_bbox_engine stupid_engine_v2
 
 ######################
 # ADD YOUR ENGINE HERE
 stupid_engine: engine_main.cpp engines/stupid_solver.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+
+stupid_bbox_engine: engine_main.cpp engines/stupid_bbox_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 stupid_engine_v2: engine_main.cpp engines/stupid_solver_v2.cpp $(OBJS)
