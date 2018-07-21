@@ -9,7 +9,7 @@
 #include "engine.h"
 #include "matrix.h"
 #include "trace.h"
-#include "nmms.h"
+#include "state.h"
 
 using Options = std::map<std::string, std::string>;
 
@@ -88,26 +88,12 @@ int main(int argc, char** argv) {
     // init
     System sys(m.R);
 
+    // TODO(peria): Use State in |engine|, and remove |sys|.
     // sys is not changed in the solver.
     auto trace = engine(sys, m);
 
-    // simulate the plan.
-    sys.trace = trace;
-    while (!sys.trace.empty()) {
-        if (proceed_timestep(sys)) {
-            break;
-        }
-    }
-    sys.print_detailed();
-
-    int exit_code = 0;
-    bool is_successful = is_finished(sys, m);
-    if (is_successful) {
-        std::cout << "Success." << std::endl;
-    } else {
-        std::cout << "Final state is not valid." << std::endl;
-        exit_code = 4;
-    }
+    State state(m);
+    int exit_code = state.simulate(trace);
 
     if (options.count("trace-output")) {
         // dump the result.
@@ -121,9 +107,9 @@ int main(int argc, char** argv) {
 
     if (options.count("info")) {
         nlohmann::json j = {
-            {"energy", sys.energy},
-            {"consumed_commands", sys.consumed_commands},
-            {"successful", is_successful},
+            {"energy", state.sys.energy},
+            {"consumed_commands", state.sys.consumed_commands},
+            {"successful", exit_code == 0},
             {"engine_name", engine_name},
         };
         std::ofstream ofs(options["info"]);
