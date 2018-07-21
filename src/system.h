@@ -7,6 +7,7 @@
 #include "region.h"
 #include "trace.h"
 #include "vec3.h"
+#include "union_find.h"
 
 struct System {
     explicit System(int R);
@@ -32,5 +33,8 @@ struct System {
     std::vector<Bot> bots;
     Trace trace;
 
+    UnionFind ground_and_full_voxels;
+
     int64_t consumed_commands = 0; // not necessary for the game.
 };
+// vim: set si et sw=4 ts=4:

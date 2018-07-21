@@ -5,7 +5,8 @@
 #include "nanobot.h"
 
 System::System(int R)
-  : energy(0), harmonics_high(false), matrix(R) {
+  : energy(0), harmonics_high(false), matrix(R)
+  , ground_and_full_voxels(Vec3::index_end()) {
     Bot first_bot;
     first_bot.bid = 1;
     first_bot.pos = start_pos();
@@ -13,6 +14,13 @@ System::System(int R)
     first_bot.seeds.resize(19);
     std::iota(first_bot.seeds.begin(), first_bot.seeds.end(), 2);
     bots = {first_bot};
+    // unite the ground voxels. (y=0)
+    for (int z = 0; z < R; ++z) {
+        for (int x = 0; x < R; ++x) {
+            ground_and_full_voxels.unionSet(
+                Vec3(0, 0, 0).index(), Vec3(x, 0, z).index());
+        }
+    }
 }
 
 int System::bot_index_by(BotID bid) const {
@@ -52,3 +60,4 @@ void System::print_detailed() {
         bots[i].print();
     }
 }
+// vim: set si et sw=4 ts=4:

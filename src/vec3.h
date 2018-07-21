@@ -52,6 +52,13 @@ struct Vec3 {
         return *this;
     }
 
+    uint32_t index() const {
+        return (uint32_t(x) << 16) | (uint32_t(y) << 8) | uint32_t(z);
+    }
+    static uint32_t index_end() {
+        return 1 << 25;
+    }
+
     void print() const;
 
     struct hash {
@@ -86,3 +93,4 @@ inline Vec3 linear_coordinate_difference_z(int z) { return Vec3(0, 0, z); }
 std::vector<Vec3> neighbors26();
 std::vector<Vec3> neighbors18();
 std::vector<Vec3> neighbors6();
+// vim: set si et sw=4 ts=4:
