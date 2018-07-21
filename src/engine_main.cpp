@@ -85,12 +85,7 @@ int main(int argc, char** argv) {
         return 3;
     }
 
-    // init
-    System sys(m.R);
-
-    // TODO(peria): Use State in |engine|, and remove |sys|.
-    // sys is not changed in the solver.
-    auto trace = engine(sys, m);
+    auto trace = engine(m);
 
     State state(m);
     int exit_code = state.simulate(trace);

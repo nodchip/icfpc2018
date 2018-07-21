@@ -3,7 +3,9 @@
 #include "bounding_box.h"
 #include "nmms.h"
 
-Trace stupid_bbox_solver(const System& system, const Matrix& problem_matrix) {
+Trace stupid_bbox_solver(const Matrix& problem_matrix) {
+    System system(problem_matrix);
+
     // use a single nanobot.
     // always in the high harmonics.
     // zig-zag scanning in the XZ plane.
@@ -17,9 +19,9 @@ Trace stupid_bbox_solver(const System& system, const Matrix& problem_matrix) {
 
     // move to bbox.
     Region bbox = find_bounding_box(problem_matrix, nullptr).canonical();
-    bfs_shortest_in_void(system.matrix, p, bbox.c1, &trace, nullptr);
+    bfs_shortest_in_void(problem_matrix, p, bbox.c1, &trace, nullptr);
     p = bbox.c1;
-    
+
     Vec3 prev = p;
     while (true) {
         int zdir = p.y % 2 == 0 ? +1 : -1;
@@ -51,7 +53,7 @@ Trace stupid_bbox_solver(const System& system, const Matrix& problem_matrix) {
     }
 
     // go home.
-    if (!bfs_shortest_in_void(system.matrix, p, system.final_pos(),
+    if (!bfs_shortest_in_void(problem_matrix, p, system.final_pos(),
         &trace, nullptr)) {
         std::cout << "sorry, stupid algorithm failed.." << std::endl;
         return trace;
@@ -64,4 +66,3 @@ Trace stupid_bbox_solver(const System& system, const Matrix& problem_matrix) {
 }
 
 REGISTER_ENGINE(stupid_bbox, stupid_bbox_solver);
-// vim: set si et sw=4 ts=4:

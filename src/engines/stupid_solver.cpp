@@ -1,7 +1,12 @@
-#include "engine.h"
 #include "stupid_solver.h"
 
-Trace stupid_solver(const System& system, const Matrix& problem_matrix) {
+#include "engine.h"
+#include "nmms.h"
+#include "system.h"
+
+Trace stupid_solver(const Matrix& problem_matrix) {
+    System system(problem_matrix);
+
     // use a single nanobot.
     // always in the high harmonics.
     // zig-zag scanning in the XZ plane.
@@ -44,7 +49,7 @@ Trace stupid_solver(const System& system, const Matrix& problem_matrix) {
 
     // go home.
     std::vector<Vec3> trajectory;
-    if (!bfs_shortest_in_void(system.matrix, p, system.final_pos(),
+    if (!bfs_shortest_in_void(problem_matrix, p, system.final_pos(),
         &trace, &trajectory)) {
         std::cout << "sorry, stupid algorithm failed.." << std::endl;
         return trace;

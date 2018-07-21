@@ -11,7 +11,6 @@
 #include "matrix.h"
 #include "state.h"
 #include "trace.h"
-#include "nmms.h"
 
 using Options = std::map<std::string, std::string>;
 

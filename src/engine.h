@@ -5,21 +5,14 @@
 #include <map>
 #include <string>
 
-#include "system.h"
-#include "trace.h"
+struct Matrix;
+struct Trace;
 
-using EngineFunc = std::function<Trace(const System& system, const Matrix& problem_matrix)>;
+using EngineFunc = std::function<Trace(const Matrix& problem_matrix)>;
 
 struct RegisterEngine {
-    RegisterEngine(std::string name, EngineFunc func) {
-        Engines()[name] = func;
-    }
-
-    // Singleton
-    static std::map<std::string, EngineFunc>& Engines() {
-        static std::map<std::string, EngineFunc> engines;
-        return engines;
-    }
+    RegisterEngine(std::string name, EngineFunc func);
+    static std::map<std::string, EngineFunc>& Engines();
 };
 
 #define REGISTER_ENGINE(name, func) \

@@ -1,10 +1,15 @@
-#include "engine.h"
 #include "stupid_solver_v2.h"
-#include "../union_find.h"
-#include "region.h"
-#include "bounding_box.h"
+
 #include <vector>
 #include <iostream>
+
+#include "bounding_box.h"
+#include "engine.h"
+#include "matrix.h"
+#include "nmms.h"
+#include "region.h"
+#include "system.h"
+#include "union_find.h"
 using namespace std;
 
 void push_back_safe_long_move(int x, int y, int z, Trace &trace){
@@ -25,7 +30,7 @@ void push_back_safe_long_move(int x, int y, int z, Trace &trace){
   if(y !=0 ){
     trace.push_back(CommandSMove{Vec3(0, y, 0)});
   }
-  
+
   int spz = abs(z / 15);
   for(int i=0;i<spz;++i){
     trace.push_back(CommandSMove{Vec3(0, 0, z<0 ? -15 : 15)});
@@ -50,7 +55,7 @@ bool is_high_harmonic_needed(const System& system, const Matrix& problem_matrix,
       return false;
     }
   }
-  
+
   if(y > 0) {
     if(is_filled[( x * system.matrix.R + y - 1 ) * system.matrix.R + z]){
       return false;
@@ -61,19 +66,19 @@ bool is_high_harmonic_needed(const System& system, const Matrix& problem_matrix,
       return false;
     }
   }
-  
+
   if(z > 0) {
     if(is_filled[( x * system.matrix.R + y ) * system.matrix.R + z - 1]){
       return false;
     }
   }
-    
+
   if(z < system.matrix.R - 1) {
     if(is_filled[( x * system.matrix.R + y ) * system.matrix.R + z + 1]){
       return false;
     }
   }
-  
+
   return true;
 }
 
@@ -82,7 +87,7 @@ void unfset(const System& system, UnionFind &unf, const vector<bool> &is_filled,
     unf.unionSet(0, x * system.matrix.R * system.matrix.R + z + 1);
     return;
   }
-  
+
   if(x > 0) {
     if(is_filled[( (x - 1) * system.matrix.R + y ) * system.matrix.R + z]){
       unf.unionSet(( (x-1) * system.matrix.R + y) * system.matrix.R + z + 1 , (x * system.matrix.R + y) * system.matrix.R + z + 1);
@@ -93,7 +98,7 @@ void unfset(const System& system, UnionFind &unf, const vector<bool> &is_filled,
       unf.unionSet(( (x+1) * system.matrix.R + y) * system.matrix.R + z + 1 , (x * system.matrix.R + y) * system.matrix.R + z + 1);
     }
   }
-  
+
   if(y > 0) {
     if(is_filled[( x * system.matrix.R + y - 1 ) * system.matrix.R + z]){
       unf.unionSet(( x * system.matrix.R + ( y-1 )) * system.matrix.R + z + 1 , (x * system.matrix.R + y) * system.matrix.R + z + 1);
@@ -104,13 +109,13 @@ void unfset(const System& system, UnionFind &unf, const vector<bool> &is_filled,
       unf.unionSet(( x * system.matrix.R + ( y+1 )) * system.matrix.R + z + 1 , (x * system.matrix.R + y) * system.matrix.R + z + 1);
     }
   }
-  
+
   if(z > 0) {
     if(is_filled[( x * system.matrix.R + y ) * system.matrix.R + z - 1]){
       unf.unionSet(( x * system.matrix.R + y) * system.matrix.R + z , (x * system.matrix.R + y) * system.matrix.R + z + 1);
     }
   }
-    
+
   if(z < system.matrix.R - 1) {
     if(is_filled[( x * system.matrix.R + y ) * system.matrix.R + z + 1]){
       unf.unionSet(( x * system.matrix.R + y) * system.matrix.R + z + 2, (x * system.matrix.R + y) * system.matrix.R + z + 1);
@@ -118,17 +123,18 @@ void unfset(const System& system, UnionFind &unf, const vector<bool> &is_filled,
   }
 }
 
-Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
+Trace stupid_solver_v2(const Matrix& problem_matrix) {
+    System system(problem_matrix);
     // use a single nanobot.
     // always in the high harmonics.
-    // zig-zag scanning in the XZ plane.  
+    // zig-zag scanning in the XZ plane.
     // only fill the "previous" voxels.
     // if xz plane is finished go to next step
     // judge if harmonic is needed or not and switch it automatically
-  
+
     Trace trace;
     UnionFind unf(system.matrix.R*system.matrix.R*system.matrix.R + 1);
-    
+
     bool is_high = false;
     bool all_done = false;
     long long int total_filled = 0;
@@ -183,12 +189,13 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     bbox.c2.x = system.matrix.R-1;
     bbox.c2.y = system.matrix.R-1;
     bbox.c2.z = system.matrix.R-1;
+
     */
     bfs_shortest_in_void(problem_matrix, p, bbox.c1, &trace, nullptr);
     p = bbox.c1;
-    
+
     Vec3 prev = p;
-    
+
     while (true) {
         int zdir = p.y % 2 == 0 ? +1 : -1;
 	bool is_plane_finished = false;
@@ -220,11 +227,11 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
 		      is_high = false;
 		      trace.push_back(CommandFlip{}); // low.
 		    }
-		    		    
+
 		    // finished
 		    if(filled[p.y] == blocknum[p.y]){
 		      is_plane_finished = true;
-		      cout<<"finished "<<p.x<<","<<p.y<<","<<p.z<<endl;
+		      cout << "finished " << p.x << "," << p.y << "," << p.z << endl;
 		    }
                 }
                 prev = p;
@@ -275,7 +282,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
             // up.
             p.y += 1;
             trace.push_back(CommandSMove{Vec3(0, 1, 0)});
-	    
+
 	    if(is_plane_finished){
 	      // go to edge point (not so good...)
 	      
@@ -298,7 +305,7 @@ Trace stupid_solver_v2(const System& system, const Matrix& problem_matrix) {
     if(is_high){
       trace.push_back(CommandFlip{});
     }
-    
+
     cout<<"gohome"<<endl;
     // go home.
     if (!bfs_shortest_in_void(problem_matrix, p, system.final_pos(),
