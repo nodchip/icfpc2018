@@ -31,8 +31,7 @@ bool Is30Cube(const Matrix& m, const Voxel fv) {
 }
 
 Trace Trace30Cube(const Voxel v, const ProblemType pt) {
-  const int yu = (pt == ProblemType::Reassembly || pt == ProblemType::Disassembly) ? 12 : 11;  // Y-up
-  const int yd = (pt == ProblemType::Disassembly) ? 12 : 11;  // Y-down
+  const int ym = (pt == ProblemType::Reassembly) ? 12 : 11;  // Y-move
 
   Trace trace;
   // 1 bot
@@ -40,7 +39,7 @@ Trace Trace30Cube(const Voxel v, const ProblemType pt) {
   trace.push_back(CommandFission { Vec3 {0, 1, 0}, 19 }); // 2: (0, 16, 0)[3-21], 1:[22-40]
   // 2 bots
   trace.push_back(CommandSMove { Vec3 {0, -15, 0} });  // 1: (0, 0, 0)
-  trace.push_back(CommandSMove { Vec3 {0, yu, 0} });   // 2: (0, 27, 0)
+  trace.push_back(CommandSMove { Vec3 {0, ym, 0} });   // 2: (0, 27, 0)
   trace.push_back(CommandSMove { Vec3 {15, 0, 0} });   // 1: (15, 0, 0)
   trace.push_back(CommandSMove { Vec3 {15, 0, 0} });   // 2: (15, 27, 0)
   trace.push_back(CommandFission { Vec3 {1, 0, 0}, 9 });  // 22: (16, 0, 0)[23-31], 1:[32-40]
@@ -68,14 +67,14 @@ Trace Trace30Cube(const Voxel v, const ProblemType pt) {
   trace.push_back(CommandSMove { Vec3 {0, 0, 13} });   // 23: (29, 0, 29)
   trace.push_back(CommandSMove { Vec3 {0, 0, 13} });   // 32: (0, 0, 29)
   if (pt == ProblemType::Disassembly) {
-    trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27, 28, 27} });  //  1
-    trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27,-28, 27} });  //  2
-    trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27,-28, 27} });  //  3
-    trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27,-28,-27} });  //  4
-    trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27,-28,-27} });  // 13
-    trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27, 28, 27} });  // 22
-    trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27, 28,-27} });  // 23
-    trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27, 28,-27} });  // 32
+    trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27, 27, 27} });  //  1
+    trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27,-27, 27} });  //  2
+    trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27,-27, 27} });  //  3
+    trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27,-27,-27} });  //  4
+    trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27,-27,-27} });  // 13
+    trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27, 27, 27} });  // 22
+    trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27, 27,-27} });  // 23
+    trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27, 27,-27} });  // 32
   }
   if (v == Voxel::Full) {
     if (pt == ProblemType::Reassembly) {
@@ -187,7 +186,7 @@ Trace Trace30Cube(const Voxel v, const ProblemType pt) {
   trace.push_back(CommandSMove { Vec3 {-15, 0, 0} });   // 1: (0, 0, 0)
   trace.push_back(CommandSMove { Vec3 {-15, 0, 0} });   // 2: (0, 27, 0)
   trace.push_back(CommandSMove { Vec3 {0, 15, 0} });  // 1: (0, 15, 0)
-  trace.push_back(CommandSMove { Vec3 {0, -yd, 0} });   // 2: (0, 16, 0)
+  trace.push_back(CommandSMove { Vec3 {0, -11, 0} });   // 2: (0, 16, 0)
   trace.push_back(CommandFusionP { Vec3 {0, 1, 0} });  //  1: (0, 15, 0)
   trace.push_back(CommandFusionS { Vec3 {0, -1, 0} });  //  2->1
   // 1 bot
@@ -206,8 +205,10 @@ Trace AssemblySolver(const Matrix& matrix) {
 }
 
 Trace DisassemblySolver(const Matrix& matrix) {
-  if (matrix.R == 30)
+  if (Is30Cube(matrix, Voxel::Full))
     return Trace30Cube(Voxel::Full, ProblemType::Disassembly);
+  if (Is30Cube(matrix, Voxel::Void))
+    return Trace30Cube(Voxel::Void, ProblemType::Disassembly);
   return {};
 }
 
