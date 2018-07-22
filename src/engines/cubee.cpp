@@ -150,7 +150,24 @@ Trace AssemblySolver(const Matrix& matrix) {
   return {};
 }
 
+bool IsEqual(const Matrix& a, const Matrix& b) {
+  const int R = a.R;
+  for (int x = 0; x < R; ++x)
+    for (int y = 0; y < R; ++y)
+      for (int z = 0; z < R; ++z)
+        if (a(x, y, z) != b(x, y, z))
+          return false;
+  LOG();
+  return true;
+}
+
 Trace cubee(ProblemType problem_type, const Matrix& source, const Matrix& target) {
+  if (IsEqual(source, target)) {
+    Trace trace;
+    trace.push_back(CommandHalt {});
+    return trace;
+  }
+
   switch (problem_type) {
   case ProblemType::Assembly:
     return AssemblySolver(target);

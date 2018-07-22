@@ -5,7 +5,6 @@ CXXFLAGS+=-I .
 CXXFLAGS+=-I ../libs
 CXXFLAGS+=-I ../libs/googletest/googletest/
 CXXFLAGS+=-I ../libs/googletest/googletest/include
-LDFLAGS+=-lpthread
 
 BUILD_PATH=build
 LIB_PATH=../libs
@@ -52,9 +51,9 @@ dirs:
 	@mkdir -p $(BUILD_PATH)/engines
 
 test: test_main.cpp engines/stupid_solver.cpp engines/stupid_solver_v2.cpp engines/parallel_stupid_solver.cpp engines/parallel_stupid_solver_v2.cpp $(OBJS) $(TEST_OBJS)
-	$(CXX) -DTEST_PROJECT $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+	$(CXX) -DTEST_PROJECT $(CXXFLAGS) $^ -o $@ $(LDFLAGS) -lpthread
 
-evaluate: evaluate_main.cpp $(OBJS) $(TEST_OBJS)
+evaluate: evaluate_main.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 trace_sandbox: trace_sandbox_main.cpp $(OBJS)
