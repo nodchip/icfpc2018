@@ -1,4 +1,5 @@
 #include "parallel_stupid_solver_v2.h"
+#include "naive_converter.h"
 
 #include "engine.h"
 #include "nmms.h"
@@ -30,7 +31,7 @@ void naive_move(const Vec3& destination, Vec3& position, Trace& trace) {
     }
 }
 
-Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
+Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
                            const Vec3& lower_bound, const Vec3& upper_bound,
                            Vec3& position) {
     // calculate bounding box
@@ -39,7 +40,7 @@ Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
     for (int x = lower_bound.x; x < upper_bound.x; ++x) {
         for (int y = lower_bound.y; y < upper_bound.y; ++y) {
             for (int z = lower_bound.z; z < upper_bound.z; ++z) {
-                if (problem_matrix(Vec3(x, y, z))) {
+                if (tgt_matrix(Vec3(x, y, z))) {
                     lower.x = std::min(lower.x, x);
                     lower.y = std::min(lower.y, y);
                     lower.z = std::min(lower.z, z);
@@ -74,7 +75,7 @@ Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
                     trace.push_back(CommandSMove{Vec3(dx, 0, 0)});
                     position += Vec3(dx, 0, 0);
                 }
-                if (problem_matrix(position - unitY)) {
+                if (tgt_matrix(position - unitY)) {
                     trace.push_back(CommandFill{-unitY});
                 }
             }
@@ -86,10 +87,15 @@ Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
 
 }  // namespace
 
-Trace parallel_stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const Matrix& problem_matrix) {
+Trace parallel_stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix) {
+    if (problem_type == ProblemType::Disassembly) {
+        return NaiveConverter::reverse(parallel_stupid_solver_v2)(problem_type, src_matrix, tgt_matrix);
+    } else if (problem_type == ProblemType::Reassembly) {
+        return NaiveConverter::concatenate(NaiveConverter::reverse(parallel_stupid_solver_v2), parallel_stupid_solver_v2)(problem_type, src_matrix, tgt_matrix);
+    }
     ASSERT_RETURN(problem_type == ProblemType::Assembly, Trace());
 
-    System system(problem_matrix.R);
+    System system(tgt_matrix.R);
     Trace trace;
 
     // spread nanobots
@@ -124,7 +130,7 @@ Trace parallel_stupid_solver_v2(ProblemType problem_type, const Matrix& src_matr
     std::vector<Trace> traces;
     traces.push_back({});
     for (int i = 1; i < N; ++i) {
-        traces.push_back(single_stupid_solver(system, problem_matrix,
+        traces.push_back(single_stupid_solver(system, tgt_matrix,
                                               Vec3(boundaries[i], 0, 0),
                                               Vec3(boundaries[i + 1], R, R),
                                               positions[i]));
