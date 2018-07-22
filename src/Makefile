@@ -49,6 +49,9 @@ test: test_main.cpp engines/stupid_solver.cpp engines/stupid_solver_v2.cpp engin
 evaluate: evaluate_main.cpp $(OBJS) $(TEST_OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
+trace_sandbox: trace_sandbox_main.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
 $(BUILD_PATH)/%.o: %.cpp %.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
