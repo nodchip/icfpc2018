@@ -49,52 +49,34 @@ Trace stupid_solver_disassembly(ProblemType problem_type, const Matrix& src_matr
     ASSERT_ERROR_RETURN(problem_type == ProblemType::Disassembly, Trace());
 
     printf("stupid_solver\n");
-    System system(src_matrix.R);
+    const int R = src_matrix.R;
+    System system(R);
     Trace trace;
 
-    // go to the top plane. there are no blocker around the path.
-    const int R = src_matrix.R;
-    Vec3 p = system.bots[0].pos;
-    fast_move(Vec3(0, R - 1, 0), p, trace);
+    const Vec3 start(0, 0, 0);
+    const Vec3 top(0, R - 1, 0);
+    const Vec3 diagonal(R - 1, 0, R - 1);
+    const Vec3 down(0, -1, 0);
+    std::vector<Vec3> scan = NEditPoints::move_naive_ii(start, top);
+    boost::push_back(scan, NEditPoints::fill_zigzag_ii(top, diagonal));
+    boost::push_back(scan, NEditPoints::move_naive_ii(scan.back(), start));
+    NEditPoints::dedup(scan);
+    ASSERT_ERROR(NEditPoints::is_connected_6(scan));
 
-    // erase "bottom" voxels in zig-zag manner.
     trace.push_back(CommandFlip{}); // high.
-    auto try_void_bottom = [&] {
-        Vec3 bottom = p + Vec3(0, -1, 0);
+    for (size_t i = 0; i < scan.size(); ++i) {
+        Vec3 bottom = scan[i] + down;
         if (src_matrix.is_in_matrix(bottom) && src_matrix(bottom)) {
-            trace.push_back(CommandVoid{bottom - p});
+            trace.push_back(CommandVoid{down});
         }
-    };
-    while (true) {
-        int zdir = p.y % 2 == 0 ? +1 : -1;
-        while (0 <= p.z + zdir && p.z + zdir < R) {
-            int xdir = p.z % 2 == 0 ? +1 : -1;
-            while (0 <= p.x + xdir && p.x + xdir < R) {
-                p.x += xdir;
-                trace.push_back(CommandSMove{Vec3(xdir, 0, 0)});
-                try_void_bottom();
-            }
-            // turn around.
-            p.z += zdir;
-            trace.push_back(CommandSMove{Vec3(0, 0, zdir)});
-            try_void_bottom();
-        }
-        if (0 <= p.y - 1) {
-            // down.
-            p.y -= 1;
-            trace.push_back(CommandSMove{Vec3(0, -1, 0)});
-            try_void_bottom();
-        } else {
-            break;
+        if (i + 1 < scan.size()) {
+            trace.push_back(CommandSMove{scan[i + 1] - scan[i]});
         }
     }
     trace.push_back(CommandFlip{}); // low.
+    trace.push_back(CommandHalt{}); 
+    printf("trace %d, scan %d\n", trace.size(), scan.size());
 
-    // go home.
-    fast_move(system.final_pos(), p, trace);
-
-    // finalize at the origin pos.
-    trace.push_back(CommandHalt{});
     return trace;
 }
 

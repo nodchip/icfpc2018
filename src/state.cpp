@@ -11,6 +11,7 @@ State::State(const Matrix& src_matrix, const Matrix& tgt_matrix)
     ASSERT_ERROR(src_matrix.is_valid_matrix());
     ASSERT_ERROR(tgt_matrix.is_valid_matrix());
     ASSERT_ERROR(src_matrix.R == tgt_matrix.R);
+    system.matrix = src_matrix;
 }
 
 int State::simulate(const Trace& t) {
