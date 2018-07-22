@@ -2,6 +2,7 @@
 
 #include <map>
 #include <vector>
+#include <boost/optional.hpp>
 
 #include "matrix.h"
 #include "nanobot.h"
@@ -39,6 +40,8 @@ struct AccumulateEnergyLogger : public EnergyLogger {
     std::map<int, int64_t> consumption;
 };
 
+constexpr int k_MaxNumberOfBots = 40;
+
 struct System {
     explicit System(int R);
 
@@ -65,6 +68,7 @@ struct System {
     // For debug
     void print();
     void print_detailed();
+    void set_verbose(bool verbose_) { verbose = verbose_; }
 
     // record energy update with a tag.
     void add_energy(EnergyTag tag, int64_t value) {
@@ -73,6 +77,13 @@ struct System {
             energy_logger->log_energy(tag, value);
         }
     }
+
+    // order-free bot command system.
+    bool stage(const Bot& bot, Command cmd);
+    bool is_stage_filled() const;
+    bool reset_staged_commands();
+    bool commit_commands();
+
 
     static Vec3 start_pos() { return Vec3(0, 0, 0); }
     static Vec3 final_pos() { return Vec3(0, 0, 0); }
@@ -83,11 +94,16 @@ struct System {
     std::vector<Bot> bots;
     Trace trace;
 
+    // (bid-1) => command
+    std::vector<boost::optional<Command>> commands_stage;
+
     std::shared_ptr<EnergyLogger> energy_logger;
     bool log_energy = false;
+    bool verbose = false;
 
     UnionFind ground_and_full_voxels;
 
     int64_t consumed_commands = 0; // not necessary for the game.
+    int64_t timestep = 0; // not necessary for the game.
 };
 // vim: set si et sw=4 ts=4:

@@ -103,3 +103,19 @@ inline bool is_valid_fd(Vec3 d) {
 
 } 
 
+struct PrintCommand : public boost::static_visitor<int> {
+    static std::string Vec3_to_string(Vec3 p);
+    int operator()(CommandHalt);
+    int operator()(CommandWait);
+    int operator()(CommandFlip);
+    int operator()(CommandSMove cmd);
+    int operator()(CommandLMove cmd);
+    int operator()(CommandFission cmd);
+    int operator()(CommandFill cmd);
+    int operator()(CommandVoid cmd);
+    int operator()(CommandGFill cmd);
+    int operator()(CommandGVoid cmd);
+    int operator()(CommandFusionP cmd);
+    int operator()(CommandFusionS cmd);
+    int operator()(CommandDebugMoveTo cmd);
+};

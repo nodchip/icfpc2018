@@ -350,10 +350,12 @@ System::System(int R)
     Bot first_bot;
     first_bot.bid = 1;
     first_bot.pos = start_pos();
-    // [2, 20]
-    first_bot.seeds.resize(19);
+    // [2, k_MaxNumberOfBots]
+    first_bot.seeds.resize(k_MaxNumberOfBots - 1);
     std::iota(first_bot.seeds.begin(), first_bot.seeds.end(), 2);
     bots = {first_bot};
+    // staging area
+    commands_stage.resize(k_MaxNumberOfBots);
     // unite the ground voxels. (y=0)
     for (int z = 0; z < R; ++z) {
         for (int x = 0; x < R; ++x) {
@@ -384,9 +386,20 @@ bool System::proceed_timestep() {
     // bots consume trace in the ascending order of bids.
     sort_by_bid();
 
+    if (verbose) {
+        std::printf("------------[timestep: %7d]\n", timestep);
+    }
+
     const size_t n = bots.size();
     for (size_t i = 0; i < n; ++i) {
         Command& cmd = trace[consumed_commands++];
+
+        if (verbose) {
+            std::printf("%8d : ", consumed_commands);
+            PrintCommand visitor;
+            boost::apply_visitor(visitor, cmd);
+            std::printf("\n");
+        }
 
         NProceedTimestep::UpdateSystem visitor(*this, bots[i], halt, fusion_stage, group_stage, ground_connectivity_checker);
         if (!boost::apply_visitor(visitor, cmd)) {
@@ -453,4 +466,38 @@ void System::print_detailed() {
     for (size_t i = 0; i < bots.size(); ++i) {
         bots[i].print();
     }
+}
+
+
+bool System::stage(const Bot& bot, Command cmd) {
+    ASSERT_RETURN(0 <= bot.bid - 1 && bot.bid - 1 < commands_stage.size(), false);
+    commands_stage[bot.bid - 1] = cmd;
+    return true;
+}
+
+bool System::is_stage_filled() const {
+    return bots.size() == std::count_if(commands_stage.begin(), commands_stage.end(), [](auto i) {
+        return bool(i);
+    });
+}
+
+bool System::reset_staged_commands() {
+    commands_stage.assign(commands_stage.size(), boost::none);
+    return true;
+}
+
+bool System::commit_commands() {
+    ASSERT_RETURN(is_stage_filled(), false);
+
+    // naturally sorted in the ascending order of bid.
+    for (size_t i = 0; i < k_MaxNumberOfBots; ++i) {
+        if (commands_stage[i]) {
+            trace.push_back(*commands_stage[i]);
+        }
+    }
+    reset_staged_commands();
+
+    proceed_timestep();
+
+    return true;
 }

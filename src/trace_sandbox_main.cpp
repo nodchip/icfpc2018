@@ -17,7 +17,6 @@ const Vec3 unity(0, 1, 0);
 const Vec3 unitZ(0, 0, 1);
 
 State sandbox_test() {
-    const int S = 30;
     const int R = 50;
     const int N = 10;
     Matrix msrc(R), mtgt(R);
@@ -44,6 +43,36 @@ State sandbox_test() {
     return state;
 }
 
+State sandbox_stepbystep() {
+    const int R = 50;
+    const int N = 10;
+    Matrix msrc(R), mtgt(R);
+    State state(msrc, mtgt);
+    System& system = state.system;
+    system.set_verbose(true);
+
+    // linear dense distribution.
+    for (int active = system.bots.size(); active < N; ++active) {
+        system.stage(system.bots[0], CommandSMove{unitX});
+        for (int i = 1; i < system.bots.size(); ++i) {
+            system.stage(system.bots[i], CommandWait{});
+        }
+        system.commit_commands();
+        system.print_detailed();
+
+        system.stage(system.bots[0], CommandFission{-unitX, 1});
+        for (int i = 1; i < system.bots.size(); ++i) {
+            system.stage(system.bots[i], CommandWait{});
+        }
+        system.commit_commands();
+        system.print_detailed();
+    }
+
+    system.trace.print_detailed();
+    
+    return state;
+}
+
 int main(int argc, char** argv) {
     if (argc <= 1) {
         return 1;
@@ -52,6 +81,7 @@ int main(int argc, char** argv) {
     std::string cmd = argv[1];
     State state = [&] {
         if (cmd == "test") { return sandbox_test(); }
+        if (cmd == "stepbystep") { return sandbox_stepbystep(); }
         // add your function here..
 
         return State { {}, {} };
