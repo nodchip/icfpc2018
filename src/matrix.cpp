@@ -16,11 +16,11 @@ Matrix::Matrix(const std::string& input_path) : R(0xff) {
     if (!fp)
       std::cerr << "fail to load " << input_path << "\n";
 
-    std::fread(&R, 1, 1, fp);
+    ASSERT_EQ(std::fread(&R, 1, 1, fp), 1);
     // ASSERT_NE(0xff, R);
 
     std::vector<uint8_t> binary_buffer((R * R * R + 8 - 1) / 8, 0);
-    std::fread(binary_buffer.data(), 1, binary_buffer.size(), fp);
+    ASSERT_EQ(std::fread(binary_buffer.data(), 1, binary_buffer.size(), fp), binary_buffer.size());
     std::fclose(fp);
 
     buf.resize(R * R * R, Voxel::Void);
