@@ -10,6 +10,7 @@
 #include "engines/stupid_solver.h"
 #include "engines/stupid_solver_v2.h"
 #include "engines/parallel_stupid_solver.h"
+#include "engines/parallel_stupid_solver_v2.h"
 
 TEST(Planning, FastMove) {
     Matrix m(5);
@@ -197,6 +198,19 @@ TEST(System, ParallelStupidSolver) {
     Matrix m_src;
     auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
     auto trace = parallel_stupid_solver(problem_type, m_src, m_tgt);
+
+    State state(m_src, m_tgt);
+    EXPECT_FALSE(state.is_finished());
+    state.simulate(trace);
+
+    EXPECT_TRUE(state.is_finished());
+}
+
+TEST(System, ParallelStupidSolverV2) {
+    Matrix m_tgt("../data/problems/LA001_tgt.mdl");
+    Matrix m_src;
+    auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
+    auto trace = parallel_stupid_solver_v2(problem_type, m_src, m_tgt);
 
     State state(m_src, m_tgt);
     EXPECT_FALSE(state.is_finished());
