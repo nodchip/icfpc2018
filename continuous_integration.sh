@@ -1,4 +1,5 @@
 #!/bin/sh
+: ${NUMBER_OF_PROCESSORS:=72}
 git submodule init
 git submodule update
 cd ${WORKSPACE}/src
@@ -13,7 +14,7 @@ do
 		--output_info_file_directory_path ../tmp/info/${engine} \
 		--output_energy_file_directory_path ../tmp/energy/${engine} \
 		--timeout_sec 120 \
-		--jobs 72 || exit 1
+		--jobs ${NUMBER_OF_PROCESSORS} || exit 1
 done
 python3 compare_engine.py --default_info_directory_path ../resultF/default_info \
 	--info_directory_path_base ../tmp/info \

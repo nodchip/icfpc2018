@@ -3,11 +3,11 @@
 git submodule init
 git submodule update
 cd ${WORKSPACE}/src || exit 1
-make -j || exit 1
+make -j ${NUMBER_OF_PROCESSORS} || exit 1
 cd ${WORKSPACE}/scripts || exit 1
 python3 model_to_trace.py \
         --binary_file_path ../src/${BINARY_FILE_NAME} \
-        --input_model_directory_path ../data/problems \
+        --input_model_directory_path ../data/problemsF \
         --output_trace_file_directory_path ../tmp/trace \
         --output_info_file_directory_path ../tmp/info \
         --jobs ${NUMBER_OF_PROCESSORS} || exit 1
