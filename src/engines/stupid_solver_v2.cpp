@@ -5,12 +5,12 @@
 
 #include "bounding_box.h"
 #include "engine.h"
+#include "log.h"
 #include "matrix.h"
 #include "nmms.h"
 #include "region.h"
-#include "system.h"
 #include "state.h"
-#include "debug_message.h"
+#include "system.h"
 #include "union_find.h"
 using namespace std;
 
@@ -126,7 +126,7 @@ void unfset(const System& system, UnionFind &unf, const vector<bool> &is_filled,
 }
 
 Trace stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const Matrix& problem_matrix) {
-    ASSERT_ERROR_RETURN(problem_type == ProblemType::Assembly, Trace());
+    ASSERT_RETURN(problem_type == ProblemType::Assembly, Trace());
 
     System system(problem_matrix.R);
     // use a single nanobot.
@@ -146,7 +146,7 @@ Trace stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const
     vector<int> filled(system.matrix.R+1);
     vector<int> blocknum(system.matrix.R+1);
     vector<bool> is_filled(system.matrix.R * system.matrix.R * system.matrix.R);
-    
+
     for(int y = 0; y < system.matrix.R ; ++y){
       for(int x = 0; x < system.matrix.R ; ++x){
 	for(int z = 0; z < system.matrix.R ; ++z){
@@ -166,11 +166,11 @@ Trace stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const
     if(bbox.c1.x > 0){
       bbox.c1.x -= 1;
     }
-    
+
     if(bbox.c1.y > 0){
       bbox.c1.y -= 1;
     }
-    
+
     if(bbox.c1.z > 0){
       bbox.c1.z -= 1;
     }
@@ -185,7 +185,7 @@ Trace stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const
       bbox.c2.z += 1;
     }
 
-    
+
     /*
     bbox.c1.x = 0;
     bbox.c1.y = 0;
@@ -290,16 +290,16 @@ Trace stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const
 
 	    if(is_plane_finished){
 	      // go to edge point (not so good...)
-	      
+
 	      if(p.y % 2 == 0){
 		push_back_safe_long_move(-p.x + bbox.c1.x, 0, -p.z + bbox.c1.z, trace);
 		p.x = bbox.c1.x; p.z = bbox.c1.z;
-		
+
 	      }else{
 		push_back_safe_long_move(bbox.c2.z % 2 == 0 ? -p.x + bbox.c1.x : + bbox.c2.x- p.x , 0, bbox.c2.z - p.z, trace);
 		p.z = bbox.c2.z;
 		p.x = (bbox.c2.z % 2 == 0 ? bbox.c1.x : bbox.c2.x);
-	      }	
+	      }
 	    }
         } else {
             break;

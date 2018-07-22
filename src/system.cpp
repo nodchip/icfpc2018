@@ -4,8 +4,8 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-#include "debug_message.h"
 #include "command.h"
+#include "log.h"
 #include "nanobot.h"
 
 namespace NProceedTimestep {
@@ -74,7 +74,7 @@ struct FusionStage {
                 if (fusion[i][j] == 0)
                     continue;
                 if (fusion[i][j] != 2) {
-                    LOG_ERROR("Inconsistent FusionState");
+                    LOG() << "Inconsistent FusionState";
                     return false;
                 }
 
@@ -105,8 +105,8 @@ struct GroupStage {
     }
 
     bool add_bot(Bot& bot, Vec3 nd, Vec3 fd, int action_type) {
-        ASSERT_ERROR_RETURN(is_valid_nd(nd), false);
-        ASSERT_ERROR_RETURN(is_valid_fd(fd), false);
+        ASSERT_RETURN(is_valid_nd(nd), false);
+        ASSERT_RETURN(is_valid_fd(fd), false);
         auto r = Region(bot.pos + nd, bot.pos + nd + fd).canonical();
         stage[action_type][r].push_back(bot.bid);
         return true;
@@ -115,13 +115,13 @@ struct GroupStage {
     bool update(System& sys, int action_type) {
         for (auto it = stage[action_type].begin(); it != stage[action_type].end(); ++it) {
             const Region& r = it->first;
-            ASSERT_ERROR_RETURN(sys.matrix.is_in_matrix(r.c1) & sys.matrix.is_in_matrix(r.c2), false);
+            ASSERT_RETURN(sys.matrix.is_in_matrix(r.c1) & sys.matrix.is_in_matrix(r.c2), false);
             const auto& bids = it->second;
             const int nbots = bids.size();
-            ASSERT_ERROR_RETURN(nbots == 2 || nbots == 4 || nbots == 8, false);
+            ASSERT_RETURN(nbots == 2 || nbots == 4 || nbots == 8, false);
             for (auto bid : bids) {
                 auto& bot = sys.bots[sys.bot_index_by(bid)];
-                ASSERT_ERROR_RETURN(!r.is_in_region(bot.pos), false);
+                ASSERT_RETURN(!r.is_in_region(bot.pos), false);
             }
 
             int64_t fillvoid = 0, fillfull = 0, voidfull = 0, voidvoid = 0;
@@ -177,7 +177,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
 
     bool operator()(CommandHalt) {
         if (sys.bots.size() != 1 || sys.bots[0].pos != sys.final_pos()) {
-            LOG_ERROR("[CommandHalt] preconditions are not met.");
+            LOG() << "[CommandHalt] preconditions are not met.";
             sys.bots[0].pos.print();
             return false;
         }
@@ -193,13 +193,13 @@ struct UpdateSystem : public boost::static_visitor<bool> {
     }
     bool operator()(CommandSMove cmd) {
         if (!sys.matrix.is_in_matrix(bot.pos + cmd.lld)) {
-            LOG_ERROR("[CommandSMove] target position out of range.");
+            LOG() << "[CommandSMove] target position out of range.";
             bot.pos.print();
             cmd.lld.print();
             return false;
         }
         if (sys.matrix.any_full(Region(bot.pos, bot.pos + cmd.lld))) {
-            LOG_ERROR("[CommandSMove] some full voxels in between the move.");
+            LOG() << "[CommandSMove] some full voxels in between the move.";
             bot.pos.print();
             cmd.lld.print();
             return false;
@@ -212,19 +212,19 @@ struct UpdateSystem : public boost::static_visitor<bool> {
         auto c1 = bot.pos + cmd.sld1;
         auto c2 = c1 + cmd.sld2;
         if (!sys.matrix.is_in_matrix(c1)) {
-            LOG_ERROR("[CommandLMove] c1 out of range");
+            LOG() << "[CommandLMove] c1 out of range";
             return false;
         }
         if (!sys.matrix.is_in_matrix(c2)) {
-            LOG_ERROR("[CommandLMove] c2 out of range");
+            LOG() << "[CommandLMove] c2 out of range";
             return false;
         }
         if (sys.matrix.any_full(Region(bot.pos, c1))) {
-            LOG_ERROR("[CommandLMove] some full voxels in between the move.");
+            LOG() << "[CommandLMove] some full voxels in between the move.";
             return false;
         }
         if (sys.matrix.any_full(Region(c1, c2))) {
-            LOG_ERROR("[CommandLMove] some full voxels in between the move.");
+            LOG() << "[CommandLMove] some full voxels in between the move.";
             return false;
         }
         bot.pos = c2;
@@ -234,7 +234,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
     bool operator()(CommandFill cmd) {
         auto c = bot.pos + cmd.nd;
         if (!sys.matrix.is_in_matrix(c)) {
-            LOG_ERROR("[CommandFill] target voxel out of range");
+            LOG() << "[CommandFill] target voxel out of range";
             return false;
         }
         if (sys.matrix(c) == Void) {
@@ -249,7 +249,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
     bool operator()(CommandVoid cmd) {
         auto c = bot.pos + cmd.nd;
         if (!sys.matrix.is_in_matrix(c)) {
-            LOG_ERROR("[CommandVoid] target voxel out of range");
+            LOG() << "[CommandVoid] target voxel out of range";
             return false;
         }
         if (sys.matrix(c) == Full) {
@@ -272,11 +272,11 @@ struct UpdateSystem : public boost::static_visitor<bool> {
         auto c = bot.pos + cmd.nd;
         const int n_bots = int(bot.seeds.size());
         if (n_bots == 0 || n_bots <= cmd.m || cmd.m < 0) {
-            LOG_ERROR("[CommandFission] preconditions are not met");
+            LOG() << "[CommandFission] preconditions are not met";
             return false;
         }
         if (!sys.matrix.is_in_matrix(c)) {
-            LOG_ERROR("[CommandFission] target voxel out of range");
+            LOG() << "[CommandFission] target voxel out of range";
             return false;
         }
         // original  [bid1, bid2, .. bidm, bidm+1, .. bidn]
@@ -298,7 +298,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
     bool operator()(CommandFusionP cmd) {
         auto c = bot.pos + cmd.nd;
         if (!sys.matrix.is_in_matrix(c)) {
-            LOG_ERROR("[CommandFusionP] target voxel out of range");
+            LOG() << "[CommandFusionP] target voxel out of range";
             return false;
         }
         fusion_stage.addPS(bot.bid, sys.bid_at(c));
@@ -307,7 +307,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
     bool operator()(CommandFusionS cmd) {
         auto c = bot.pos + cmd.nd;
         if (!sys.matrix.is_in_matrix(c)) {
-            LOG_ERROR("[CommandFusionS] target voxel out of range");
+            LOG() << "[CommandFusionS] target voxel out of range";
             return false;
         }
         fusion_stage.addSP(bot.bid, sys.bid_at(c));

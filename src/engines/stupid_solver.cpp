@@ -2,13 +2,13 @@
 #include <boost/range/algorithm_ext/push_back.hpp>
 
 #include "engine.h"
+#include "log.h"
 #include "nmms.h"
-#include "system.h"
 #include "state.h"
-#include "debug_message.h"
+#include "system.h"
 
 Trace stupid_solver_reassembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
-    ASSERT_ERROR_RETURN(problem_type == ProblemType::Reassembly, Trace());
+    ASSERT_RETURN(problem_type == ProblemType::Reassembly, Trace());
 
     printf("stupid_solver\n");
     const int R = src_matrix.R;
@@ -23,7 +23,7 @@ Trace stupid_solver_reassembly(ProblemType problem_type, const Matrix& src_matri
     boost::push_back(scan, NEditPoints::fill_zigzag_ii(top, diagonal));
     boost::push_back(scan, NEditPoints::move_naive_ii(scan.back(), start));
     NEditPoints::dedup(scan);
-    ASSERT_ERROR(NEditPoints::is_connected_6(scan));
+    ASSERT(NEditPoints::is_connected_6(scan));
 
     trace.push_back(CommandFlip{}); // high.
     for (size_t i = 0; i < scan.size(); ++i) {
@@ -39,16 +39,16 @@ Trace stupid_solver_reassembly(ProblemType problem_type, const Matrix& src_matri
         }
     }
     trace.push_back(CommandFlip{}); // low.
-    trace.push_back(CommandHalt{}); 
-    printf("trace %d, scan %d\n", trace.size(), scan.size());
+    trace.push_back(CommandHalt{});
+    LOG() << "trace " << trace.size() << ", scan " << scan.size() << "\n";
 
     return trace;
 }
 
 Trace stupid_solver_disassembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
-    ASSERT_ERROR_RETURN(problem_type == ProblemType::Disassembly, Trace());
+    ASSERT_RETURN(problem_type == ProblemType::Disassembly, Trace());
 
-    printf("stupid_solver\n");
+    LOG() << "stupid_solver\n";
     const int R = src_matrix.R;
     System system(R);
     Trace trace;
@@ -61,7 +61,7 @@ Trace stupid_solver_disassembly(ProblemType problem_type, const Matrix& src_matr
     boost::push_back(scan, NEditPoints::fill_zigzag_ii(top, diagonal));
     boost::push_back(scan, NEditPoints::move_naive_ii(scan.back(), start));
     NEditPoints::dedup(scan);
-    ASSERT_ERROR(NEditPoints::is_connected_6(scan));
+    ASSERT(NEditPoints::is_connected_6(scan));
 
     trace.push_back(CommandFlip{}); // high.
     for (size_t i = 0; i < scan.size(); ++i) {
@@ -74,16 +74,16 @@ Trace stupid_solver_disassembly(ProblemType problem_type, const Matrix& src_matr
         }
     }
     trace.push_back(CommandFlip{}); // low.
-    trace.push_back(CommandHalt{}); 
-    printf("trace %d, scan %d\n", trace.size(), scan.size());
+    trace.push_back(CommandHalt{});
+    LOG() << "trace " << trace.size() << ", scan " << scan.size() << "\n";
 
     return trace;
 }
 
 Trace stupid_solver_assembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
-    ASSERT_ERROR_RETURN(problem_type == ProblemType::Assembly, Trace());
-    
-    printf("stupid_solver\n");
+    ASSERT_RETURN(problem_type == ProblemType::Assembly, Trace());
+
+    LOG() << "stupid_solver\n";
     System system(dst_matrix.R);
 
     // use a single nanobot.
@@ -160,7 +160,7 @@ Trace stupid_solver(ProblemType problem_type, const Matrix& src_matrix, const Ma
         default:
             return stupid_solver_reassembly(problem_type, src_matrix, dst_matrix);
     }
-    ASSERT_ERROR_RETURN(false, Trace());
+    ASSERT_RETURN(false, Trace());
 }
 
 REGISTER_ENGINE(stupid, stupid_solver);

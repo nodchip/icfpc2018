@@ -3,7 +3,7 @@
 #include <map>
 #include <unordered_map>
 // project
-#include "debug_message.h"
+#include "log.h"
 
 bool bfs_shortest_in_void(const Matrix& m, Vec3 start_pos, Vec3 stop_pos,
     Trace* trace_opt, std::vector<Vec3>* trajectory_opt) {
@@ -54,12 +54,12 @@ bool bfs_shortest_in_void(const Matrix& m, Vec3 start_pos, Vec3 stop_pos,
 
 bool fast_manhattan_motion_in_void(const Matrix& matrix, Vec3 start_pos, Vec3 stop_pos,
     Trace& trace) {
-    ASSERT_ERROR_RETURN(matrix.is_in_matrix(start_pos), false);
-    ASSERT_ERROR_RETURN(matrix.is_in_matrix(stop_pos), false);
+    ASSERT_RETURN(matrix.is_in_matrix(start_pos), false);
+    ASSERT_RETURN(matrix.is_in_matrix(stop_pos), false);
 
     const int sx = start_pos.x, sy = start_pos.y, sz = start_pos.z;
     const int dx = stop_pos.x, dy = stop_pos.y, dz = stop_pos.z;
-    
+
     Vec3 corner[8] = {
         Vec3(sx, sy, sz), Vec3(dx, sy, sz),
         Vec3(sx, dy, sz), Vec3(dx, dy, sz),
@@ -71,7 +71,7 @@ bool fast_manhattan_motion_in_void(const Matrix& matrix, Vec3 start_pos, Vec3 st
         // 0, idxs[i][0], idxs[i][1], 7
         int p0 = idxs[i][0];
         int p1 = idxs[i][1];
-        if (!matrix.any_full(Region(corner[0], corner[p0])) && 
+        if (!matrix.any_full(Region(corner[0], corner[p0])) &&
             !matrix.any_full(Region(corner[p1], corner[7]))) {
             // found
             fast_move(corner[p0], corner[0], trace);
@@ -132,7 +132,7 @@ std::vector<Vec3> fill_zigzag_ii(const Vec3& start, const Vec3& diagonal) {
         zdir *= -1;
         p.z += zdir;
     }
-    ASSERT_ERROR(is_connected_6(scan));
+    ASSERT(is_connected_6(scan));
     return scan;
 }
 
@@ -152,7 +152,7 @@ std::vector<Vec3> move_naive_ii(const Vec3& start, const Vec3& stop) {
         p.z += p.z < stop.z ? 1 : -1;
         scan.push_back(p);
     }
-    ASSERT_ERROR(is_connected_6(scan));
+    ASSERT(is_connected_6(scan));
     return scan;
 }
 
@@ -165,7 +165,7 @@ bool dedup(std::vector<Vec3>& points) {
             res.push_back(points[i]);
         }
     }
-    ASSERT_ERROR(is_connected_6(res));
+    ASSERT(is_connected_6(res));
     points = res;
     return true;
 }

@@ -11,7 +11,7 @@
 #include "matrix.h"
 #include "state.h"
 #include "trace.h"
-#include "debug_message.h"
+#include "log.h"
 
 using Options = std::map<std::string, std::string>;
 
@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     }
 
     auto problem_type = determine_problem_type_and_prepare_matrices(src_model, tgt_model);
-    ASSERT_ERROR_RETURN(problem_type != ProblemType::Invalid, 3);
+    ASSERT_RETURN(problem_type != ProblemType::Invalid, 3);
 
     // load trace
     if (!options.count("trace")) {
