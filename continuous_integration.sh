@@ -12,6 +12,7 @@ do
 		--output_trace_file_directory_path ../tmp/trace/${engine} \
 		--output_info_file_directory_path ../tmp/info/${engine} \
 		--output_energy_file_directory_path ../tmp/energy/${engine} \
+		--timeout_sec 120 \
 		--jobs 72 || exit 1
 done
 python3 compare_engine.py --default_info_directory_path ../result/default_info \
