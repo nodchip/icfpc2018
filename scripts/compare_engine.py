@@ -73,7 +73,7 @@ def main():
 
             for energy in energies:
                 if energy == INVALID_ENERGY:
-                    print('<td"></td>', file=f)
+                    print('<td></td>', file=f)
                     continue
 
                 if default_energy != best_energy:
