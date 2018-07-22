@@ -53,6 +53,7 @@ if __name__ == '__main__':
     model_files = [f for f in os.listdir(args.model_dir) if os.path.splitext(f)[1].lower() == '.mdl']
     model_files.sort()
     commands = []
+    problems = set()
     for f in model_files:
         mo = re.match(r'(?P<base>[LF](?P<type>A|D|R)\d+)_(src|tgt)\.mdl', f)
         if mo is not None:
@@ -60,26 +61,28 @@ if __name__ == '__main__':
             problem_type = mo.groupdict()['type']
             if problem_type not in args.type:
                 continue
+            problems.add((base, problem_type, f))
 
-            src_model_path = os.path.abspath(os.path.join(args.model_dir, '{}_src.mdl'.format(base)))
-            tgt_model_path = os.path.abspath(os.path.join(args.model_dir, '{}_tgt.mdl'.format(base)))
-            trace_path = os.path.abspath(os.path.join(args.trace_output_dir, '{}.nbt'.format(base)))
-            info_path = os.path.abspath(os.path.join(args.info_output_dir, '{}.json'.format(base)))
-            energy_path = os.path.abspath(os.path.join(args.energy_output_dir, '{}.energy.json'.format(base)))
+    for base, problem_type, f in sorted(problems):
+        src_model_path = os.path.abspath(os.path.join(args.model_dir, '{}_src.mdl'.format(base)))
+        tgt_model_path = os.path.abspath(os.path.join(args.model_dir, '{}_tgt.mdl'.format(base)))
+        trace_path = os.path.abspath(os.path.join(args.trace_output_dir, '{}.nbt'.format(base)))
+        info_path = os.path.abspath(os.path.join(args.info_output_dir, '{}.json'.format(base)))
+        energy_path = os.path.abspath(os.path.join(args.energy_output_dir, '{}.energy.json'.format(base)))
 
-            if problem_type == 'A':
-                assert os.path.isfile(tgt_model_path)
-                cmds = [os.path.abspath(engine_path), '--model', tgt_model_path]
-            if problem_type == 'D':
-                assert os.path.isfile(src_model_path)
-                cmds = [os.path.abspath(engine_path), '--src-model', src_model_path]
-            if problem_type == 'R':
-                assert os.path.isfile(src_model_path)
-                assert os.path.isfile(tgt_model_path)
-                cmds = [os.path.abspath(engine_path), '--model', tgt_model_path, '--src-model', src_model_path]
+        if problem_type == 'A':
+            assert os.path.isfile(tgt_model_path)
+            cmds = [os.path.abspath(engine_path), '--model', tgt_model_path]
+        if problem_type == 'D':
+            assert os.path.isfile(src_model_path)
+            cmds = [os.path.abspath(engine_path), '--src-model', src_model_path]
+        if problem_type == 'R':
+            assert os.path.isfile(src_model_path)
+            assert os.path.isfile(tgt_model_path)
+            cmds = [os.path.abspath(engine_path), '--model', tgt_model_path, '--src-model', src_model_path]
 
-            cmds += ['--trace-output', trace_path, '--info', info_path, '--energy', energy_path]
-            commands.append((cmds, engine_path, f))
+        cmds += ['--trace-output', trace_path, '--info', info_path, '--energy', energy_path]
+        commands.append((cmds, engine_path, f))
 
     if args.jobs > 1:
         pool = multiprocessing.Pool(args.jobs)
