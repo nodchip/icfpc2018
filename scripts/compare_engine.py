@@ -63,6 +63,7 @@ def main():
                 successful = info['successful']
                 if not successful:
                     energies.append(INVALID_ENERGY)
+                    continue
 
                 energy = info['energy']
                 energies.append(energy)
