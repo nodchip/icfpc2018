@@ -151,7 +151,7 @@
     <ClInclude Include="..\..\src\bounding_box.h" />
     <ClInclude Include="..\..\src\command.h" />
     <ClInclude Include="..\..\src\engine.h" />
-    <ClInclude Include="..\..\src\engines\stupid_solver.h" />
+    <ClInclude Include="..\..\src\engines\3x3_solver.h" />
     <ClInclude Include="..\..\src\log.h" />
     <ClInclude Include="..\..\src\matrix.h" />
     <ClInclude Include="..\..\src\nanobot.h" />
@@ -168,7 +168,7 @@
     <ClCompile Include="..\..\src\bounding_box.cpp" />
     <ClCompile Include="..\..\src\command.cpp" />
     <ClCompile Include="..\..\src\engine.cpp" />
-    <ClCompile Include="..\..\src\engines\stupid_solver.cpp" />
+    <ClCompile Include="..\..\src\engines\3x3_solver.cpp" />
     <ClCompile Include="..\..\src\engine_main.cpp" />
     <ClCompile Include="..\..\src\matrix.cpp" />
     <ClCompile Include="..\..\src\nanobot.cpp" />

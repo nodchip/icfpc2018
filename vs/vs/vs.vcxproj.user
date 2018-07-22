@@ -8,6 +8,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>..\..\src</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>"--src-model" "../data/problemsF/FR115_src.mdl" "--model" "../data/problemsF/FR115_tgt.mdl"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>"--src-model" "../data/problemsF/FR001_src.mdl" "--model" "../data/problemsF/FR001_tgt.mdl" --trace-output output.nbt</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
