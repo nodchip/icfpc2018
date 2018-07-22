@@ -10,9 +10,9 @@ import sys
 
 INVALID_ENERGY = 1e100
 RANKING_COLORS = [
-    'gold',
-    'silver',
-    'bronze',
+    'aqua',
+    'lime',
+    'yellow',
     ]
 
 
