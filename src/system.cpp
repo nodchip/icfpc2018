@@ -19,11 +19,10 @@ struct GroundConnectivityChecker {
     }
 
     bool new_voxels_are_grounded(/* no const for union find */System& system) {
-        const auto n6 = neighbors6();
         const uint32_t ground_group = Vec3(0, 0, 0).index();
         for (auto& p : filled_voxels) {
             bool grounded = false;
-            for (auto offset : n6) {
+            for (const auto& offset : neighbors6) {
                 auto c = p + offset;
                 if (system.matrix.is_in_matrix(c)) {
                     if (system.ground_and_full_voxels.findSet(c.index(), ground_group)) {
@@ -40,9 +39,8 @@ struct GroundConnectivityChecker {
     }
 
     bool update(System& system) {
-        const auto n6 = neighbors6();
         for (auto& p : filled_voxels) {
-            for (auto offset : n6) {
+            for (const auto& offset : neighbors6) {
                 auto c = p + offset;
                 if (system.matrix(c)) {
                     system.ground_and_full_voxels.unionSet(p.index(), c.index());

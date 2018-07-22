@@ -106,7 +106,7 @@ inline Vec3 linear_coordinate_difference_x(int x) { return Vec3(x, 0, 0); }
 inline Vec3 linear_coordinate_difference_y(int y) { return Vec3(0, y, 0); }
 inline Vec3 linear_coordinate_difference_z(int z) { return Vec3(0, 0, z); }
 
-std::vector<Vec3> neighbors26();
-std::vector<Vec3> neighbors18();
-std::vector<Vec3> neighbors6();
+extern Vec3 neighbors26[26];
+extern Vec3 neighbors18[18];
+extern Vec3 neighbors6[6];
 // vim: set si et sw=4 ts=4:

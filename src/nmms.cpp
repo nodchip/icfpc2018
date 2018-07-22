@@ -20,11 +20,9 @@ bool bfs_shortest_in_void(const Matrix& m, Vec3 start_pos, Vec3 stop_pos,
     queue.push_back(stop_pos);
     blocked(stop_pos) = Full;
 
-    auto n6 = neighbors6();
-
     while (!queue.empty()) {
         auto p = queue.front(); queue.pop_front();
-        for (auto offset : n6) {
+        for (const auto& offset : neighbors6) {
             auto n = p + offset;
             if (m.is_in_matrix(n) && !blocked(n)) {
                 parent[n] = p;
