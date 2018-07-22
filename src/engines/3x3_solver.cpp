@@ -144,9 +144,8 @@ Trace three_by_three_solver(ProblemType problem_type, const Matrix& src_matrix, 
     current_position = zigzag_ready_position;
 
     // Void the zigzag start position if it is full.
-    if (current_matrix(zigzag_ready_position)) {
-        trace.push_back(CommandVoid{ Vec3(0, 0, 1) });
-        current_matrix(zigzag_ready_position) = Void;
+    if (current_matrix(zigzag_start_position)) {
+        DoVoid(current_position, { 0, 0, 1 }, current_matrix, trace);
     }
 
     // Move to the zigzag start position.
