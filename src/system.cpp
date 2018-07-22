@@ -268,11 +268,11 @@ struct UpdateSystem : public boost::static_visitor<bool> {
         auto c = bot.pos + cmd.nd;
         const int n_bots = int(bot.seeds.size());
         if (n_bots == 0 || n_bots <= cmd.m || cmd.m < 0) {
-            LOG() << "[CommandFission] preconditions are not met";
+            LOG() << "[CommandFission] preconditions are not met\n";
             return false;
         }
         if (!sys.matrix.is_in_matrix(c)) {
-            LOG() << "[CommandFission] target voxel out of range";
+            LOG() << "[CommandFission] target voxel out of range.\n";
             return false;
         }
         // original  [bid1, bid2, .. bidm, bidm+1, .. bidn]
