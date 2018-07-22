@@ -73,6 +73,7 @@ def main():
             for energy in energies:
                 if energy == INVALID_ENERGY:
                     print('<td"></td>', file=f)
+                    continue
 
                 if default_energy != best_energy:
                     color_density = int(255 * (default_energy - energy) / (default_energy - best_energy))
