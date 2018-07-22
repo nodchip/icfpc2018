@@ -11,14 +11,16 @@
 namespace NTraceUtil {
 
 // X-aligned linear position distribution for easy merge.
+// (0, 0, 0), (1, 0, 0), ..
 std::vector<Vec3> create_x_linear_positions(const Matrix& blocked, int n_nanobots);
 
 // fusion [(0, 0, 0), (1, 0, 0), .. ] => (0, 0, 0)
 // @note  positions are sorted by bid.
 bool fusion_x_linear_positions_to_first_pos(const std::vector<Vec3>& positions, Trace& trace);
 
-// [0] [2] [4] ..
+// [0] [2] [4] [6] ..
 bool fission_x_2_linear_positions(Vec3 start_pos, int N, int R, std::vector<Vec3>& id_to_pos, Trace& trace);
+// [x=0, yz={0,1}x{0,1}] [x=2, yz={0,1}x{0,1}] [x=4, yz={0,1}x{0,1}] [x=6, yz={0,1}x{0,1}]  ..
 bool fission_x_2by2_linear_positions(Vec3 start_pos, int N, int R, std::vector<Vec3>& id_to_pos, Trace& trace);
 
 template <typename T>
@@ -45,10 +47,8 @@ std::vector<Vec3> bot_positions(const System& system);
 // @note  traces are sorted by bid.
 bool merge_traces(const std::vector<Trace>& traces, Trace& trace);
 
-// greedy & conservative (any successive bots can not pass through another bot's trajectory).
-// TODO: ignore other bots first, then merge trace using inserting Wait if required. 
-// @note  positions are sorted by bid.
 #if 0
+// @note  positions are sorted by bid.
 bool multibot_merge_conservative(const Matrix& blocked, const std::vector<Vec3>& start_positions,
         const std::vector<Vec3>& final_positions, Trace& trace);
 #endif
@@ -57,6 +57,12 @@ bool multibot_merge_conservative(const Matrix& blocked, const std::vector<Vec3>&
 bool move_evacuated_multibots(const Matrix& blocked, const std::vector<Vec3>& start_positions,
         const std::vector<Vec3>& final_positions, Trace& trace);
 
+// move a nanobot at <position> to one of the nearest out-of-core wall.
+// <position> will be updated.
 bool digging_evacuate(const Matrix& blocked, Vec3& position, Trace& trace);
 
+// move a nanobot at <position> to <destination>.
+// the bot goes straight using Void & Fill.
+// <position> will be updated.
+bool digging_move(const Matrix& blocked, const Vec3& destination, Vec3& position, Trace& trace);
 }
