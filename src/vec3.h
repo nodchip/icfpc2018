@@ -85,12 +85,42 @@ struct Vec3 {
     };
 };
 
+namespace std {
+    template <> struct hash<Vec3> {
+        typedef Vec3 argument_type;
+        typedef size_t result_type;
+        result_type operator()(const argument_type& r) const noexcept {
+            return (uint32_t(r.x) << 16) | (uint32_t(r.y) << 8) | uint32_t(r.z);
+        }
+    };
+}
+
 inline std::ostream& operator<<(std::ostream& os, const Vec3& v) {
     return std::cout << "(" << v.x << ", " << v.y << ", " << v.z << ")";
 }
 
 inline void Vec3::print() const {
     std::cout << *this << std::endl;
+}
+
+inline Vec3 abs(Vec3 p) {
+    return Vec3(std::abs(p.x), std::abs(p.y), std::abs(p.z));
+}
+inline Vec3 sign(Vec3 p) {
+    return Vec3(
+        p.x == 0 ? 0 : (p.x > 0 ? 1 : -1),
+        p.y == 0 ? 0 : (p.y > 0 ? 1 : -1),
+        p.z == 0 ? 0 : (p.z > 0 ? 1 : -1));
+}
+inline int length2(Vec3 p) {
+    return p.x * p.x + p.y * p.y + p.z * p.z;
+}
+
+inline int largest_abs_axis(Vec3 p) {
+    auto a = abs(p);
+    if (a.y < a.x && a.y < a.z) return 1;
+    if (a.z < a.x && a.z < a.y) return 2;
+    return 0;
 }
 
 // Manhattan distance

@@ -104,7 +104,8 @@ inline bool is_valid_fd(Vec3 d) {
 } 
 
 struct PrintCommand : public boost::static_visitor<int> {
-    static std::string Vec3_to_string(Vec3 p);
+    std::ostream& os;
+    PrintCommand(std::ostream& os_) : os(os_) {}
     int operator()(CommandHalt);
     int operator()(CommandWait);
     int operator()(CommandFlip);
@@ -119,3 +120,9 @@ struct PrintCommand : public boost::static_visitor<int> {
     int operator()(CommandFusionS cmd);
     int operator()(CommandDebugMoveTo cmd);
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Command& cmd) {
+    PrintCommand v(os);
+    boost::apply_visitor(v, cmd);
+    return os;
+}

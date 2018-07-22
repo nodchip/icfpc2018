@@ -1,52 +1,47 @@
 #include "command.h"
 #include <sstream>
 
-std::string PrintCommand::Vec3_to_string(Vec3 p) {
-    std::ostringstream oss;
-    oss << "(" << p.x << ", " << p.y << ", " << p.z << ")";
-    return oss.str();
-}
-int PrintCommand::operator()(CommandHalt) { std::printf("<Halt>"); return -1; }
-int PrintCommand::operator()(CommandWait) { std::printf("<Wait>"); return 0; }
-int PrintCommand::operator()(CommandFlip) { std::printf("<Flip>"); return 0; }
+int PrintCommand::operator()(CommandHalt) { os << "<Halt>"; return -1; }
+int PrintCommand::operator()(CommandWait) { os << "<Wait>"; return 0; }
+int PrintCommand::operator()(CommandFlip) { os << "<Flip>"; return 0; }
 int PrintCommand::operator()(CommandSMove cmd) {
-    std::printf("<SMove %s>", Vec3_to_string(cmd.lld).c_str());
+    os << "<SMove " << cmd.lld << ">";
     return 0;
 };
 int PrintCommand::operator()(CommandLMove cmd) {
-    std::printf("<LMove %s %s>", Vec3_to_string(cmd.sld1).c_str(), Vec3_to_string(cmd.sld2).c_str());
+    os << "<LMove " << cmd.sld1 << " " << cmd.sld2 << ">";
     return 0;
 };
 int PrintCommand::operator()(CommandFission cmd) {
-    std::printf("<Fission %s>", Vec3_to_string(cmd.nd).c_str());
+    os << "<Fission " << cmd.nd << ">";
     return 1;
 };
 int PrintCommand::operator()(CommandFill cmd) {
-    std::printf("<Fill %s>", Vec3_to_string(cmd.nd).c_str());
+    os << "<Fill " << cmd.nd << ">";
     return 0;
 };
 int PrintCommand::operator()(CommandVoid cmd) {
-    std::printf("<Void %s>", Vec3_to_string(cmd.nd).c_str());
+    os << "<Void " << cmd.nd << ">";
     return 0;
 };
 int PrintCommand::operator()(CommandGFill cmd) {
-    std::printf("<GFill %s %s>", Vec3_to_string(cmd.nd).c_str(), Vec3_to_string(cmd.fd).c_str());
+    os << "<GFill " << cmd.nd << " " << cmd.fd << ">";
     return 0;
 };
 int PrintCommand::operator()(CommandGVoid cmd) {
-    std::printf("<GVoid %s %s>", Vec3_to_string(cmd.nd).c_str(), Vec3_to_string(cmd.fd).c_str());
+    os << "<GVoid " << cmd.nd << " " << cmd.fd << ">";
     return 0;
 };
 int PrintCommand::operator()(CommandFusionP cmd) {
-    std::printf("<FusionP %s>", Vec3_to_string(cmd.nd).c_str());
+    os << "<FusionP " << cmd.nd << ">";
     return -1;
 };
 int PrintCommand::operator()(CommandFusionS cmd) {
-    std::printf("<FusionS %s>", Vec3_to_string(cmd.nd).c_str());
+    os << "<FusionS " << cmd.nd << ">";
     return 0;
 };
 // only for develop & debug
 int PrintCommand::operator()(CommandDebugMoveTo cmd) {
-    std::printf("<DebugMoveTo %s>", Vec3_to_string(cmd.pos).c_str());
+    os << "<DebugMoveTo " << cmd.pos << ">";
     return 0;
-    };
+};

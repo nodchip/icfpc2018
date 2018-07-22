@@ -396,7 +396,7 @@ bool System::proceed_timestep() {
 
         if (verbose) {
             std::printf("%8ld : ", consumed_commands);
-            PrintCommand visitor;
+            PrintCommand visitor(std::cout);
             boost::apply_visitor(visitor, cmd);
             std::printf("\n");
         }
@@ -409,6 +409,7 @@ bool System::proceed_timestep() {
 	    // if you want trace data...
 	    // return true;
         }
+
     }
 
     fusion_stage.update(*this);
