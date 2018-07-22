@@ -267,7 +267,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
     bool operator()(CommandFission cmd) {
         auto c = bot.pos + cmd.nd;
         const int n_bots = int(bot.seeds.size());
-        if (n_bots == 0 || n_bots <= cmd.m || cmd.m < 0) {
+        if (n_bots == 0 || n_bots < cmd.m || cmd.m < 0) {
             LOG() << "[CommandFission] preconditions are not met";
             return false;
         }
@@ -355,7 +355,7 @@ System::System(int R)
     std::iota(first_bot.seeds.begin(), first_bot.seeds.end(), 2);
     bots = {first_bot};
     // staging area
-    commands_stage.resize(k_MaxNumberOfBots);
+    commands_stage.assign(k_MaxNumberOfBots, boost::none);
     // unite the ground voxels. (y=0)
     for (int z = 0; z < R; ++z) {
         for (int x = 0; x < R; ++x) {
@@ -483,9 +483,9 @@ bool System::is_stage_filled() const {
 }
 
 bool System::stage_all_unstaged(Command cmd) {
-    for (size_t i = 0; i < commands_stage.size(); ++i) {
-        if (!commands_stage[i]) {
-            commands_stage[i] = cmd;
+    for (size_t i = 0; i < bots.size(); ++i) {
+        if (!commands_stage[bots[i].bid - 1]) {
+            commands_stage[bots[i].bid - 1] = cmd;
         }
     }
     return true;
