@@ -49,11 +49,11 @@ int State::simulate(const Trace& t) {
 
 bool State::is_finished() const {
     if (system.harmonics_high) {
-        LOG() << "harmonics are still high.";
+        LOG() << "harmonics are still high.\n";
         return false;
     }
     if (!system.bots.empty()) {
-        LOG() << "bots are remaining.";
+        LOG() << "bots are remaining.\n";
         return false;
     }
     // if (!system.is_eof())

@@ -189,7 +189,7 @@ Trace parallel_stupid_solver(ProblemType problem_type, const Matrix& src_matrix,
     // spread nanobots
     // ASSERT(system.bots.size() == 1);
     const int R = system.matrix.R;
-    const int N = system.bots.size() + system.bots[0].seeds.size();
+    const int N = std::min<int>(system.bots.size() + system.bots[0].seeds.size(), R);
     std::vector<int> boundaries;
     for (int i = 0; i <= N; ++i) {
         boundaries.push_back(R * i / N);
