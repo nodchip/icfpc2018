@@ -8,6 +8,9 @@ import subprocess
 import sys
 
 
+INVALID_ENERGY = 1e100
+
+
 def main():
     parser = argparse.ArgumentParser(description='update_result')
     parser.add_argument('--default_info_directory_path', required=True,
@@ -57,6 +60,10 @@ def main():
                 info_file_path = os.path.join(info_directory_path, model_title + '.json')
                 with open(info_file_path, 'rt') as json_file:
                     info = json.load(json_file)
+                successful = info['successful']
+                if not successful:
+                    energies.append(INVALID_ENERGY)
+
                 energy = info['energy']
                 energies.append(energy)
                 if best_energy > energy:
@@ -64,6 +71,9 @@ def main():
             default_energy = energies[0]
 
             for energy in energies:
+                if energy == INVALID_ENERGY:
+                    print('<td"></td>', file=f)
+
                 if default_energy != best_energy:
                     color_density = int(255 * (default_energy - energy) / (default_energy - best_energy))
                     color_density = max(0, color_density)
