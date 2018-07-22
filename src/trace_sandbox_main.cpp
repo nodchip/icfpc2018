@@ -54,16 +54,12 @@ State sandbox_stepbystep() {
     // linear dense distribution.
     for (int active = system.bots.size(); active < N; ++active) {
         system.stage(system.bots[0], CommandSMove{unitX});
-        for (int i = 1; i < system.bots.size(); ++i) {
-            system.stage(system.bots[i], CommandWait{});
-        }
+        system.stage_all_unstaged(CommandWait{});
         system.commit_commands();
         system.print_detailed();
 
         system.stage(system.bots[0], CommandFission{-unitX, 1});
-        for (int i = 1; i < system.bots.size(); ++i) {
-            system.stage(system.bots[i], CommandWait{});
-        }
+        system.stage_all_unstaged(CommandWait{});
         system.commit_commands();
         system.print_detailed();
     }

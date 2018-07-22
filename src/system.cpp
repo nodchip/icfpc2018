@@ -482,6 +482,15 @@ bool System::is_stage_filled() const {
     });
 }
 
+bool System::stage_all_unstaged(Command cmd = CommandWait{}) {
+    for (size_t i = 0; i < commands_stage.size(); ++i) {
+        if (!commands_stage[i]) {
+            commands_stage[i] = cmd;
+        }
+    }
+    return true;
+}
+
 bool System::reset_staged_commands() {
     commands_stage.assign(commands_stage.size(), boost::none);
     return true;
@@ -491,7 +500,7 @@ bool System::commit_commands() {
     ASSERT_RETURN(is_stage_filled(), false);
 
     // naturally sorted in the ascending order of bid.
-    for (size_t i = 0; i < k_MaxNumberOfBots; ++i) {
+    for (size_t i = 0; i < commands_stage.size(); ++i) {
         if (commands_stage[i]) {
             trace.push_back(*commands_stage[i]);
         }
