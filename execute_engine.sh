@@ -15,5 +15,5 @@ python3 model_to_trace.py \
         --jobs ${NUMBER_OF_PROCESSORS} || exit 1
 python3 update_result.py --temp_trace_directory_path ../tmp/trace \
         --temp_info_directory_path ../tmp/info \
-        --result_trace_directory_path ../result/trace \
-        --result_info_directory_path ../result/info || exit 1
+        --result_trace_directory_path ../resultF/trace \
+        --result_info_directory_path ../resultF/info || exit 1
