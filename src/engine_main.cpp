@@ -133,6 +133,9 @@ int main(int argc, char** argv) {
         std::cout << "recording energy consumption." << std::endl;
         state.system.set_energy_logger(energy_logger);
     }
+    if (options.count("verbose")) {
+        state.system.set_verbose(true);
+    }
 
     std::cout << "simulation prepare." << std::endl;
     int exit_code = state.simulate(trace);
