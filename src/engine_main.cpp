@@ -13,7 +13,7 @@
 #include "matrix.h"
 #include "trace.h"
 #include "state.h"
-#include "debug_message.h"
+#include "log.h"
 
 using Options = std::map<std::string, std::string>;
 
@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
     }
 
     auto problem_type = determine_problem_type_and_prepare_matrices(src_model, tgt_model);
-    ASSERT_ERROR_RETURN(problem_type != ProblemType::Invalid, 3);
+    ASSERT_RETURN(problem_type != ProblemType::Invalid, 3);
     std::printf("src(R=%d) = %d, tgt(R=%d) = %d\n",
         src_model.R, src_model.capacity(),
         tgt_model.R, tgt_model.capacity());

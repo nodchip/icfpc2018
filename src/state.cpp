@@ -2,15 +2,15 @@
 
 #include "matrix.h"
 #include "system.h"
-#include "debug_message.h"
+#include "log.h"
 
 State::State(const Matrix& src_matrix, const Matrix& tgt_matrix)
   : src_problem(src_matrix)
   , tgt_problem(tgt_matrix)
   , system(src_matrix.R) {
-    ASSERT_ERROR(src_matrix.is_valid_matrix());
-    ASSERT_ERROR(tgt_matrix.is_valid_matrix());
-    ASSERT_ERROR(src_matrix.R == tgt_matrix.R);
+    ASSERT(src_matrix.is_valid_matrix());
+    ASSERT(tgt_matrix.is_valid_matrix());
+    ASSERT_EQ(src_matrix.R, tgt_matrix.R);
     system.matrix = src_matrix;
 }
 
@@ -49,17 +49,17 @@ int State::simulate(const Trace& t) {
 
 bool State::is_finished() const {
     if (system.harmonics_high) {
-        LOG_ERROR("harmonics are still high.");
+        LOG() << "harmonics are still high.";
         return false;
     }
     if (!system.bots.empty()) {
-        LOG_ERROR("bots are remaining.");
+        LOG() << "bots are remaining.";
         return false;
     }
     // if (!system.trace.empty())
     //     return false;
     if (system.matrix != tgt_problem) {
-        LOG_ERROR("matrix is different from the target");
+        LOG() << "matrix is different from the target";
         print_difference(system.matrix, tgt_problem);
         return false;
     }
@@ -68,7 +68,7 @@ bool State::is_finished() const {
 }
 
 ProblemType determine_problem_type_and_prepare_matrices(Matrix& src_matrix, Matrix& tgt_matrix) {
-    ASSERT_ERROR_RETURN(src_matrix.is_valid_matrix() || tgt_matrix.is_valid_matrix(), ProblemType::Invalid);
+    ASSERT_RETURN(src_matrix.is_valid_matrix() || tgt_matrix.is_valid_matrix(), ProblemType::Invalid);
 
     if (src_matrix.is_valid_matrix() && tgt_matrix.is_valid_matrix()) {
         printf("Problem: Reassembly\n");

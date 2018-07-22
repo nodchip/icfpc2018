@@ -4,12 +4,13 @@
 #include <iomanip>
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include "debug_message.h"
+
+#include "log.h"
 
 namespace NOutputTrace {
 
 uint8_t nd_encoding(Vec3 nd) {
-    ASSERT_ERROR(is_valid_nd(nd));
+    ASSERT(is_valid_nd(nd));
     return (nd.x + 1) * 9 + (nd.y + 1) * 3 + (nd.z + 1);
 }
 Vec3 nd_decoding(uint8_t b) {
@@ -19,7 +20,7 @@ Vec3 nd_decoding(uint8_t b) {
     return Vec3(x, y, z);
 }
 std::array<uint8_t, 3> fd_encoding(Vec3 fd) {
-    ASSERT_ERROR(is_valid_fd(fd));
+    ASSERT(is_valid_fd(fd));
     return {uint8_t(fd.x + 30), uint8_t(fd.y + 30), uint8_t(fd.z + 30)};
 }
 Vec3 fd_decoding(uint8_t b0, uint8_t b1, uint8_t b2) {
@@ -31,21 +32,21 @@ struct LDDecoding {
         if (a == 0b01) { return Vec3(i - 5, 0, 0); }
         if (a == 0b10) { return Vec3(0, i - 5, 0); }
         if (a == 0b11) { return Vec3(0, 0, i - 5); }
-        ASSERT_ERROR(false);
+        ASSERT(false);
         return Vec3(0, 0, 0);
     }
     static Vec3 from_LLD(uint8_t a, uint8_t i) {
         if (a == 0b01) { return Vec3(i - 15, 0, 0); }
         if (a == 0b10) { return Vec3(0, i - 15, 0); }
         if (a == 0b11) { return Vec3(0, 0, i - 15); }
-        ASSERT_ERROR(false);
+        ASSERT(false);
         return Vec3(0, 0, 0);
     }
 };
 
 struct LDEncoding {
     static LDEncoding from_SLD(Vec3 ld) {
-        ASSERT_ERROR(is_valid_short_ld(ld));
+        ASSERT(is_valid_short_ld(ld));
         if (ld.x != 0) {
             return LDEncoding(0b01, ld.x + 5);
         } else if (ld.y != 0) {
@@ -56,7 +57,7 @@ struct LDEncoding {
         return LDEncoding(0xff, 0xff);
     }
     static LDEncoding from_LLD(Vec3 ld) {
-        ASSERT_ERROR(is_valid_long_ld(ld));
+        ASSERT(is_valid_long_ld(ld));
         if (ld.x != 0) {
             return LDEncoding(0b01, ld.x + 15);
         } else if (ld.y != 0) {
