@@ -426,6 +426,10 @@ bool System::proceed_timestep() {
         bots.clear();
     }
 
+    if (verbose) {
+        print_detailed();
+    }
+
     ++timestep;
     return halt;
 }

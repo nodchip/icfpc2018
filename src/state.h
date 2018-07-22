@@ -8,6 +8,7 @@ struct State {
   State(const Matrix& src_matrix, const Matrix& tgt_matrix);
 
   int simulate(const Trace& t);
+  int append_simulate_partial(const Trace& t);
 
   // @return well-formed state and matters are identical to problem_matrix.
   //         i.e. ready to submit.
