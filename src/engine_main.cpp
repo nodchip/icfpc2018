@@ -63,6 +63,7 @@ int main(int argc, char** argv) {
     // ("model", po::value<std::string>(), "model.mdl");
     // ("src-model", po::value<std::string>(), "model.mdl");
     // ("trace-output", po::value<std::string>(), "trace.nbt");
+    // ("trace-json-output", po::value<std::string>(), "trace.nbt");
     // ("engine", po::value<std::string>()->default_value("default"), "engine");
     // ("info", po::value<std::string>()->default_value("info"), "info path");
 
@@ -140,12 +141,16 @@ int main(int argc, char** argv) {
     if (options.count("trace-output")) {
         // dump the result.
         auto dump_model_path = options["trace-output"] + ".mdl";
-        auto dump_trace_path = options["trace-output"];
-        auto dump_trace_json_path = options["trace-output"] + ".json";
         state.system.matrix.dump(dump_model_path);
 
         // trace.
+        auto dump_trace_path = options["trace-output"];
         trace.output_trace(dump_trace_path);
+    }
+
+    // Dump trace as JSON
+    if (options.count("trace-json-output")) {
+        auto dump_trace_json_path = options["trace-json-output"] + ".json";
         trace.output_trace_json(dump_trace_json_path);
     }
 
