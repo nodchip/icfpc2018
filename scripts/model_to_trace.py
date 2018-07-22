@@ -22,6 +22,7 @@ def convert(args, input_model_file_name):
         completed_process = subprocess.run(command, timeout=args.timeout_sec, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.TimeoutExpired as e:
         print(e)
+        return subprocess.CompletedProcess(command, -1)
 
     return completed_process
 
