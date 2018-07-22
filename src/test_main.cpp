@@ -78,6 +78,11 @@ TEST(Planning, ZigZag) {
         EXPECT_EQ(res.size(), 4 * 3 * 5);
         EXPECT_TRUE(ok(res, 4, 3, 5));
     }
+    {
+        std::vector<Vec3> res = NEditPoints::fill_zigzag_ii(Vec3(0, 2, 0), Vec3(2, 0, 2));
+        EXPECT_EQ(res.size(), 3 * 3 * 3);
+        EXPECT_TRUE(ok(res, 3, 3, 3));
+    }
 }
 
 TEST(Matrix, LoadAndDumpMatrix) {

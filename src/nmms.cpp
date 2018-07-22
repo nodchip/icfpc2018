@@ -132,6 +132,7 @@ std::vector<Vec3> fill_zigzag_ii(const Vec3& start, const Vec3& diagonal) {
         zdir *= -1;
         p.z += zdir;
     }
+    ASSERT_ERROR(is_connected_6(scan));
     return scan;
 }
 
@@ -151,6 +152,7 @@ std::vector<Vec3> move_naive_ii(const Vec3& start, const Vec3& stop) {
         p.z += p.z < stop.z ? 1 : -1;
         scan.push_back(p);
     }
+    ASSERT_ERROR(is_connected_6(scan));
     return scan;
 }
 
@@ -159,11 +161,12 @@ bool dedup(std::vector<Vec3>& points) {
     for (size_t i = 0; i < points.size(); ++i) {
         if (i == 0) {
             res.push_back(points[i]);
-        } else if (res[i - 1] != points[i]) {
+        } else if (res.back() != points[i]) {
             res.push_back(points[i]);
         }
     }
-    res = points;
+    ASSERT_ERROR(is_connected_6(res));
+    points = res;
     return true;
 }
 

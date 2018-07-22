@@ -25,95 +25,24 @@ Trace stupid_solver_reassembly(ProblemType problem_type, const Matrix& src_matri
     NEditPoints::dedup(scan);
     ASSERT_ERROR(NEditPoints::is_connected_6(scan));
 
-    // generate traces.
     trace.push_back(CommandFlip{}); // high.
     for (size_t i = 0; i < scan.size(); ++i) {
-        // erase next (if necessary)
-        if (i + 1 < scan.size() && src_matrix(scan[i + 1])) {
-            trace.push_back(CommandVoid{scan[i + 1] - scan[i]});
-        }
-        // move into next.
         if (i + 1 < scan.size()) {
-            trace.push_back(CommandSMove{scan[i + 1] - scan[i]});
-        }
-        // set prev (if necessary)
-        if (1 <= i && dst_matrix(scan[i - 1])) {
-            trace.push_back(CommandFill{scan[i - 1] - scan[i]});
-        }
-    }
-    trace.push_back(CommandFlip{}); // low.
-    trace.push_back(CommandHalt{});
-    return trace;
-
-/*
-    printf("stupid_solver\n");
-    System system(src_matrix.R);
-    Trace trace;
-
-    // go to the top plane. there are no blocker around the path.
-    const int R = src_matrix.R;
-    Vec3 p = system.bots[0].pos;
-    const Vec3 top(0, R - 1, 0);
-    //fast_move(top, p, trace);
-    naive_move(top, p, trace);
-    printf("fast_move:\n");
-    p.print();
-
-    // prepare a zig-zag pattern.
-    std::vector<Vec3> scan;
-    scan.push_back(p);
-    while (true) {
-        int zdir = p.y % 2 == 0 ? +1 : -1;
-        while (0 <= p.z + zdir && p.z + zdir < R) {
-            int xdir = p.z % 2 == 0 ? +1 : -1;
-            while (0 <= p.x + xdir && p.x + xdir < R) {
-                p.x += xdir;
-                scan.push_back(p);
+            if (src_matrix(scan[i + 1])) {
+                trace.push_back(CommandVoid{scan[i + 1] - scan[i]});
             }
-            // turn around.
-            p.z += zdir;
-            scan.push_back(p);
-        }
-        if (0 <= p.y - 1) {
-            // down.
-            p.y -= 1;
-            scan.push_back(p);
-        } else {
-            break;
-        }
-    }
-
-    // generate traces.
-    trace.push_back(CommandFlip{}); // high.
-    for (size_t i = 0; i < scan.size(); ++i) {
-        // erase next (if necessary)
-        if (i + 1 < scan.size() && src_matrix(scan[i + 1])) {
-            trace.push_back(CommandVoid{scan[i + 1] - scan[i]});
-        }
-        // move into next.
-        if (i + 1 < scan.size()) {
             trace.push_back(CommandSMove{scan[i + 1] - scan[i]});
         }
-        // set prev (if necessary)
-        if (1 <= i && dst_matrix(scan[i - 1])) {
-            trace.push_back(CommandFill{scan[i - 1] - scan[i]});
+        // now we are at i+1.
+        if (dst_matrix(scan[i])) {
+            trace.push_back(CommandFill{scan[i] - scan[i + 1]});
         }
-        //scan[i].print();
     }
     trace.push_back(CommandFlip{}); // low.
+    trace.push_back(CommandHalt{}); 
+    printf("trace %d, scan %d\n", trace.size(), scan.size());
 
-    // go home.
-    printf("go home\n");
-    p = scan.back();
-    p.print();
-    //fast_move(system.final_pos(), p, trace);
-    naive_move(system.final_pos(), p, trace);
-    p.print();
-
-    // finalize at the origin pos.
-    trace.push_back(CommandHalt{});
     return trace;
-    */
 }
 
 Trace stupid_solver_disassembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
