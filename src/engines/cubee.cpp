@@ -6,6 +6,8 @@
 #include "state.h"
 #include "trace.h"
 
+enum class Move { Create, Remove };
+
 bool Is30Cube(const Matrix& m, const Voxel fv) {
   if (m.R != 30)
     return false;
@@ -30,7 +32,7 @@ bool Is30Cube(const Matrix& m, const Voxel fv) {
   return true;
 }
 
-Trace Trace30Cube(const Voxel v) {
+Trace Trace30Cube(const Voxel v, const Move mv) {
   Trace trace;
   // 1 bot
   trace.push_back(CommandSMove { Vec3 {0, 15, 0} });  // 1: (0, 15, 0)[2-40]
@@ -64,40 +66,78 @@ Trace Trace30Cube(const Voxel v) {
   trace.push_back(CommandSMove { Vec3 {0, 0, -15} });  // 22: (29, 0, 0)
   trace.push_back(CommandSMove { Vec3 {0, 0, 13} });   // 23: (29, 0, 29)
   trace.push_back(CommandSMove { Vec3 {0, 0, 13} });   // 32: (0, 0, 29)
-  if (v == Voxel::Full) {
-    trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27, 27, 27} });  //  1
-    trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27,-27, 27} });  //  2
-    trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27,-27, 27} });  //  3
-    trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27,-27,-27} });  //  4
-    trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27,-27,-27} });  // 13
-    trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27, 27, 27} });  // 22
-    trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27, 27,-27} });  // 23
-    trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27, 27,-27} });  // 32
+  if (mv == Move::Create) {
+    if (v == Voxel::Full) {
+      trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27, 27, 27} });  //  1
+      trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27,-27, 27} });  //  2
+      trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27,-27, 27} });  //  3
+      trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27,-27,-27} });  //  4
+      trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27,-27,-27} });  // 13
+      trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27, 27, 27} });  // 22
+      trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27, 27,-27} });  // 23
+      trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27, 27,-27} });  // 32
+    } else {
+      trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27, 27, 0} });  //  1
+      trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27,-27, 0} });  //  2
+      trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27,-27, 0} });  //  3
+      trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27,-27, 0} });  //  4
+      trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27,-27, 0} });  // 13
+      trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27, 27, 0} });  // 22
+      trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27, 27, 0} });  // 23
+      trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27, 27, 0} });  // 32
+      trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 0, 27, 27} });  //  1
+      trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 0,-27, 27} });  //  2
+      trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 { 0,-27, 27} });  //  3
+      trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 { 0,-27,-27} });  //  4
+      trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 0,-27,-27} });  // 13
+      trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 { 0, 27, 27} });  // 22
+      trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 { 0, 27,-27} });  // 23
+      trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 0, 27,-27} });  // 32
+      trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27, 0, 27} });  //  1
+      trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27, 0, 27} });  //  2
+      trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27, 0, 27} });  //  3
+      trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27, 0,-27} });  //  4
+      trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27, 0,-27} });  // 13
+      trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27, 0, 27} });  // 22
+      trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27, 0,-27} });  // 23
+      trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27, 0,-27} });  // 32
+    }
   } else {
-    trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27, 27, 0} });  //  1
-    trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27,-27, 0} });  //  2
-    trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27,-27, 0} });  //  3
-    trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27,-27, 0} });  //  4
-    trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27,-27, 0} });  // 13
-    trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27, 27, 0} });  // 22
-    trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27, 27, 0} });  // 23
-    trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27, 27, 0} });  // 32
-    trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 0, 27, 27} });  //  1
-    trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 0,-27, 27} });  //  2
-    trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 { 0,-27, 27} });  //  3
-    trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 { 0,-27,-27} });  //  4
-    trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 0,-27,-27} });  // 13
-    trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 { 0, 27, 27} });  // 22
-    trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 { 0, 27,-27} });  // 23
-    trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 0, 27,-27} });  // 32
-    trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27, 0, 27} });  //  1
-    trace.push_back(CommandGFill { Vec3 { 1, 0, 1}, Vec3 { 27, 0, 27} });  //  2
-    trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27, 0, 27} });  //  3
-    trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27, 0,-27} });  //  4
-    trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27, 0,-27} });  // 13
-    trace.push_back(CommandGFill { Vec3 {-1, 0, 1}, Vec3 {-27, 0, 27} });  // 22
-    trace.push_back(CommandGFill { Vec3 {-1, 0,-1}, Vec3 {-27, 0,-27} });  // 23
-    trace.push_back(CommandGFill { Vec3 { 1, 0,-1}, Vec3 { 27, 0,-27} });  // 32
+    if (v == Voxel::Full) {
+      trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27, 27, 27} });  //  1
+      trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27,-27, 27} });  //  2
+      trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27,-27, 27} });  //  3
+      trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27,-27,-27} });  //  4
+      trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27,-27,-27} });  // 13
+      trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27, 27, 27} });  // 22
+      trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27, 27,-27} });  // 23
+      trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27, 27,-27} });  // 32
+    } else {
+      trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27, 27, 0} });  //  1
+      trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27,-27, 0} });  //  2
+      trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27,-27, 0} });  //  3
+      trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27,-27, 0} });  //  4
+      trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27,-27, 0} });  // 13
+      trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27, 27, 0} });  // 22
+      trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27, 27, 0} });  // 23
+      trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27, 27, 0} });  // 32
+      trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 0, 27, 27} });  //  1
+      trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 0,-27, 27} });  //  2
+      trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 { 0,-27, 27} });  //  3
+      trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 { 0,-27,-27} });  //  4
+      trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 0,-27,-27} });  // 13
+      trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 { 0, 27, 27} });  // 22
+      trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 { 0, 27,-27} });  // 23
+      trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 0, 27,-27} });  // 32
+      trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27, 0, 27} });  //  1
+      trace.push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { 27, 0, 27} });  //  2
+      trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27, 0, 27} });  //  3
+      trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27, 0,-27} });  //  4
+      trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27, 0,-27} });  // 13
+      trace.push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-27, 0, 27} });  // 22
+      trace.push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-27, 0,-27} });  // 23
+      trace.push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { 27, 0,-27} });  // 32
+    }
   }
   trace.push_back(CommandSMove { Vec3 {0, 0, 15} });  //  1
   trace.push_back(CommandSMove { Vec3 {0, 0, 15} });  //  2
@@ -144,9 +184,17 @@ Trace Trace30Cube(const Voxel v) {
 
 Trace AssemblySolver(const Matrix& matrix) {
   if (Is30Cube(matrix, Voxel::Full))
-    return Trace30Cube(Voxel::Full);
+    return Trace30Cube(Voxel::Full, Move::Create);
   if (Is30Cube(matrix, Voxel::Void))
-    return Trace30Cube(Voxel::Void);
+    return Trace30Cube(Voxel::Void, Move::Create);
+  return {};
+}
+
+Trace DisassemblySolver(const Matrix& matrix) {
+  if (Is30Cube(matrix, Voxel::Full))
+    return Trace30Cube(Voxel::Full, Move::Remove);
+  if (Is30Cube(matrix, Voxel::Void))
+    return Trace30Cube(Voxel::Void, Move::Remove);
   return {};
 }
 
@@ -172,6 +220,7 @@ Trace cubee(ProblemType problem_type, const Matrix& source, const Matrix& target
   case ProblemType::Assembly:
     return AssemblySolver(target);
   case ProblemType::Disassembly:
+    return DisassemblySolver(source);
   case ProblemType::Reassembly:
   case ProblemType::Invalid:
     return {};
