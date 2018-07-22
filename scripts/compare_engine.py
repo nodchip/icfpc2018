@@ -84,7 +84,7 @@ def main():
                 else:
                     color_density = 0
 
-                print('<td bgcolor="#{0:02x}ff{0:02x}">{1}</td>'.format(255 * energy_to_ranking[energy] / (len(energies) - 1), energy), file=f)
+                print('<td bgcolor="#{0:02x}ff{0:02x}">{1}</td>'.format(int(255 * energy_to_ranking[energy] / (len(energies) - 1)), energy), file=f)
             print('</tr>', file=f)
         print('''</table>
 </body>
