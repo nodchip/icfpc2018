@@ -146,7 +146,7 @@ TEST(Commands, FissionAndFusion) {
     // system.print_detailed();
 
     ASSERT_EQ(system.bots.size(), 2);
-    EXPECT_EQ(system.bots[0].seeds.size(), 18 - m);
+    EXPECT_EQ(system.bots[0].seeds.size(), k_MaxNumberOfBots - 2 - m);
     EXPECT_EQ(system.bots[1].seeds.size(), m);
     EXPECT_TRUE(system.is_eof());
 
@@ -158,7 +158,7 @@ TEST(Commands, FissionAndFusion) {
     // system.print_detailed();
 
     EXPECT_EQ(system.bots.size(), 1);
-    EXPECT_EQ(system.bots[0].seeds.size(), 19);
+    EXPECT_EQ(system.bots[0].seeds.size(), k_MaxNumberOfBots - 1);
 }
 
 TEST(System, StupidSolver) {
