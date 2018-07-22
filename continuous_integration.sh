@@ -1,5 +1,6 @@
 #!/bin/sh
 : ${NUMBER_OF_PROCESSORS:=72}
+export ENGINES=`cat engines.txt`
 git submodule init
 git submodule update
 cd ${WORKSPACE}/src

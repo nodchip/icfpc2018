@@ -1,6 +1,7 @@
 #!/bin/sh
 export WORKSPACE=`pwd`
-for engine in stupid_engine
+export ENGINES=`cat engines.txt`
+for engine in ${ENGINES}
 do
 	export BINARY_FILE_NAME=${engine}
 	./execute_engine.sh || exit 1
