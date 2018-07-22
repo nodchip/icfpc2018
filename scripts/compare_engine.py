@@ -9,6 +9,11 @@ import sys
 
 
 INVALID_ENERGY = 1e100
+RANKING_COLORS = [
+    'gold',
+    'silver',
+    'bronze',
+    ]
 
 
 def main():
@@ -78,13 +83,15 @@ def main():
                     print('<td></td>', file=f)
                     continue
 
-                if default_energy != best_energy:
-                    color_density = int(255 * (default_energy - energy) / (default_energy - best_energy))
-                    color_density = max(0, color_density)
+                rank = energy_to_ranking[energy]
+                if default_energy < energy:
+                    color = 'red'
+                elif rank < len(RANKING_COLORS):
+                    color = RANKING_COLORS[rank]
                 else:
-                    color_density = 0
+                    color = 'transparent'
 
-                print('<td bgcolor="#{0:02x}ff{0:02x}">{1}</td>'.format(int(255 * energy_to_ranking[energy] / (len(energies) - 1)), energy), file=f)
+                print('<td bgcolor="{0}">{1}</td>'.format(color, energy), file=f)
             print('</tr>', file=f)
         print('''</table>
 </body>
