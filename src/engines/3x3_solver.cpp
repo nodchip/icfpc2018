@@ -170,6 +170,12 @@ Trace three_by_three_solver(ProblemType problem_type, const Matrix& src_matrix, 
         }
     }
 
+    if (dst_matrix(current_position) == Full) {
+        // Move +z by one voxel to fill the last voxel.
+        DoSMove(current_matrix, { 0, 0, 1 }, current_position, trace);
+        DoFill(current_position, { 0, 0, -1 }, current_matrix, trace);
+    }
+
     // Move to the start position.
     if (!bfs_shortest_in_void(current_matrix, current_position, start_position, &trace, &trajectory)) {
         std::cout << "Failed to move to the start position..." << std::endl;
