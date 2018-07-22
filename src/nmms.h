@@ -18,5 +18,14 @@ bool fast_manhattan_motion_in_void(const Matrix& matrix, Vec3 start_pos, Vec3 st
 // if destination == position. no moves are generated.
 void fast_move(const Vec3& destination, Vec3& position, Trace& trace);
 
+namespace NEditPoints {
+    // inclusive
+    std::vector<Vec3> fill_zigzag_ii(const Vec3& start, const Vec3& diagonal);
+    // inclusive
+    std::vector<Vec3> move_naive_ii(const Vec3& start, const Vec3& stop);
+    bool dedup(std::vector<Vec3>& points);
+    bool is_connected_6(const std::vector<Vec3>& points);
+}
+
 #endif // __NMMS_H__
 // vim: set si et sw=4 ts=4:

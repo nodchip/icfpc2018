@@ -178,6 +178,7 @@ struct UpdateSystem : public boost::static_visitor<bool> {
     bool operator()(CommandHalt) {
         if (sys.bots.size() != 1 || sys.bots[0].pos != sys.final_pos()) {
             LOG_ERROR("[CommandHalt] preconditions are not met.");
+            sys.bots[0].pos.print();
             return false;
         }
         halt_requested = true;

@@ -44,6 +44,45 @@ TEST(Planning, FastMove) {
         EXPECT_FALSE(fast_manhattan_motion_in_void(m, Vec3(0, 0, 0), Vec3(4, 2, 4), trace));
         EXPECT_EQ(trace.size(), 0);
     }
+    {
+        Trace trace;
+        Vec3 p(19, 0, 19);
+        fast_move(Vec3(0, 0, 0), p, trace);
+        trace.output_trace_json("Planning_FastMove.json");
+    }
+}
+
+TEST(Planning, ZigZag) {
+    auto ok = [](const std::vector<Vec3>& ls, int w, int h, int d) {
+        std::set<int> x, y, z;
+        for (auto& p : ls) {
+            x.insert(p.x);
+            y.insert(p.y);
+            z.insert(p.z);
+        }
+        return x.size() == w && y.size() == h && z.size() == d;
+    };
+
+    {
+        std::vector<Vec3> res = NEditPoints::fill_zigzag_ii(Vec3(10, 0, 0), Vec3(0, 10, 10));
+        EXPECT_EQ(res.size(), 11 * 11 * 11);
+        EXPECT_TRUE(ok(res, 11, 11, 11));
+    }
+    {
+        std::vector<Vec3> res = NEditPoints::fill_zigzag_ii(Vec3(9, 0, 0), Vec3(0, 9, 9));
+        EXPECT_EQ(res.size(), 10 * 10 * 10);
+        EXPECT_TRUE(ok(res, 10, 10, 10));
+    }
+    {
+        std::vector<Vec3> res = NEditPoints::fill_zigzag_ii(Vec3(0, 2, 0), Vec3(3, 0, 4));
+        EXPECT_EQ(res.size(), 4 * 3 * 5);
+        EXPECT_TRUE(ok(res, 4, 3, 5));
+    }
+    {
+        std::vector<Vec3> res = NEditPoints::fill_zigzag_ii(Vec3(0, 2, 0), Vec3(2, 0, 2));
+        EXPECT_EQ(res.size(), 3 * 3 * 3);
+        EXPECT_TRUE(ok(res, 3, 3, 3));
+    }
 }
 
 TEST(Matrix, LoadAndDumpMatrix) {

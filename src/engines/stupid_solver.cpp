@@ -1,4 +1,5 @@
 #include "stupid_solver.h"
+#include <boost/range/algorithm_ext/push_back.hpp>
 
 #include "engine.h"
 #include "nmms.h"
@@ -6,6 +7,43 @@
 #include "state.h"
 #include "debug_message.h"
 
+Trace stupid_solver_reassembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
+    ASSERT_ERROR_RETURN(problem_type == ProblemType::Reassembly, Trace());
+
+    printf("stupid_solver\n");
+    const int R = src_matrix.R;
+    System system(R);
+    Trace trace;
+
+    const Vec3 start(0, 0, 0);
+    const Vec3 top(0, R - 1, 0);
+    const Vec3 diagonal(R - 1, 0, R - 1);
+
+    std::vector<Vec3> scan = NEditPoints::move_naive_ii(start, top);
+    boost::push_back(scan, NEditPoints::fill_zigzag_ii(top, diagonal));
+    boost::push_back(scan, NEditPoints::move_naive_ii(scan.back(), start));
+    NEditPoints::dedup(scan);
+    ASSERT_ERROR(NEditPoints::is_connected_6(scan));
+
+    trace.push_back(CommandFlip{}); // high.
+    for (size_t i = 0; i < scan.size(); ++i) {
+        if (i + 1 < scan.size()) {
+            if (src_matrix(scan[i + 1])) {
+                trace.push_back(CommandVoid{scan[i + 1] - scan[i]});
+            }
+            trace.push_back(CommandSMove{scan[i + 1] - scan[i]});
+        }
+        // now we are at i+1.
+        if (dst_matrix(scan[i])) {
+            trace.push_back(CommandFill{scan[i] - scan[i + 1]});
+        }
+    }
+    trace.push_back(CommandFlip{}); // low.
+    trace.push_back(CommandHalt{}); 
+    printf("trace %d, scan %d\n", trace.size(), scan.size());
+
+    return trace;
+}
 
 Trace stupid_solver_disassembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
     ASSERT_ERROR_RETURN(problem_type == ProblemType::Disassembly, Trace());
@@ -138,8 +176,7 @@ Trace stupid_solver(ProblemType problem_type, const Matrix& src_matrix, const Ma
             return stupid_solver_disassembly(problem_type, src_matrix, dst_matrix);
         case ProblemType::Reassembly:
         default:
-            break;
-            //return stupid_solver_reassembly(problem_type, src_matrix, dst_matrix);
+            return stupid_solver_reassembly(problem_type, src_matrix, dst_matrix);
     }
     ASSERT_ERROR_RETURN(false, Trace());
 }

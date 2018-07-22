@@ -59,6 +59,7 @@ bool State::is_finished() const {
     //     return false;
     if (system.matrix != tgt_problem) {
         LOG_ERROR("matrix is different from the target");
+        print_difference(system.matrix, tgt_problem);
         return false;
     }
 
