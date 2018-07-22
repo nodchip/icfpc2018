@@ -135,6 +135,11 @@ struct EmitCommand : public boost::static_visitor<bool> {
         buffer.push_back(0b00000110 | (nd_encoding(cmd.nd) << 3));
         return true;
     };
+    // only for develop & debug
+    bool operator()(CommandDebugMoveTo cmd) {
+        // no encoding!
+        return true;
+    };
 };
 
 struct EmitCommandJSON : public boost::static_visitor<bool> {
@@ -183,6 +188,11 @@ struct EmitCommandJSON : public boost::static_visitor<bool> {
     };
     bool operator()(CommandFusionS cmd) {
         json.push_back({"FusionS", Vec3_to_JSON(cmd.nd)});
+        return true;
+    };
+    // only for develop & debug
+    bool operator()(CommandDebugMoveTo cmd) {
+        json.push_back({"DebugMoveTo", Vec3_to_JSON(cmd.pos)});
         return true;
     };
 };

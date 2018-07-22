@@ -313,6 +313,18 @@ struct UpdateSystem : public boost::static_visitor<bool> {
         fusion_stage.addSP(bot.bid, sys.bid_at(c));
         return true;
     };
+    bool operator()(CommandDebugMoveTo cmd) {
+        if (!sys.matrix.is_in_matrix(cmd.pos)) {
+            LOG() << "[CommandDebugMoveTo] target voxel out of range";
+            return false;
+        }
+        if (!sys.matrix(cmd.pos)) {
+            LOG() << "[CommandDebugMoveTo] target voxel occupied";
+            return false;
+        }
+        bot.pos = cmd.pos;
+        return true;
+    };
 };
 
 }  // namespace NProceedTimestep

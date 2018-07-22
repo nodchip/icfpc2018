@@ -37,6 +37,10 @@ struct CommandFusionP {
 struct CommandFusionS {
     Vec3 nd;
 };
+// only for develop & debug
+struct CommandDebugMoveTo {
+    Vec3 pos;
+};
 
 namespace Costs {
     // global
@@ -72,7 +76,9 @@ typedef boost::variant<
     CommandGFill,
     CommandGVoid,
     CommandFusionP,
-    CommandFusionS> Command;
+    CommandFusionS,
+    CommandDebugMoveTo
+    > Command;
 
 // ld: Linear Coordinate Difference
 inline bool is_valid_ld(Vec3 d) {
