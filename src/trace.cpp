@@ -328,7 +328,7 @@ void Trace::print_detailed() {
     int rest = 1;
     int active_change = 0;
     std::printf("------------[timestep: %7d]\n", timestep);
-    for (size_t i = 0; i < size(); ++i) {
+    for (int i = 0; i < size(); ++i) {
         std::printf("%8d : ", i);
         PrintCommand visitor;
         active_change += boost::apply_visitor(visitor, operator[](i));
