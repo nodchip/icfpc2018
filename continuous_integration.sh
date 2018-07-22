@@ -15,9 +15,9 @@ do
 		--timeout_sec 120 \
 		--jobs 72 || exit 1
 done
-python3 compare_engine.py --default_info_directory_path ../result/default_info \
+python3 compare_engine.py --default_info_directory_path ../resultF/default_info \
 	--info_directory_path_base ../tmp/info \
 	--engines "${ENGINES}" \
-	--input_model_directory_path ../data/problems \
+	--input_model_directory_path ../data/problemsF \
 	--output_html_file_path compare_engine.html || exit 1
 cp -f compare_engine.html /var/www/html/ || exit 1
