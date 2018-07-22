@@ -10,6 +10,7 @@ python3 model_to_trace.py \
         --input_model_directory_path ../data/problemsF \
         --output_trace_file_directory_path ../tmp/trace \
         --output_info_file_directory_path ../tmp/info \
+        --output_energy_file_directory_path ../tmp/energy \
         --jobs ${NUMBER_OF_PROCESSORS} || exit 1
 python3 update_result.py --temp_trace_directory_path ../tmp/trace \
         --temp_info_directory_path ../tmp/info \
