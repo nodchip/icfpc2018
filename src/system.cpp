@@ -387,7 +387,7 @@ bool System::proceed_timestep() {
     sort_by_bid();
 
     if (verbose) {
-        std::printf("------------[timestep: %7d]\n", timestep);
+        std::printf("------------[timestep: %7ld]\n", timestep);
     }
 
     const size_t n = bots.size();
@@ -395,7 +395,7 @@ bool System::proceed_timestep() {
         Command& cmd = trace[consumed_commands++];
 
         if (verbose) {
-            std::printf("%8d : ", consumed_commands);
+            std::printf("%8ld : ", consumed_commands);
             PrintCommand visitor;
             boost::apply_visitor(visitor, cmd);
             std::printf("\n");
