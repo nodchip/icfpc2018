@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "simulation prepare." << std::endl;
-    int exit_code = state.simulate(trace);
+    int exit_code = trace.empty() ? 0 : state.simulate(trace);
     std::cout << "simulation done." << std::endl;
 
     if (options.count("trace-output")) {
@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
         nlohmann::json j = {
             {"energy", state.system.energy},  // should be state.energy
             {"consumed_commands", state.system.consumed_commands},
-            {"successful", exit_code == 0},
+            {"successful", (trace.size() && exit_code == 0)},
             {"engine_name", engine_name},
             {"created_at", get_utc_string()},
         };
