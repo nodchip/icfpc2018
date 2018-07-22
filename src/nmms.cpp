@@ -7,8 +7,7 @@
 
 bool bfs_shortest_in_void(const Matrix& m, Vec3 start_pos, Vec3 stop_pos,
     Trace* trace_opt, std::vector<Vec3>* trajectory_opt) {
-    ASSERT_RETURN(m(start_pos), false);
-    ASSERT_RETURN(m(stop_pos), false);
+    ASSERT_RETURN(!m(start_pos) && !m(stop_pos), false);
     if (start_pos == stop_pos) {
         return true;
     }
