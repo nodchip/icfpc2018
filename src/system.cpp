@@ -426,6 +426,7 @@ bool System::proceed_timestep() {
         bots.clear();
     }
 
+    ++timestep;
     return halt;
 }
 
