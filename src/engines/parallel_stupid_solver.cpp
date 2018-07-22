@@ -147,6 +147,7 @@ vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector<
   std::vector<bool> is_filled(R * R * R);
 
   std::vector<long long int> out;
+  out.push_back(-1);
   bool is_harmonic = false;
   for(long long int i = 0; i< time_and_loc.size()-1; ++i ){
     // unite
@@ -170,7 +171,14 @@ vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector<
       }
     }
   }
-  return out;
+  out.push_back(-1);
+  std::vector<long long int> out2;
+  for(int i=1; i<out.size()-1;++i){
+    if(out[i-1]!=out[i] && out[i+1]!=out[i]){
+      out2.push_back(out[i]);
+    }
+  }
+  return out2;
 }
 
 Trace parallel_stupid_solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& problem_matrix) {
