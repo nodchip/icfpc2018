@@ -482,7 +482,7 @@ bool System::is_stage_filled() const {
     });
 }
 
-bool System::stage_all_unstaged(Command cmd = CommandWait{}) {
+bool System::stage_all_unstaged(Command cmd) {
     for (size_t i = 0; i < commands_stage.size(); ++i) {
         if (!commands_stage[i]) {
             commands_stage[i] = cmd;
