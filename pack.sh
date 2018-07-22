@@ -8,7 +8,7 @@ do
 done
 cd resultF/trace
 FILENAME=sanma`date +%Y%m%d%H%M%S`.zip
-zip -9 ${FILENAME} *.nbt
+zip ${FILENAME} *.nbt
 cd ${WORKSPACE}
 mv resultF/trace/${FILENAME} .
 sha256sum ${FILENAME}
