@@ -60,6 +60,8 @@ struct System {
 
     void sort_by_bid();
 
+    bool is_eof() const { return consumed_commands >= trace.size(); }
+
     // For debug
     void print();
     void print_detailed();

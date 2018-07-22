@@ -1,7 +1,8 @@
 #include "system.h"
 
-#include <numeric>
 #include <fstream>
+#include <map>
+#include <numeric>
 #include <nlohmann/json.hpp>
 
 #include "command.h"
@@ -53,44 +54,42 @@ struct GroundConnectivityChecker {
 };
 
 struct FusionStage {
-    static constexpr int kBotIDs = 40;
-    int fusion[kBotIDs][kBotIDs];
+    static constexpr int kMaxBots = 100;
+    map<int,int> fusion_map;
 
-    FusionStage() {
-        std::memset(fusion, 0, sizeof(int) * kBotIDs * kBotIDs);
-    }
+    FusionStage() {}
 
     void addPS(BotID me, BotID other) {
-        ++fusion[me][other];
+        const int index = me * kMaxBots + other;
+        fusion_map[index] = fusion_map[index] + 1;
     }
 
     void addSP(BotID me, BotID other) {
-        ++fusion[other][me];
+        const int index = other * kMaxBots + me;
+        fusion_map[index] = fusion_map[index] + 1;
     }
 
     bool update(System& sys) {
-        for (int i = 0; i < kBotIDs; ++i) {
-            for (int j = 0; j < kBotIDs; ++j) {
-                if (fusion[i][j] == 0)
-                    continue;
-                if (fusion[i][j] != 2) {
-                    LOG() << "Inconsistent FusionState";
-                    return false;
-                }
-
-                const int idx_remain = sys.bot_index_by(i);
-                const int idx_erase = sys.bot_index_by(j);
-                if (idx_remain < 0 || idx_erase < 0)
-                    return false;
-
-                std::copy(sys.bots[idx_erase].seeds.begin(),
-                          sys.bots[idx_erase].seeds.end(),
-                          std::back_inserter(sys.bots[idx_remain].seeds));
-                sys.bots[idx_remain].seeds.push_back(sys.bots[idx_erase].bid);
-                sys.bots.erase(sys.bots.begin() + idx_erase);
-
-                sys.add_energy(EnergyTag::Fusion, Costs::k_Fusion);
+        for (auto& p : fusion_map) {
+            if (p.second != 2) {
+                LOG() << "Inconsistent FusionState";
+                return false;
             }
+
+            int i = p.first / kMaxBots;
+            int j = p.first % kMaxBots;
+            const int idx_remain = sys.bot_index_by(i);
+            const int idx_erase = sys.bot_index_by(j);
+            if (idx_remain < 0 || idx_erase < 0)
+                return false;
+
+            std::copy(sys.bots[idx_erase].seeds.begin(),
+                      sys.bots[idx_erase].seeds.end(),
+                      std::back_inserter(sys.bots[idx_remain].seeds));
+            sys.bots[idx_remain].seeds.push_back(sys.bots[idx_erase].bid);
+            sys.bots.erase(sys.bots.begin() + idx_erase);
+
+            sys.add_energy(EnergyTag::Fusion, Costs::k_Fusion);
         }
         return true;
     }
@@ -101,8 +100,7 @@ struct GroupStage {
     // canonical Region. => [bid]
     std::unordered_map<Region, std::vector<BotID>> stage[2];
 
-    GroupStage() {
-    }
+    GroupStage() {}
 
     bool add_bot(Bot& bot, Vec3 nd, Vec3 fd, int action_type) {
         ASSERT_RETURN(is_valid_nd(nd), false);
@@ -313,6 +311,18 @@ struct UpdateSystem : public boost::static_visitor<bool> {
         fusion_stage.addSP(bot.bid, sys.bid_at(c));
         return true;
     };
+    bool operator()(CommandDebugMoveTo cmd) {
+        if (!sys.matrix.is_in_matrix(cmd.pos)) {
+            LOG() << "[CommandDebugMoveTo] target voxel out of range";
+            return false;
+        }
+        if (!sys.matrix(cmd.pos)) {
+            LOG() << "[CommandDebugMoveTo] target voxel occupied";
+            return false;
+        }
+        bot.pos = cmd.pos;
+        return true;
+    };
 };
 
 }  // namespace NProceedTimestep
@@ -378,12 +388,11 @@ bool System::proceed_timestep() {
 
     const size_t n = bots.size();
     for (size_t i = 0; i < n; ++i) {
-        Command cmd = trace.front(); trace.pop_front();
-        ++consumed_commands; // FusionP and FusionS are treated as separate commands.
+        Command& cmd = trace[consumed_commands++];
 
         NProceedTimestep::UpdateSystem visitor(*this, bots[i], halt, fusion_stage, group_stage, ground_connectivity_checker);
         if (!boost::apply_visitor(visitor, cmd)) {
-            std::fprintf(stderr, "Error while processing trace for bot %ld\n", i);
+            LOG() << "Error while processing trace for bot " << i << "\n";
             print_detailed();
             throw std::runtime_error("wrong command");
 	    // if you want trace data...
@@ -398,8 +407,7 @@ bool System::proceed_timestep() {
     // if there are any floating voxels added in this phase while harmonics is low,
     // it is ill-formed.
     if (!harmonics_high && !ground_connectivity_checker.new_voxels_are_grounded(*this)) {
-        std::printf("Detected violation in ground connectivity in low-harmonics mode!\n");
-        //throw std::runtime_error("Detected violation in ground connectivity in low-harmonics mode!");
+        LOG() << "Detected violation in ground connectivity in low-harmonics mode!\n";
     }
     ground_connectivity_checker.update(*this);
 

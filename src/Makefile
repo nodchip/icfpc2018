@@ -52,6 +52,12 @@ evaluate: evaluate_main.cpp $(OBJS) $(TEST_OBJS)
 $(BUILD_PATH)/%.o: %.cpp %.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+.PHONY: clean-results
+clean-results:
+	rm -f *.mdl *.nbt *.json
+	rm -rf tmp-quick-info
+	rm -rf tmp-quick-traces
+
 .PHONY: clean
 clean:
 	rm -f $(OBJS)
