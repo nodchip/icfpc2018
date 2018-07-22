@@ -67,8 +67,10 @@ struct Matrix {
         return !operator==(other);
     }
 
+    int capacity() const;
 
     int R;
     std::vector<Voxel> buf;
 };
-typedef std::shared_ptr<Matrix> MatrixPtr;
+
+bool print_difference(const Matrix& lhs, const Matrix& rhs);

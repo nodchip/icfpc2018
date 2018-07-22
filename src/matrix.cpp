@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include "debug_message.h"
 
 Matrix::Matrix() : R(0), buf() {
 }
@@ -55,3 +56,44 @@ bool Matrix::dump(std::string output_path) {
 
     return true;
 }
+
+int Matrix::capacity() const {
+    int voxels = 0;
+    for (int z = 0; z < R; ++z) {
+        for (int y = 0; y < R; ++y) {
+            for (int x = 0; x < R; ++x) {
+                if (operator()(x, y, z) != Void) {
+                    ++voxels;
+                }
+            }
+        }
+    }
+    return voxels;
+}
+
+bool print_difference(const Matrix& lhs, const Matrix& rhs) {
+    ASSERT_ERROR_RETURN(lhs.is_valid_matrix(), false);
+    ASSERT_ERROR_RETURN(rhs.is_valid_matrix(), false);
+    ASSERT_ERROR_RETURN(lhs.R == rhs.R, false);
+    int lhs_sub_rhs = 0;
+    int rhs_sub_lhs = 0;
+    for (int y = 0; y < lhs.R; ++y) {
+        for (int z = 0; z < lhs.R; ++z) {
+            for (int x = 0; x < lhs.R; ++x) {
+                if (lhs(x, y, z) != rhs(x, y, z)) {
+                    printf("%d, %d, %d: lhs%d rhs%d\n",
+                        x, y, z, lhs(x, y, z), rhs(x, y, z));
+                    if (lhs(x, y, z)) {
+                        ++lhs_sub_rhs;
+                    } else {
+                        ++rhs_sub_lhs;
+                    }
+                }
+            }
+        }
+    }
+    printf("SUMMARY: lhs & ~rhs:%d, ~lhs & rhs:%d\n",
+        lhs_sub_rhs, rhs_sub_lhs);
+    return true;
+}
+
