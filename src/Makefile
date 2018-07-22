@@ -11,7 +11,7 @@ BUILD_PATH=build
 LIB_PATH=../libs
 
 SRCS=command.cpp matrix.cpp nanobot.cpp nmms.cpp region.cpp vec3.cpp state.cpp system.cpp trace.cpp bounding_box.cpp
-SRCS+=engine.cpp
+SRCS+=engine.cpp engines/naive_converter.cpp
 
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)
 

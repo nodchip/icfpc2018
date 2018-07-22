@@ -7,7 +7,7 @@
 
 // parallel stupid solver v2.
 // in general, solvers do not alter the system but only generate a plan for the system.
-Trace parallel_stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const Matrix& problem_matrix);
+Trace parallel_stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix);
 
 #endif // __PARALLEL_SOLVER_V2_H__
 // vim: set si et sw=4 ts=4:
