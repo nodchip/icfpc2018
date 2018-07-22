@@ -71,6 +71,8 @@ def main():
                     best_energy = energy
             default_energy = energies[0]
 
+            energy_to_ranking = {v: k for k, v in enumerate(sorted(energies))}
+
             for energy in energies:
                 if energy == INVALID_ENERGY:
                     print('<td></td>', file=f)
@@ -82,7 +84,7 @@ def main():
                 else:
                     color_density = 0
 
-                print('<td bgcolor="#{0:02x}ff{0:02x}">{1}</td>'.format(255 - color_density, energy), file=f)
+                print('<td bgcolor="#{0:02x}ff{0:02x}">{1}</td>'.format(255 * energy_to_ranking[energy] / (len(energies) - 1), energy), file=f)
             print('</tr>', file=f)
         print('''</table>
 </body>
