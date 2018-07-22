@@ -394,7 +394,7 @@ bool System::proceed_timestep() {
 
         NProceedTimestep::UpdateSystem visitor(*this, bots[i], halt, fusion_stage, group_stage, ground_connectivity_checker);
         if (!boost::apply_visitor(visitor, cmd)) {
-            std::fprintf(stderr, "Error while processing trace for bot %ld\n", i);
+            LOG() << "Error while processing trace for bot " << i << "\n";
             print_detailed();
             throw std::runtime_error("wrong command");
 	    // if you want trace data...
@@ -402,15 +402,16 @@ bool System::proceed_timestep() {
         }
     }
 
-    fusion_stage.update(*this);
-    group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_FILL);
-    group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_VOID);
+    if (n > 1) {
+        fusion_stage.update(*this);
+        group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_FILL);
+        group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_VOID);
+    }
 
     // if there are any floating voxels added in this phase while harmonics is low,
     // it is ill-formed.
     if (!harmonics_high && !ground_connectivity_checker.new_voxels_are_grounded(*this)) {
-        std::printf("Detected violation in ground connectivity in low-harmonics mode!\n");
-        //throw std::runtime_error("Detected violation in ground connectivity in low-harmonics mode!");
+        LOG() << "Detected violation in ground connectivity in low-harmonics mode!\n";
     }
     ground_connectivity_checker.update(*this);
 
