@@ -29,6 +29,9 @@ def main():
         with open(temp_info_file_path, 'rt') as f:
             temp = json.load(f)
 
+        if not temp['successful']:
+            continue
+
         result_info_file_path = os.path.join(args.result_info_directory_path, model_name + '.json')
         with open(result_info_file_path, 'rt') as f:
             result = json.load(f)
