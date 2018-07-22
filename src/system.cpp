@@ -1,7 +1,8 @@
 #include "system.h"
 
-#include <numeric>
 #include <fstream>
+#include <map>
+#include <numeric>
 #include <nlohmann/json.hpp>
 
 #include "command.h"
@@ -53,44 +54,42 @@ struct GroundConnectivityChecker {
 };
 
 struct FusionStage {
-    static constexpr int kBotIDs = 40;
-    int fusion[kBotIDs][kBotIDs];
+    static constexpr int kMaxBots = 100;
+    map<int,int> fusion_map;
 
-    FusionStage() {
-        std::memset(fusion, 0, sizeof(int) * kBotIDs * kBotIDs);
-    }
+    FusionStage() {}
 
     void addPS(BotID me, BotID other) {
-        ++fusion[me][other];
+        const int index = me * kMaxBots + other;
+        fusion_map[index] = fusion_map[index] + 1;
     }
 
     void addSP(BotID me, BotID other) {
-        ++fusion[other][me];
+        const int index = other * kMaxBots + me;
+        fusion_map[index] = fusion_map[index] + 1;
     }
 
     bool update(System& sys) {
-        for (int i = 0; i < kBotIDs; ++i) {
-            for (int j = 0; j < kBotIDs; ++j) {
-                if (fusion[i][j] == 0)
-                    continue;
-                if (fusion[i][j] != 2) {
-                    LOG() << "Inconsistent FusionState";
-                    return false;
-                }
-
-                const int idx_remain = sys.bot_index_by(i);
-                const int idx_erase = sys.bot_index_by(j);
-                if (idx_remain < 0 || idx_erase < 0)
-                    return false;
-
-                std::copy(sys.bots[idx_erase].seeds.begin(),
-                          sys.bots[idx_erase].seeds.end(),
-                          std::back_inserter(sys.bots[idx_remain].seeds));
-                sys.bots[idx_remain].seeds.push_back(sys.bots[idx_erase].bid);
-                sys.bots.erase(sys.bots.begin() + idx_erase);
-
-                sys.add_energy(EnergyTag::Fusion, Costs::k_Fusion);
+        for (auto& p : fusion_map) {
+            if (p.second != 2) {
+                LOG() << "Inconsistent FusionState";
+                return false;
             }
+
+            int i = p.first / kMaxBots;
+            int j = p.first % kMaxBots;
+            const int idx_remain = sys.bot_index_by(i);
+            const int idx_erase = sys.bot_index_by(j);
+            if (idx_remain < 0 || idx_erase < 0)
+                return false;
+
+            std::copy(sys.bots[idx_erase].seeds.begin(),
+                      sys.bots[idx_erase].seeds.end(),
+                      std::back_inserter(sys.bots[idx_remain].seeds));
+            sys.bots[idx_remain].seeds.push_back(sys.bots[idx_erase].bid);
+            sys.bots.erase(sys.bots.begin() + idx_erase);
+
+            sys.add_energy(EnergyTag::Fusion, Costs::k_Fusion);
         }
         return true;
     }
@@ -101,8 +100,7 @@ struct GroupStage {
     // canonical Region. => [bid]
     std::unordered_map<Region, std::vector<BotID>> stage[2];
 
-    GroupStage() {
-    }
+    GroupStage() {}
 
     bool add_bot(Bot& bot, Vec3 nd, Vec3 fd, int action_type) {
         ASSERT_RETURN(is_valid_nd(nd), false);
@@ -402,11 +400,9 @@ bool System::proceed_timestep() {
         }
     }
 
-    if (n > 1) {
-        fusion_stage.update(*this);
-        group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_FILL);
-        group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_VOID);
-    }
+    fusion_stage.update(*this);
+    group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_FILL);
+    group_stage.update(*this, NProceedTimestep::GroupStage::ACTION_VOID);
 
     // if there are any floating voxels added in this phase while harmonics is low,
     // it is ill-formed.
