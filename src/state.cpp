@@ -17,7 +17,7 @@ State::State(const Matrix& src_matrix, const Matrix& tgt_matrix)
 int State::simulate(const Trace& t) {
     try {
         system.trace = t;
-        while (!system.trace.empty()) {
+        while (!system.is_eof()) {
             if (system.proceed_timestep()) {
                 break;
             }
@@ -56,7 +56,7 @@ bool State::is_finished() const {
         LOG() << "bots are remaining.";
         return false;
     }
-    // if (!system.trace.empty())
+    // if (!system.is_eof())
     //     return false;
     if (system.matrix != tgt_problem) {
         LOG() << "matrix is different from the target";
