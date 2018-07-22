@@ -148,7 +148,7 @@ TEST(Commands, FissionAndFusion) {
     ASSERT_EQ(system.bots.size(), 2);
     EXPECT_EQ(system.bots[0].seeds.size(), 18 - m);
     EXPECT_EQ(system.bots[1].seeds.size(), m);
-    EXPECT_EQ(system.trace.size(), 0);
+    EXPECT_TRUE(system.is_eof());
 
     // Fusion
     system.trace.push_back(CommandFusionP{Vec3 {0, 0, 1}});

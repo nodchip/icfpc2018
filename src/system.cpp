@@ -390,8 +390,7 @@ bool System::proceed_timestep() {
 
     const size_t n = bots.size();
     for (size_t i = 0; i < n; ++i) {
-        Command cmd = trace.front(); trace.pop_front();
-        ++consumed_commands; // FusionP and FusionS are treated as separate commands.
+        Command& cmd = trace[consumed_commands++];
 
         NProceedTimestep::UpdateSystem visitor(*this, bots[i], halt, fusion_stage, group_stage, ground_connectivity_checker);
         if (!boost::apply_visitor(visitor, cmd)) {
