@@ -2,4 +2,4 @@ parallel_stupid_engine_v3_1
 parallel_stupid_engine_v2
 parallel_stupid_engine
 3x3_solver
-stupid_engine
+stupid
