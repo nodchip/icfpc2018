@@ -91,14 +91,14 @@ bool fission_along_x(const std::vector<int>& boundaries, const std::vector<int>&
     int seeds = N - 1;
     int x = 0;
     while (active < n_positions) {
-        // (1 + seeds) => (1 + nanobots_at) + (1 + m)
+        // (1 + seeds) => nanobots_at + (1 + m)
         for (size_t i = 0; i < active - 1; ++i) {
             trace.push_back(CommandWait{});
         }
-        const int m = (1 + seeds) - (1 + nanobots_at[active - 1]) - 1;
-        LOG() << "(1 + " << seeds << ") => (1 + " << nanobots_at[active - 1] << ") + (1 + " << m << ")\n";
+        const int m = (1 + seeds) - nanobots_at[active - 1] - 1;
+        LOG() << "(1 + " << seeds << ") => (" << nanobots_at[active - 1] << ") + (1 + " << m << ")\n";
         trace.push_back(CommandFission{unitX, m});
-        seeds = 1 + m;
+        seeds = m;
         ++x;
         ++active;
         // (fast) move.
@@ -109,6 +109,37 @@ bool fission_along_x(const std::vector<int>& boundaries, const std::vector<int>&
             const int step = std::min(15, boundaries[active - 1] - x);
             x += step;
             trace.push_back(CommandSMove{unitX * step});
+        }
+    }
+
+    return true;
+}
+
+bool fission_cube_corner(int w, int h, int d, int R, Vec3 start_pos,
+    std::vector<Vec3>& generated_pos,
+    System& system) {
+    const int tx = min(R - 1, start_pos.x + w);
+    const int ty = min(R - 1, start_pos.y + h);
+    const int tz = min(R - 1, start_pos.z + d);
+    ASSERT_RETURN(start_pos.x < tx, false);
+    ASSERT_RETURN(start_pos.y < ty, false);
+    ASSERT_RETURN(start_pos.z < tz, false);
+
+    BotID main_bid = system.bid_at(start_pos);
+
+    for (int yy = 0; yy < 2; ++yy) {
+        for (int zz = 0; zz < 2; ++zz) {
+            for (int xx = 0; xx < 2; ++xx) {
+                if (xx + yy + zz > 0) {
+                    LOG() << xx << " " << yy << " " << zz << "\n";
+                    auto diff = unitX * xx + unitY * yy + unitZ * zz;
+                    generated_pos.push_back(start_pos + diff);
+                    system.stage(main_bid, CommandFission{diff, 0});
+                    system.stage_all_unstaged();
+                    system.commit_commands();
+                    system.print_detailed();
+                }
+            }
         }
     }
 

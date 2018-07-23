@@ -80,6 +80,7 @@ struct System {
 
     // order-free bot command system.
     bool stage(const Bot& bot, Command cmd);
+    bool stage(BotID bid, Command cmd);
     bool is_stage_filled() const;
     bool stage_all_unstaged(Command cmd = CommandWait{});
     bool reset_staged_commands();
