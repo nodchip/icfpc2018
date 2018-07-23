@@ -224,10 +224,9 @@ State sandbox_fission_along_x() {
     std::vector<int> nanobots_at = {
         1, 2, 3, 4, 30
     };
-    std::vector<Vec3> id_to_pos;
 
     Trace trace;
-    NTraceUtil::fission_along_x(boundaries, nanobots_at, N, R, id_to_pos, trace);
+    NTraceUtil::fission_along_x(boundaries, nanobots_at, N, R, trace);
 
     state.append_simulate_partial(trace);
     

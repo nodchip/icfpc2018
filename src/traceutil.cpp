@@ -81,8 +81,7 @@ bool fission_x_2_linear_positions(Vec3 start_pos, int N, int R, std::vector<Vec3
 }
 
 bool fission_along_x(const std::vector<int>& boundaries, const std::vector<int>& nanobots_at, int N, int R,
-    std::vector<Vec3>& id_to_pos, Trace& trace) {
-    id_to_pos.clear();
+        Trace& trace) {
 
     const int n_positions = boundaries.size();
     ASSERT_RETURN(nanobots_at.size() == n_positions, false);
