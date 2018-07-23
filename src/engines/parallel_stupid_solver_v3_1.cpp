@@ -116,6 +116,23 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
 
 }  // namespace
 
+pair<long long int, vector<int>> sepbound(const vector<long long int> &cellnum, const long long int lim, const int N){
+  vector<int> out;
+  out.push_back(1);
+  long long int cnt = 0;
+  long long int maxcnt = -1;
+  for(int i=0;i<cellnum.size();++i){
+    cnt += cellnum[i];
+    if(cnt > lim){
+      out.push_back(i+1);
+      if(cnt > maxcnt){
+	maxcnt = cnt;
+      }
+      cnt = 0;
+    }
+  }
+}
+
 long long int getcellnumber(const Matrix &matrix, const int x, const int zlower, const int zupper){
   long long int output = 0;
   for(int y=0;y<matrix.R;++y){
@@ -177,15 +194,16 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
     ASSERT(system.bots.size() == 1);
     const int R = system.matrix.R;
     const int N = std::min<int>(system.bots.size() + system.bots[0].seeds.size(), R);
-    std::vector<int> boundaries = getboundaries(tgt_matrix, N, 0, R);
-   
-    /*
+
+    //std::vector<int> boundaries = getboundaries(tgt_matrix, N, 0, R);
+    std::vector<int> boundaries;
+    
     //old version
     boundaries.push_back(0);
     for (int i = 1; i <= N; ++i) {
       boundaries.push_back((R - 1) * (i - 1) / (N - 1) + 1);
     }
-    */
+    
         
     
     ASSERT(system.bots[0].pos == Vec3(0, 0, 0));
