@@ -1,4 +1,5 @@
 import matplotlib
+matplotlib.use('WebAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
