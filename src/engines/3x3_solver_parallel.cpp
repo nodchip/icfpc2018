@@ -181,10 +181,18 @@ Trace single_three_by_three_solver(Matrix& current_matrix, const Matrix& src_mat
     }
   }
 
+  lower.x = lower_bound.x;
+  upper.x = upper_bound.x;
+
+  lower.z = lower_bound.z;
+  upper.z = upper_bound.z;
+
+  
   if (lower.x >= upper.x) {
     return {};
   }
   
+  lower.x = min(lower.x, position.x);  
   //cout<<"aft"<<upper.x<<","<<upper.y<<","<<upper.z<<","<<lower.x<<","<<lower.y<<","<<lower.z<<endl;
   // Move to the start position.
   naive_move(current_matrix, lower, position, trace); 
@@ -236,11 +244,11 @@ Trace three_by_three_solver_parallel(ProblemType problem_type, const Matrix& src
     
     // not a good hach
     int Nsq=1;
-    while( (Nsq+1) * (Nsq+1) <= R && (Nsq+1) * (Nsq+1) < system.bots.size() + system.bots[0].seeds.size()){
+    while( (Nsq+1) * (Nsq+1) * 2 <= R && (Nsq+1) * (Nsq+1)  < system.bots.size() + system.bots[0].seeds.size()){
       ++Nsq;
     }
     const int N = Nsq * Nsq;
-    //cout<<"dotnum = "<<N<<endl;
+    cout<<"dotnum = "<<N<<endl;
     
     std::vector<int> boundaries_init;
     

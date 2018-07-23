@@ -10,7 +10,7 @@ BUILD_PATH=build
 LIB_PATH=../libs
 
 SRCS=command.cpp matrix.cpp nanobot.cpp nmms.cpp region.cpp vec3.cpp state.cpp system.cpp trace.cpp bounding_box.cpp traceutil.cpp
-SRCS+=engine.cpp engines/naive_converter.cpp
+SRCS+=engine.cpp engines/naive_converter.cpp engines/naive_move.cpp
 
 OBJS=$(SRCS:%.cpp=$(BUILD_PATH)/%.o)
 
@@ -24,7 +24,7 @@ all: dirs test engines evaluate
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
 
-ENGINES=stupid parallel parallel_v2 parallel_v3 parallel_optimized parallel_optimized_v2 parallel_optimized_v3 3x3_solver 3x3_solver_parallel cubee stupid_engine_v2 split_gvoid_solver scrap_and_build
+ENGINES=stupid parallel parallel_v2 parallel_v3 parallel_optimized parallel_optimized_v2 parallel_optimized_v3 parallel_optimized_v4 parallel_optimized_v5 3x3_solver 3x3_solver_parallel cubee stupid_engine_v2 split_gvoid_solver scrap_and_build
 
 engines: $(ENGINES)
 
@@ -54,6 +54,12 @@ parallel_optimized_v2: engine_main.cpp engines/parallel_optimized_v2.cpp $(OBJS)
 parallel_optimized_v3: engine_main.cpp engines/parallel_optimized_v3.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
+parallel_optimized_v4: engine_main.cpp engines/parallel_optimized_v4.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+
+parallel_optimized_v5: engine_main.cpp engines/parallel_optimized_v5.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+
 
 3x3_solver: engine_main.cpp engines/3x3_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
@@ -67,7 +73,7 @@ cubee: engine_main.cpp engines/cubee.cpp $(OBJS)
 split_gvoid_solver: engine_main.cpp engines/split_gvoid_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-scrap_and_build: engine_main.cpp engines/scrap_and_build.cpp engines/cubee.cpp engines/parallel_optimized_v2.cpp engines/parallel_optimized_v3.cpp $(OBJS)
+scrap_and_build: engine_main.cpp engines/scrap_and_build.cpp engines/parallel_optimized_v2.cpp engines/parallel_optimized_v5.cpp engines/cubee_classic.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 .PHONY: dirs

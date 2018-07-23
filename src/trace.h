@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <string>
+#include <iomanip>
 
 #include "command.h"
 
@@ -15,11 +16,11 @@ class Trace : public std::deque<Command> {
   void reduction_smove();
   void print() {
     std::cout << "Trace: " << std::endl;
+    int i = 0;
     for (const auto c : *this) {
-      std::cout << c << std::endl;
+      std::cout << std::setw(5) << i++ << ": " << c << std::endl;
     }
   }
 
   Vec3 offset() const;
 };
-
