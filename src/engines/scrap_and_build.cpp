@@ -15,13 +15,11 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     EngineFunc best_disassembly_engine;
     EngineFunc best_assembly_engine;
     for (const auto& name_and_engine : RegisterEngine::Engines()) {
-        std::cout << "debug: engine name: " << name_and_engine.first << std::endl;
         const auto& engine = name_and_engine.second;
 
         do {  // disassembly
             const auto trace = engine(ProblemType::Disassembly, src_matrix, Matrix{});
             if (trace.empty()) break;
-            std::cout << "trying disassembly with " << name_and_engine.first << std::endl;
             State state(src_matrix, Matrix{tgt_matrix.R});
             state.simulate(trace);
             if (!state.is_finished()) break;
@@ -34,7 +32,6 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
         do {  // assembly
             const auto trace = engine(ProblemType::Assembly, Matrix{}, tgt_matrix);
             if (trace.empty()) break;
-            std::cout << "trying assembly with " << name_and_engine.first << std::endl;
             State state(Matrix{src_matrix.R}, tgt_matrix);
             state.simulate(trace);
             if (!state.is_finished()) break;
