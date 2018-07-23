@@ -66,7 +66,7 @@
     <ClInclude Include="..\..\src\engines\naive_converter.h">
       <Filter>ヘッダー ファイル\engine</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\engines\parallel_optimized_v2.h">
+    <ClInclude Include="..\..\src\engines\parallel_optimized_v4.h">
       <Filter>ヘッダー ファイル\engine</Filter>
     </ClInclude>
   </ItemGroup>
@@ -110,7 +110,7 @@
     <ClCompile Include="..\..\src\engines\naive_converter.cpp">
       <Filter>ソース ファイル\engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engines\parallel_optimized_v2.cpp">
+    <ClCompile Include="..\..\src\engines\parallel_optimized_v4.cpp">
       <Filter>ソース ファイル\engine</Filter>
     </ClCompile>
   </ItemGroup>

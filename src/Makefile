@@ -24,7 +24,7 @@ all: dirs test engines evaluate
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
 
-ENGINES=stupid parallel parallel_v2 parallel_v3 parallel_optimized parallel_optimized_v2 parallel_optimized_v3 3x3_solver 3x3_solver_parallel cubee stupid_engine_v2 split_gvoid_solver scrap_and_build
+ENGINES=stupid parallel parallel_v2 parallel_v3 parallel_optimized parallel_optimized_v2 parallel_optimized_v3 parallel_optimized_v4 3x3_solver 3x3_solver_parallel cubee stupid_engine_v2 split_gvoid_solver scrap_and_build
 
 engines: $(ENGINES)
 
@@ -52,6 +52,9 @@ parallel_optimized_v2: engine_main.cpp engines/parallel_optimized_v2.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 parallel_optimized_v3: engine_main.cpp engines/parallel_optimized_v3.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+
+parallel_optimized_v4: engine_main.cpp engines/parallel_optimized_v4.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 
