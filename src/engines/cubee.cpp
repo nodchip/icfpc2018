@@ -35,6 +35,7 @@ Trace TraceSerializer(std::vector<Trace>& trace_2d) {
       std::sort(id_map.begin(), id_map.begin() + num_active);
     }
   }
+
   return trace;
 }
 
@@ -104,16 +105,19 @@ void InitTower(const Matrix& matrix, std::vector<Trace>& trace_2d) {
   int num_bots = 8;
   while (y < R - 2) {
     if (matrix(x, 1, z) == Voxel::Full) {
-      trace_2d[num_bots - 4].push_back(CommandWait {});
-      trace_2d[num_bots - 3].push_back(CommandWait {});
-      trace_2d[num_bots - 2].push_back(CommandWait {});
+      for (int i = 0; i < num_bots - 1; ++i)
+        trace_2d[i].push_back(CommandWait {});
       trace_2d[num_bots - 1].push_back(CommandVoid { Vec3 {0, 1, 0} });
     }
+
     int m = 9 - (num_bots / 4);
+    for (int i = 0; i < num_bots - 4; ++i)
+      trace_2d[i].push_back(CommandWait {});
     trace_2d[num_bots - 4].push_back(CommandFission { Vec3 {0, 1, 0}, m});
     trace_2d[num_bots - 3].push_back(CommandFission { Vec3 {0, 1, 0}, m});
     trace_2d[num_bots - 2].push_back(CommandFission { Vec3 {0, 1, 0}, m});
     trace_2d[num_bots - 1].push_back(CommandFission { Vec3 {0, 1, 0}, m});
+    ++y;
     num_bots += 4;
 
     int dy = 1;
@@ -129,6 +133,7 @@ void InitTower(const Matrix& matrix, std::vector<Trace>& trace_2d) {
         trace_2d[i].push_back(CommandSMove { Vec3 {0, 1, 0} });
     }
   }
+
   trace_2d.resize(num_bots);
 }
 
@@ -144,8 +149,8 @@ Trace GVoider(const Matrix& matrix) {
   int zsign = 1;
 
   auto void_tower = [R, N](int dx, int dz, std::vector<Trace>& trace_2d) {
-    for (int i = 0; i < N - 7; i += 8) {
-      int y0 = (i / 8) * 60, y1 = std::min(R - 2, y0 + 30);
+    for (int i = 0; i < N - 8; i += 8) {
+      int y0 = std::min(R - 2, (i / 8) * 60), y1 = std::min(R - 2, y0 + 30);
       int dy = y1 - y0 + 1;
       trace_2d[i + 0].push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { dx, dy, dz} });
       trace_2d[i + 1].push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-dx, dy, dz} });
@@ -163,6 +168,7 @@ Trace GVoider(const Matrix& matrix) {
       trace_2d[N - 1].push_back(CommandWait {});
     }
 
+    /*
     if (N % 8 == 0) {
       trace_2d[0].push_back(CommandWait {});
       trace_2d[1].push_back(CommandWait {});
@@ -187,8 +193,11 @@ Trace GVoider(const Matrix& matrix) {
       trace_2d[N - 2].push_back(CommandWait {});
       trace_2d[N - 1].push_back(CommandWait {});
     }
+    */
   };
 
+  // void_tower(x1 - x0 - 1, z1 - z0 - 1, trace_2d);
+  /*
   while (true) {
     int dx = x1 - x0 - 1;
     if (zsign > 0) {
@@ -212,6 +221,7 @@ Trace GVoider(const Matrix& matrix) {
     x1 += mvx;
     zsign = -zsign;
   }
+  */
 
   return TraceSerializer(trace_2d);
 }
