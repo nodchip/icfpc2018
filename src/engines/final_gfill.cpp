@@ -256,10 +256,26 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     REP(4) trace.push_back(CommandFusionS{-unitY});
     infopoint("fusion");
 
+    for (int i =0; i <4; ++i) {
+        if (tgt_matrix(state.system.bots[i].pos + unitY)) {
+            trace.push_back(CommandFill{unitY});
+        } else {
+            trace.push_back(CommandWait{});
+        }
+    }
+
     // fill & move
     for (int y = cube.c1.y; y != 0; --y) {
         REP(4) trace.push_back(CommandSMove{-unitY});
-        REP(4) trace.push_back(CommandFill{unitY});
+        infopoint("iter");
+
+        for (int i = 0; i < 4; ++i) {
+            if (tgt_matrix(state.system.bots[i].pos + unitY)) {
+                trace.push_back(CommandFill{unitY});
+            } else {
+                trace.push_back(CommandWait{});
+            }
+        }
     }
     infopoint("down by 4");
 
@@ -313,6 +329,18 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
             trace.push_back(CommandFill{unitX + unitZ}); // 3
             trace.push_back(CommandWait{});
         }
+        if (tgt_matrix(b2.pos + unitX)) {
+            trace.push_back(CommandWait{});
+            trace.push_back(CommandWait{});
+            trace.push_back(CommandFill{unitX}); // 3
+            trace.push_back(CommandWait{});
+        }
+        if (tgt_matrix(b2.pos + unitZ)) {
+            trace.push_back(CommandWait{});
+            trace.push_back(CommandWait{});
+            trace.push_back(CommandFill{unitZ}); // 3
+            trace.push_back(CommandWait{});
+        }
 
         if (tgt_matrix(b3.pos + unitZ)) {
             trace.push_back(CommandWait{});
@@ -323,24 +351,46 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     }
     infopoint("2x2");
 
-    // fusion 4 -> 2
-    trace.push_back(CommandFusionP{+unitZ});
-    trace.push_back(CommandFusionP{+unitZ});
-    trace.push_back(CommandFusionS{-unitZ});
-    trace.push_back(CommandFusionS{-unitZ});
-    infopoint("4->2");
+    {
+        // fusion 4 -> 2
+        trace.push_back(CommandFusionP{+unitZ});
+        trace.push_back(CommandFusionP{+unitZ});
+        trace.push_back(CommandFusionS{-unitZ});
+        trace.push_back(CommandFusionS{-unitZ});
+        infopoint("4->2");
+        auto b0 = state.system.bots[0];
+        auto b1 = state.system.bots[1];
+        if (tgt_matrix(b0.pos + unitZ)) {
+            trace.push_back(CommandFill{unitZ});
+        } else {
+            trace.push_back(CommandWait{});
+        }
+        if (tgt_matrix(b1.pos + unitZ)) {
+            trace.push_back(CommandFill{unitZ});
+        } else {
+            trace.push_back(CommandWait{});
+        }
+    }
 
-    // fusion 2 -> 1
-    trace.push_back(CommandFusionP{unitX});
-    trace.push_back(CommandFusionS{-unitX});
-    infopoint("2->1");
+    {
+        // fusion 2 -> 1
+        trace.push_back(CommandFusionP{unitX});
+        trace.push_back(CommandFusionS{-unitX});
+        infopoint("2->1");
+        auto b0 = state.system.bots[0];
+        if (tgt_matrix(b0.pos + unitX)) {
+            trace.push_back(CommandFill{unitX});
+        }
+    }
 
     // home.
     {
         Vec3 p(cube.c1.x, 0, cube.c1.z);
         LOG() << "BOT POS : " << state.system.bots[0].pos << "\n";
         LOG() << "start POS : " << p << "\n";
-        NTraceUtil::digging_move(erased_matrix, Vec3(0, 0, 0), p, trace);
+        Matrix temp_matrix = tgt_matrix;
+        temp_matrix(p) = Voxel::Void;
+        NTraceUtil::digging_move_mod(temp_matrix, Vec3(0, 0, 0), p, trace);
     }
 
     // go home.

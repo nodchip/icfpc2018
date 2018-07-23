@@ -74,4 +74,5 @@ bool digging_evacuate(const Matrix& blocked, Vec3& position, Trace& trace);
 // the bot goes straight using Void & Fill.
 // <position> will be updated.
 bool digging_move(const Matrix& blocked, const Vec3& destination, Vec3& position, Trace& trace);
+bool digging_move_mod(const Matrix& blocked, const Vec3& destination, Vec3& position, Trace& trace);
 }

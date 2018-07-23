@@ -25,6 +25,8 @@ Trace TraceSerializer(std::vector<Trace>& trace_2d) {
     int add = 0;
     for (int i = 0; i < num_active; ++i) {
       Trace& t = trace_2d[id_map[i].second];
+      if (!t.size())
+        continue;
       Command cmd = t.front(); t.pop_front();
       trace.push_back(cmd);
       if (cmd.type() == typeid(CommandFission))
@@ -146,13 +148,6 @@ void InitTower(const Matrix& matrix, std::vector<Trace>& trace_2d) {
   trace_2d.resize(num_bots);
 }
 
-int Sum(std::vector<Trace>& t2) {
-  int n = 0;
-  for (auto& t : t2)
-    n += t.size();
-  return n;
-}
-
 Trace GVoider(const Matrix& matrix) {
   const int R = matrix.R;
   const Region region { Vec3 { 0, 0, 0 }, { Vec3 { R, R, R } } };
@@ -213,6 +208,11 @@ Trace GVoider(const Matrix& matrix) {
   int x0 = 0, x1 = std::min(R - 1, 31);
   int z0 = 0, z1 = std::min(R - 1, 31);
   int zsign = 1;
+
+  trace_2d[0].push_back(CommandFlip {});
+  for (int i = 1; i < N; ++i)
+    trace_2d[i].push_back(CommandWait {});
+
   while (true) {
     const int dx = x1 - x0 - 2;
     const int dz = z1 - z0 - 2;
@@ -225,19 +225,25 @@ Trace GVoider(const Matrix& matrix) {
         for (int zz = 0; zz < mvz; ++zz) {
           bool need_dig = false;
           for (int y : ys) {
-            if (matrix(x0, y, z1 + 1) == Voxel::Full || matrix(x1, y, z1 + 1) == Voxel::Full)
+            if (matrix(x0, y, z0 + 1) == Voxel::Full || matrix(x1, y, z0 + 1) == Voxel::Full ||
+                matrix(x0, y, z1 + 1) == Voxel::Full || matrix(x1, y, z1 + 1) == Voxel::Full)
               need_dig = true;
           }
           if (need_dig) {
             for (int i = 0; i < N; i += 4) {
               int y = ys[i / 4];
-              trace_2d[i + 0].push_back(CommandWait {});
-              trace_2d[i + 1].push_back(CommandWait {});
+              if (matrix(x0, y, z0 + 1) == Voxel::Full)
+                trace_2d[i + 0].push_back(CommandVoid { Vec3 {0, 0, 1} });
+              else
+                trace_2d[i + 0].push_back(CommandWait {});
+              if (matrix(x1, y, z0 + 1) == Voxel::Full)
+                trace_2d[i + 1].push_back(CommandVoid { Vec3 {0, 0, 1} });
+              else
+                trace_2d[i + 1].push_back(CommandWait {});
               if (matrix(x0, y, z1 + 1) == Voxel::Full)
                 trace_2d[i + 2].push_back(CommandVoid { Vec3 {0, 0, 1} });
               else
                 trace_2d[i + 2].push_back(CommandWait {});
-
               if (matrix(x1, y, z1 + 1) == Voxel::Full)
                 trace_2d[i + 3].push_back(CommandVoid { Vec3 {0, 0, 1} });
               else
@@ -260,7 +266,8 @@ Trace GVoider(const Matrix& matrix) {
         for (int zz = 0; zz < mvz; ++zz) {
           bool need_dig = false;
           for (int y : ys) {
-            if (matrix(x0, y, z0 - 1) == Voxel::Full || matrix(x1, y, z0 - 1) == Voxel::Full)
+            if (matrix(x0, y, z0 - 1) == Voxel::Full || matrix(x1, y, z0 - 1) == Voxel::Full ||
+                matrix(x0, y, z1 - 1) == Voxel::Full || matrix(x1, y, z1 - 1) == Voxel::Full)
               need_dig = true;
           }
           if (need_dig) {
@@ -270,13 +277,18 @@ Trace GVoider(const Matrix& matrix) {
                 trace_2d[i + 0].push_back(CommandVoid { Vec3 {0, 0, -1} });
               else
                 trace_2d[i + 0].push_back(CommandWait {});
-
               if (matrix(x1, y, z0 - 1) == Voxel::Full)
                 trace_2d[i + 1].push_back(CommandVoid { Vec3 {0, 0, -1} });
               else
                 trace_2d[i + 1].push_back(CommandWait {});
-              trace_2d[i + 2].push_back(CommandWait {});
-              trace_2d[i + 3].push_back(CommandWait {});
+              if (matrix(x0, y, z1 - 1) == Voxel::Full)
+                trace_2d[i + 2].push_back(CommandVoid { Vec3 {0, 0, -1} });
+              else
+                trace_2d[i + 2].push_back(CommandWait {});
+              if (matrix(x1, y, z1 - 1) == Voxel::Full)
+                trace_2d[i + 3].push_back(CommandVoid { Vec3 {0, 0, -1} });
+              else
+                trace_2d[i + 3].push_back(CommandWait {});
             }
           }
           for (int i = 0; i < N; ++i) {
@@ -295,19 +307,25 @@ Trace GVoider(const Matrix& matrix) {
     for (int xx = 0; xx < mvx; ++xx) {
       bool need_dig = false;
       for (int y : ys) {
-        if (matrix(x1 + 1, y, z0) == Voxel::Full || matrix(x1 + 1, y, z1) == Voxel::Full)
+        if (matrix(x0 + 1, y, z0) == Voxel::Full || matrix(x0 + 1, y, z1) == Voxel::Full ||
+            matrix(x1 + 1, y, z0) == Voxel::Full || matrix(x1 + 1, y, z1) == Voxel::Full)
           need_dig = true;
       }
       if (need_dig) {
         for (int i = 0; i < N; i += 4) {
           int y = ys[i / 4];
-          trace_2d[i + 0].push_back(CommandWait {});
-          trace_2d[i + 2].push_back(CommandWait {});
+          if (matrix(x0 + 1, y, z0) == Voxel::Full)
+            trace_2d[i + 0].push_back(CommandVoid { Vec3 {1, 0, 0} });
+          else
+            trace_2d[i + 0].push_back(CommandWait {});
           if (matrix(x1 + 1, y, z0) == Voxel::Full)
             trace_2d[i + 1].push_back(CommandVoid { Vec3 {1, 0, 0} });
           else
             trace_2d[i + 1].push_back(CommandWait {});
-
+          if (matrix(x0 + 1, y, z1) == Voxel::Full)
+            trace_2d[i + 2].push_back(CommandVoid { Vec3 {1, 0, 0} });
+          else
+            trace_2d[i + 2].push_back(CommandWait {});
           if (matrix(x1 + 1, y, z1) == Voxel::Full)
             trace_2d[i + 3].push_back(CommandVoid { Vec3 {1, 0, 0} });
           else
@@ -323,7 +341,70 @@ Trace GVoider(const Matrix& matrix) {
     zsign = -zsign;
   }
 
-  return TraceSerializer(trace_2d);
+  trace_2d[0].push_back(CommandFlip {});
+  for (int i = 1; i < N; ++i)
+    trace_2d[i].push_back(CommandWait {});
+
+  // Fusion
+  while (x1 > x0 + 1) {
+    int diff = std::min(x1 - x0 - 1, 15);
+    x1 -= diff;
+    for (int i = 0; i < N; i += 4) {
+      trace_2d[i + 0].push_back(CommandWait {});
+      trace_2d[i + 1].push_back(CommandSMove { Vec3 {-diff, 0, 0} });
+      trace_2d[i + 2].push_back(CommandWait {});
+      trace_2d[i + 3].push_back(CommandSMove { Vec3 {-diff, 0, 0} });
+    }
+  }
+  for (int i = 0; i < N; i += 4) {
+    trace_2d[i + 0].push_back(CommandFusionP { Vec3 { 1,0,0} });
+    trace_2d[i + 1].push_back(CommandFusionS { Vec3 {-1,0,0} });
+    trace_2d[i + 2].push_back(CommandFusionP { Vec3 { 1,0,0} });
+    trace_2d[i + 3].push_back(CommandFusionS { Vec3 {-1,0,0} });
+  }
+  // 4k+1, 4k+3 are not available
+  while (z1 > z0 + 1) {
+    int diff = std::min(z1 - z0 - 1, 15);
+    z1 -= diff;
+    for (int i = 0; i < N; i += 4) {
+      trace_2d[i + 0].push_back(CommandWait {});
+      trace_2d[i + 2].push_back(CommandSMove { Vec3 {0, 0, -diff} });
+    }
+  }
+  for (int i = 0; i < N; i += 4) {
+    trace_2d[i + 0].push_back(CommandFusionP { Vec3 {0,0, 1} });
+    trace_2d[i + 2].push_back(CommandFusionS { Vec3 {0,0,-1} });
+  }
+  // 4k are available
+  for (int j = N / 4 - 1; j > 0; --j) {
+    for (int y = ys[j]; y > ys[j - 1] + 1;) {
+      int diff = std::min(y - ys[j - 1] - 1, 15);
+      y -= diff;
+      for (int i = 0; i < j; ++i)
+        trace_2d[4 * i].push_back(CommandWait {});
+      trace_2d[4 * j].push_back(CommandSMove { Vec3 {0, -diff, 0} });
+    }
+    for (int i = 0; i < j - 1; ++i) {
+      trace_2d[4 * i].push_back(CommandWait {});
+    }
+    trace_2d[4 * (j - 1)].push_back(CommandFusionP { Vec3 {0,1,0} });
+    trace_2d[4 * j].push_back(CommandFusionS { Vec3 {0,-1,0} });
+  }
+  // 0 is available
+  while (x0) {
+    int diff = std::min(x0, 15);
+    x0 -= diff;
+    trace_2d[0].push_back(CommandSMove { Vec3 {-diff, 0, 0} });
+  }
+  while (z0) {
+    int diff = std::min(z0, 15);
+    z0 -= diff;
+    trace_2d[0].push_back(CommandSMove { Vec3 {0, 0, -diff} });
+  }
+
+  Trace trace = TraceSerializer(trace_2d);
+  trace.push_back(CommandHalt {});
+  return trace;
 }
 
 bool Is30Cube(const Matrix& m, const Voxel fv) {
