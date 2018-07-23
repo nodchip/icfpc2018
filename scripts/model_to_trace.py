@@ -49,9 +49,8 @@ def convert(args, model_title, binary_file_name, execute_trace_official_pool):
     print(command)
     try:
         completed_process = subprocess.run(command, timeout=args.timeout_sec, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-    except subprocess.TimeoutExpired as e:
-        print(e)
-        return subprocess.CompletedProcess(command, -1)
+    except subprocess.TimeoutExpired:
+        return subprocess.CompletedProcess(command, -1, stderr=traceback.format_exc())
 
     if args.verify_with_official_executor:
         try:
