@@ -75,7 +75,9 @@ def load_model(p):
         R = buf[0]
         buf = np.frombuffer(buf, dtype=np.uint8, offset=1)
 
-    arr = np.unpackbits(buf)[:R**3].reshape(R, R, R)
+    buf = np.unpackbits(buf.reshape(-1, 1), axis=1)
+    buf = buf[:, ::-1].ravel()
+    arr = buf[:R**3].reshape(R, R, R)
     return arr
 
 if __name__ == '__main__':
