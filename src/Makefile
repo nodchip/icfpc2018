@@ -67,7 +67,7 @@ cubee: engine_main.cpp engines/cubee.cpp $(OBJS)
 split_gvoid_solver: engine_main.cpp engines/split_gvoid_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-scrap_and_build: engine_main.cpp engines/scrap_and_build.cpp engines/cubee.cpp engines/parallel_optimized_v2.cpp engines/parallel_optimized_v3.cpp $(OBJS)
+scrap_and_build: engine_main.cpp engines/scrap_and_build.cpp engines/parallel_optimized_v2.cpp engines/parallel_optimized_v3.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 .PHONY: dirs
