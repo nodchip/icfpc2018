@@ -25,7 +25,7 @@ all: dirs test engines evaluate
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
 
-ENGINES=stupid parallel parallel_v2 parallel_v3 parallel_optimized parallel_optimized_v2 parallel_optimized_v3 parallel_optimized_v4 parallel_optimized_v5 parallel_optimized_v6 parallel_optimized_v7 3x3_solver 3x3_solver_parallel cubee stupid_engine_v2 split_gvoid_solver scrap_and_build final_gfill
+ENGINES=stupid parallel parallel_v2 parallel_v3 parallel_optimized parallel_optimized_v2 parallel_optimized_v3 parallel_optimized_v4 parallel_optimized_v5 parallel_optimized_v6 parallel_optimized_v7 parallel_optimized_v8 parallel_optimized_v9 3x3_solver 3x3_solver_parallel cubee stupid_engine_v2 split_gvoid_solver scrap_and_build final_gfill
 
 engines: $(ENGINES)
 
@@ -65,6 +65,12 @@ parallel_optimized_v6: engine_main.cpp engines/parallel_optimized_v6.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 parallel_optimized_v7: engine_main.cpp engines/parallel_optimized_v7.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+
+parallel_optimized_v8: engine_main.cpp engines/parallel_optimized_v8.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+
+parallel_optimized_v9: engine_main.cpp engines/parallel_optimized_v9.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 
