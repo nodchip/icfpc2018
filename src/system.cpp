@@ -114,6 +114,14 @@ struct GroupStage {
             ASSERT_RETURN(sys.matrix.is_in_matrix(r.c1) & sys.matrix.is_in_matrix(r.c2), false);
             const auto& bids = it->second;
             const int nbots = bids.size();
+            if (false) {
+                LOG() << "BIDS"; 
+                for (auto b : bids) {
+                    std::cerr << b << " ";
+                }
+                std::cerr << std::endl;
+                LOG() << "region " << r.c1 << " " << r.c2 << std::endl;
+            }
             ASSERT_RETURN(nbots == 2 || nbots == 4 || nbots == 8, false);
             for (auto bid : bids) {
                 auto& bot = sys.bots[sys.bot_index_by(bid)];

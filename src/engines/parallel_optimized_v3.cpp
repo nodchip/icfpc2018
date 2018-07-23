@@ -441,4 +441,8 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
 
 }  // namespace
 
+Trace solver_v3(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix) {
+    return solver(problem_type, src_matrix, tgt_matrix);
+}
+
 REGISTER_ENGINE(parallel_optimized_v3, solver);

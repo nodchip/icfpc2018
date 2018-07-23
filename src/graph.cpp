@@ -144,7 +144,8 @@ Trace World::create_trace() {
         return true;
     });
 
-    std::vector<TimeFrame> timeframe;
+    LOG() << "ASSIGN NODES DONE\n";
+
     std::vector<BotNode::Ptr> current_nodes { get_root() };
 
 
@@ -259,6 +260,7 @@ Trace World::create_trace() {
                 add_pending(current_nodes[i], current_nodes[i]->next());
             }
         }
+        LOG() << "ACCEPT arrivals DONE\n";
 
         // stage all actions which are ready.
         Stage stage;
@@ -266,7 +268,7 @@ Trace World::create_trace() {
             if (it->second.unarrived.empty()) { // no one is blocked -> released.
                 Action& action = *it->first;
                 EmitGroup emit {stage, action.member};
-                emit(action);
+                //emit(action);
 
                 if (emit.bots_changed) {
                     current_nodes_changed = true;
@@ -278,6 +280,7 @@ Trace World::create_trace() {
             }
         }
         ASSERT(stage.size() == current_nodes.size());
+        LOG() << "release DONE\n";
 
         // to trace in BID order.
         std::sort(stage.begin(), stage.end(), [](auto lhs, auto rhs) {

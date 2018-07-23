@@ -5,6 +5,7 @@ CXXFLAGS+=-I .
 CXXFLAGS+=-I ../libs
 CXXFLAGS+=-I ../libs/googletest/googletest/
 CXXFLAGS+=-I ../libs/googletest/googletest/include
+CXXFLAGS+=-pg
 
 BUILD_PATH=build
 LIB_PATH=../libs
@@ -24,7 +25,7 @@ all: dirs test engines evaluate
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
 
-ENGINES=stupid parallel parallel_v2 parallel_v3 parallel_optimized parallel_optimized_v2 parallel_optimized_v3 parallel_optimized_v4 parallel_optimized_v5 3x3_solver 3x3_solver_parallel cubee stupid_engine_v2 split_gvoid_solver scrap_and_build
+ENGINES=stupid parallel parallel_v2 parallel_v3 parallel_optimized parallel_optimized_v2 parallel_optimized_v3 parallel_optimized_v4 parallel_optimized_v5 3x3_solver 3x3_solver_parallel cubee stupid_engine_v2 split_gvoid_solver scrap_and_build final_gfill
 
 engines: $(ENGINES)
 
@@ -74,6 +75,9 @@ split_gvoid_solver: engine_main.cpp engines/split_gvoid_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 scrap_and_build: engine_main.cpp engines/scrap_and_build.cpp engines/parallel_optimized_v2.cpp engines/parallel_optimized_v5.cpp engines/cubee_classic.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+
+final_gfill: engine_main.cpp engines/final_gfill.cpp engines/parallel_optimized_v3.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 .PHONY: dirs
