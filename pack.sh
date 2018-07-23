@@ -2,6 +2,9 @@
 export WORKSPACE=`pwd`
 export ENGINES=`cat engines.txt`
 
+git submodule init
+git submodule update
+
 cd ${WORKSPACE}/src || exit 1
 make -j ${NUMBER_OF_PROCESSORS} || exit 1
 cd ${WORKSPACE}/scripts || exit 1
