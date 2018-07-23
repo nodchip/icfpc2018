@@ -1,5 +1,6 @@
 #include "traceutil.h"
 #include <unordered_set>
+#include <numeric>
 
 #include "system.h"
 #include "state.h"
@@ -74,6 +75,72 @@ bool fission_x_2_linear_positions(Vec3 start_pos, int N, int R, std::vector<Vec3
             trace.push_back(CommandWait{});
         }
         ++active;
+    }
+
+    return true;
+}
+
+bool fission_along_x(const std::vector<int>& boundaries, const std::vector<int>& nanobots_at, int N, int R,
+        Trace& trace) {
+
+    const int n_positions = boundaries.size();
+    ASSERT_RETURN(nanobots_at.size() == n_positions, false);
+    ASSERT_RETURN(std::accumulate(nanobots_at.begin(), nanobots_at.end(), 0) == N, false);
+
+    int active = 1;
+    int seeds = N - 1;
+    int x = 0;
+    while (active < n_positions) {
+        // (1 + seeds) => nanobots_at + (1 + m)
+        for (size_t i = 0; i < active - 1; ++i) {
+            trace.push_back(CommandWait{});
+        }
+        const int m = (1 + seeds) - nanobots_at[active - 1] - 1;
+        LOG() << "(1 + " << seeds << ") => (" << nanobots_at[active - 1] << ") + (1 + " << m << ")\n";
+        trace.push_back(CommandFission{unitX, m});
+        seeds = m;
+        ++x;
+        ++active;
+        // (fast) move.
+        while (x < boundaries[active - 1]) {
+            for (size_t i = 0; i < active - 1; ++i) {
+                trace.push_back(CommandWait{});
+            }
+            const int step = std::min(15, boundaries[active - 1] - x);
+            x += step;
+            trace.push_back(CommandSMove{unitX * step});
+        }
+    }
+
+    return true;
+}
+
+bool fission_cube_corner(int w, int h, int d, int R, Vec3 start_pos,
+    std::vector<Vec3>& generated_pos,
+    System& system) {
+    const int tx = min(R - 1, start_pos.x + w);
+    const int ty = min(R - 1, start_pos.y + h);
+    const int tz = min(R - 1, start_pos.z + d);
+    ASSERT_RETURN(start_pos.x < tx, false);
+    ASSERT_RETURN(start_pos.y < ty, false);
+    ASSERT_RETURN(start_pos.z < tz, false);
+
+    BotID main_bid = system.bid_at(start_pos);
+
+    for (int yy = 0; yy < 2; ++yy) {
+        for (int zz = 0; zz < 2; ++zz) {
+            for (int xx = 0; xx < 2; ++xx) {
+                if (xx + yy + zz > 0) {
+                    LOG() << xx << " " << yy << " " << zz << "\n";
+                    auto diff = unitX * xx + unitY * yy + unitZ * zz;
+                    generated_pos.push_back(start_pos + diff);
+                    system.stage(main_bid, CommandFission{diff, 0});
+                    system.stage_all_unstaged();
+                    system.commit_commands();
+                    system.print_detailed();
+                }
+            }
+        }
     }
 
     return true;

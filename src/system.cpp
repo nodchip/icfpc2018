@@ -481,6 +481,12 @@ bool System::stage(const Bot& bot, Command cmd) {
     return true;
 }
 
+bool System::stage(BotID bid, Command cmd) {
+    ASSERT_RETURN(0 <= bid - 1 && bid - 1 < commands_stage.size(), false);
+    commands_stage[bid - 1] = cmd;
+    return true;
+}
+
 bool System::is_stage_filled() const {
     return bots.size() == std::count_if(commands_stage.begin(), commands_stage.end(), [](auto i) {
         return bool(i);

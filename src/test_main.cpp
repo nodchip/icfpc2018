@@ -3,11 +3,11 @@
 // 3rd
 #include <gtest/gtest.h>
 // project
+#include "engine.h"
+#include "nmms.h"
 #include "state.h"
 #include "trace.h"
-#include "nmms.h"
 // TODO(peria): Split test for solvers
-#include "engines/stupid_solver.h"
 #include "engines/stupid_solver_v2.h"
 #include "engines/parallel_stupid_solver.h"
 #include "engines/parallel_stupid_solver_v2.h"
@@ -166,7 +166,9 @@ TEST(System, StupidSolver) {
     Matrix m_tgt("../data/problems/LA001_tgt.mdl");
     Matrix m_src;
     auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
-    auto trace = stupid_solver(problem_type, m_src, m_tgt);
+    auto engine = RegisterEngine::Engines()["stupid"];
+    ASSERT_TRUE(engine);
+    auto trace = engine(problem_type, m_src, m_tgt);
 
     auto energy_logger = std::make_shared<AccumulateEnergyLogger>();
 
@@ -177,7 +179,7 @@ TEST(System, StupidSolver) {
 
     EXPECT_TRUE(state.is_finished());
 
-    energy_logger->dump("stupid_solver_energy_log.json");
+    energy_logger->dump("stupid_energy_log.json");
 }
 
 TEST(System, StupidSolverV2) {

@@ -26,10 +26,13 @@ def main():
                               in os.listdir(args.temp_trace_directory_path)
                               if os.path.splitext(f)[1] == '.nbt']):
         temp_info_file_path = os.path.join(args.temp_info_directory_path, model_name + '.json')
-        with open(temp_info_file_path, 'rt') as f:
-            temp = json.load(f)
+        try:
+            with open(temp_info_file_path, 'rt') as f:
+                temp = json.load(f)
 
-        if not temp['successful']:
+            if not temp['successful']:
+                continue
+        except IOError:
             continue
 
         result_info_file_path = os.path.join(args.result_info_directory_path, model_name + '.json')

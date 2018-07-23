@@ -23,6 +23,15 @@ bool fission_x_2_linear_positions(Vec3 start_pos, int N, int R, std::vector<Vec3
 // [x=0, yz={0,1}x{0,1}] [x=2, yz={0,1}x{0,1}] [x=4, yz={0,1}x{0,1}] [x=6, yz={0,1}x{0,1}]  ..
 bool fission_x_2by2_linear_positions(Vec3 start_pos, int N, int R, std::vector<Vec3>& id_to_pos, Trace& trace);
 
+// i-th bot is placed at (boundaries[i], 0, 0) with (nanobots_at[i]-1) seeds.
+bool fission_along_x(const std::vector<int>& boundaries, const std::vector<int>& nanobots_at, int N, int R,
+        Trace& trace);
+
+// input (x,y,z) seeds=3 => (x,y,z) ~ (x+w,y+h,z+d) cube corners with seeds={}
+bool fission_cube_corner(int w, int h, int d, int R, Vec3 start_pos, 
+    std::vector<Vec3>& generated_pos,
+    System& system);
+
 template <typename T>
 bool sort_by_bid(std::vector<T>& container, const std::vector<Bot>& bots) {
     ASSERT_RETURN(container.size() == bots.size(), false);

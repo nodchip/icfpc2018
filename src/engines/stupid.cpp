@@ -1,4 +1,4 @@
-#include "stupid_solver.h"
+#include "stupid.h"
 #include <boost/range/algorithm_ext/push_back.hpp>
 
 #include "engine.h"
@@ -7,7 +7,9 @@
 #include "state.h"
 #include "system.h"
 
-Trace stupid_solver_reassembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
+namespace {
+
+Trace reassembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
     ASSERT_RETURN(problem_type == ProblemType::Reassembly, Trace());
 
     printf("stupid_solver\n");
@@ -45,7 +47,7 @@ Trace stupid_solver_reassembly(ProblemType problem_type, const Matrix& src_matri
     return trace;
 }
 
-Trace stupid_solver_disassembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
+Trace disassembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
     ASSERT_RETURN(problem_type == ProblemType::Disassembly, Trace());
 
     LOG() << "stupid_solver\n";
@@ -80,7 +82,7 @@ Trace stupid_solver_disassembly(ProblemType problem_type, const Matrix& src_matr
     return trace;
 }
 
-Trace stupid_solver_assembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
+Trace assembly(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
     ASSERT_RETURN(problem_type == ProblemType::Assembly, Trace());
 
     LOG() << "stupid_solver\n";
@@ -150,18 +152,19 @@ Trace stupid_solver_assembly(ProblemType problem_type, const Matrix& src_matrix,
     return trace;
 }
 
-Trace stupid_solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
+Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& dst_matrix) {
     switch (problem_type) {
         case ProblemType::Assembly:
-            return stupid_solver_assembly(problem_type, src_matrix, dst_matrix);
+            return assembly(problem_type, src_matrix, dst_matrix);
         case ProblemType::Disassembly:
-            return stupid_solver_disassembly(problem_type, src_matrix, dst_matrix);
+            return disassembly(problem_type, src_matrix, dst_matrix);
         case ProblemType::Reassembly:
         default:
-            return stupid_solver_reassembly(problem_type, src_matrix, dst_matrix);
+            return reassembly(problem_type, src_matrix, dst_matrix);
     }
     ASSERT_RETURN(false, Trace());
 }
 
-REGISTER_ENGINE(stupid, stupid_solver);
-// vim: set si et sw=4 ts=4:
+}  // anonymous namespace
+
+REGISTER_ENGINE(stupid, solver);

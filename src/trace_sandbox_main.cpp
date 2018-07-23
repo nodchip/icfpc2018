@@ -211,6 +211,28 @@ State sandbox_expand_collapse() {
     return state;
 }
 
+State sandbox_fission_along_x() {
+    const int R = 50;
+    const int N = 40;
+    Matrix msrc(R), mtgt(R);
+    State state(msrc, mtgt);
+    System& system = state.system;
+
+    std::vector<int> boundaries = {
+        1, 30, 35, 40, 41
+    };
+    std::vector<int> nanobots_at = {
+        1, 2, 3, 4, 30
+    };
+
+    Trace trace;
+    NTraceUtil::fission_along_x(boundaries, nanobots_at, N, R, trace);
+
+    state.append_simulate_partial(trace);
+    
+    return state;
+}
+
 int main(int argc, char** argv) {
     if (argc <= 1) {
         return 1;
@@ -222,6 +244,7 @@ int main(int argc, char** argv) {
         if (cmd == "stepbystep") { return sandbox_stepbystep(); }
         if (cmd == "Nx2x2") { return sandbox_Nx2x2(); }
         if (cmd == "expand_collapse") { return sandbox_expand_collapse(); }
+        if (cmd == "fission_along_x") { return sandbox_fission_along_x(); }
         // add your function here..
 
         return State { {}, {} };
