@@ -115,7 +115,7 @@ void InitTower(const Matrix& matrix, std::vector<Trace>& trace_2d) {
 
   int num_bots = 8;
   while (y < R - 2) {
-    if (matrix(x, 1, z) == Voxel::Full) {
+    if (matrix(x, y + 1, z) == Voxel::Full) {
       for (int i = 0; i < num_bots - 1; ++i)
         trace_2d[i].push_back(CommandWait {});
       trace_2d[num_bots - 1].push_back(CommandVoid { Vec3 {0, 1, 0} });
