@@ -23,7 +23,7 @@ all: dirs test engines evaluate
 ######################
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
-ENGINES=stupid parallel parallel_v2 parallel_v3 3x3_solver cubee stupid_engine_v2 split_gvoid_solver
+ENGINES=stupid parallel parallel_v2 parallel_v3 parallel_optimized 3x3_solver cubee stupid_engine_v2 split_gvoid_solver
 engines: $(ENGINES)
 
 ######################
@@ -43,6 +43,9 @@ parallel_v2: engine_main.cpp engines/parallel_v2.cpp $(OBJS)
 parallel_v3: engine_main.cpp engines/parallel_v3.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
+parallel_optimized: engine_main.cpp engines/parallel_optimized.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
+
 3x3_solver: engine_main.cpp engines/3x3_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
@@ -57,7 +60,7 @@ dirs:
 	@mkdir -p $(BUILD_PATH)
 	@mkdir -p $(BUILD_PATH)/engines
 
-test: test_main.cpp engines/stupid.cpp engines/stupid_solver_v2.cpp engines/parallel.cpp engines/parallel_v2.cpp $(OBJS) $(TEST_OBJS)
+test: test_main.cpp engines/stupid.cpp engines/stupid_solver_v2.cpp engines/parallel.cpp engines/parallel_v2.cpp engines/parallel_optimized.cpp $(OBJS) $(TEST_OBJS)
 	$(CXX) -DTEST_PROJECT $(CXXFLAGS) $^ -o $@ $(LDFLAGS) -lpthread
 
 evaluate: evaluate_main.cpp $(OBJS)

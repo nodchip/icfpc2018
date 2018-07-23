@@ -223,6 +223,21 @@ TEST(System, ParallelSolverV2) {
     EXPECT_TRUE(state.is_finished());
 }
 
+TEST(System, ParallelOptimizedSolver) {
+    Matrix m_tgt("../data/problems/LA001_tgt.mdl");
+    Matrix m_src;
+    auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
+    auto engine = RegisterEngine::Engines()["parallel_optimized"];
+    ASSERT_TRUE(engine);
+    auto trace = engine(problem_type, m_src, m_tgt);
+
+    State state(m_src, m_tgt);
+    EXPECT_FALSE(state.is_finished());
+    state.simulate(trace);
+
+    EXPECT_TRUE(state.is_finished());
+}
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
