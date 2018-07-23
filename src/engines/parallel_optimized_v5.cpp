@@ -440,8 +440,20 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
         naive_move(positions[i - 1], positions[i], trace_to_join);
         const auto* cmd = boost::get<CommandSMove>(&trace_to_join.back());
         ASSERT(cmd);
-        positions[i] -= cmd->lld;
-        trace_to_join.pop_back();
+        Vec3 unit;
+        if (cmd->lld[0]) {
+            unit = (cmd->lld[0] > 0) ? unitX : -unitX;
+        } else if (cmd->lld[1]) {
+            unit = (cmd->lld[1] > 0) ? unitY : -unitY;
+        } else {
+            unit = (cmd->lld[2] > 0) ? unitZ : -unitZ;
+        }
+        positions[i] -= unit;
+        if (mlen(cmd->lld) == 1) {
+            trace_to_join.pop_back();
+        } else {
+            trace_to_join.back() = CommandSMove{cmd->lld - unit};
+        }
         for (std::size_t t = 0; t < trace_to_join.size(); ++t) {
             for (int j = 0; j < i; ++j) {
                 trace.push_back(CommandWait{});
