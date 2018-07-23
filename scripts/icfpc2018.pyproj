@@ -5,14 +5,13 @@
     <ProjectGuid>0cc3b36e-bbd2-4d7e-bbd7-956af8f4764e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>model_to_trace.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath>..\scripts</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>icfpc2018</Name>
     <RootNamespace>icfpc2018</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--binary_file_path ../src/stupid_engine.exe --input_model_directory_path ../data/problemsF --output_trace_file_directory_path ../tmp/trace --output_info_file_directory_path ../tmp/info --output_energy_file_directory_path ../tmp/energy --jobs 4</CommandLineArguments>
+    <CommandLineArguments>--binary_file_path ../src/stupid_engine.exe --input_model_directory_path ../data/problemsF --output_trace_file_directory_path ../tmp/trace/stupid_engine --output_info_file_directory_path ../tmp/info/stupid_engine --output_energy_file_directory_path ../tmp/energy/stupid_engine --jobs 1 --verify_with_official_executor</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
