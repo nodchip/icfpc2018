@@ -14,6 +14,7 @@ class Trace : public std::deque<Command> {
   void print_detailed();
   Trace transpose();
   void reduction_smove();
+  void reduction_move();
   void print() {
     std::cout << "Trace: " << std::endl;
     int i = 0;

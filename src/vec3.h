@@ -6,6 +6,8 @@
 #include <iostream>
 #include <vector>
 
+#include "log.h"
+
 struct Vec3 {
     Vec3() : x(0), y(0), z(0) {}
     Vec3(int x_, int y_, int z_) : x(x_), y(y_), z(z_) {}
@@ -86,6 +88,22 @@ struct Vec3 {
             return (uint32_t(s.x) << 16) | (uint32_t(s.y) << 8) | uint32_t(s.z);
         }
     };
+
+    bool is_parallel_to_axis() const {
+        return (x != 0 && y == 0 && z == 0) ||
+            (x == 0 && y != 0 && z == 0) ||
+            (x == 0 && y == 0 && z != 0);
+    }
+
+    int manhattan_length() const {
+        return std::abs(x) + std::abs(y) + std::abs(z);
+    }
+
+    Vec3 unit_vector() const {
+        ASSERT(is_parallel_to_axis());
+        int ml = manhattan_length();
+        return Vec3(x / ml, y / ml, z / ml);
+    }
 };
 
 namespace std {
