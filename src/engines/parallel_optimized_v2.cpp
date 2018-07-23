@@ -132,7 +132,14 @@ Trace optimize_stupid_trace(const Trace& trace) {
         }
     }
 
+    auto commands_to_trace = [&] {
+        Trace t;
+        std::copy(commands.begin(), commands.end(), std::back_inserter(t));
+        return t;
+    };
+
     // reduce unnecessary turns
+    int removed_turns = 0;
     while (true) {
         if (commands.size() < 3) break;
         bool updated = false;
@@ -155,14 +162,21 @@ Trace optimize_stupid_trace(const Trace& trace) {
                 commands.erase(prev);
                 commands.erase(next);
                 updated = true;
+                ++removed_turns; 
             } else {
                 ++middle;
             }
         }
         if (!updated) break;
     }
+    if (false) {
+        Trace t = commands_to_trace();
+        t.print_detailed();
+        LOG() << "removed turns = " << removed_turns << "\n";
+    }
 
     // merge straight moves
+    int removed_straights = 0;
     if (commands.size() > 1) {
         auto first = commands.begin();
         while (std::next(first) != commands.end()) {
@@ -176,11 +190,46 @@ Trace optimize_stupid_trace(const Trace& trace) {
             if (is_valid_long_ld(first_cmd->lld + second_cmd->lld)) {
                 *first = CommandSMove{first_cmd->lld + second_cmd->lld};
                 commands.erase(second);
+                ++removed_straights;
             } else {
                 ++first;
             }
         }
     }
+    if (false) {
+        Trace t = commands_to_trace();
+        t.print_detailed();
+        LOG() << "removed straights = " << removed_straights << "\n";
+    }
+
+    // convert SMove to LMove
+    int converted_smoves = 0;
+    if (commands.size() > 1) {
+        auto first = commands.begin();
+        while (std::next(first) != commands.end()) {
+            const auto second = std::next(first);
+            const auto* first_cmd = boost::get<CommandSMove>(&*first);
+            const auto* second_cmd = boost::get<CommandSMove>(&*second);
+            if (!first_cmd || !second_cmd) {
+                ++first;
+                continue;
+            }
+            auto combine = first_cmd->lld + second_cmd->lld;
+            if (is_valid_short_ld(first_cmd->lld) && is_valid_short_ld(second_cmd->lld) && !is_valid_long_ld(combine)) {
+                *first = CommandLMove{first_cmd->lld, second_cmd->lld};
+                commands.erase(second);
+                ++converted_smoves;
+            } else {
+                ++first;
+            }
+        }
+    }
+    if (false) {
+        Trace t = commands_to_trace();
+        t.print_detailed();
+        LOG() << "SMove -> LMove converted = " << converted_smoves << "\n";
+    }
+
 
     Trace optimized_trace;
     optimized_trace.insert(optimized_trace.end(), commands.begin(), commands.end());
@@ -326,6 +375,8 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
                 trace.push_back(traces[i][t]);
                 if (auto* cmd = boost::get<CommandSMove>(&trace.back())) {
                     shadow_positions[i] += cmd->lld;
+                } else if (auto* cmd = boost::get<CommandLMove>(&trace.back())) {
+                    shadow_positions[i] += cmd->sld1 + cmd->sld2;
                 } else if (auto* cmd = boost::get<CommandFill>(&trace.back())) {
                     const auto p = shadow_positions[i] + cmd->nd;
                     const auto index = to_index(p);
