@@ -10,12 +10,38 @@
 
 namespace {
 
-Trace GVoider(const Matrix& matrix) {
-  const int R = matrix.R;
-  const Region region { Vec3 { 0, 0, 0 }, { Vec3 { R, R, R } } };
-  std::vector<Trace> trace_2d(k_MaxNumberOfBots);
+Trace TraceSerializer(std::vector<Trace>& trace_2d) {
+  std::vector<std::pair<int,int>> id_map = {
+    { 1,  0}, { 2,  1}, {22,  2}, { 3,  3}, {32,  4}, {13,  5}, {23,  6}, { 4,  7},
+    {33,  8}, {14,  9}, {24, 10}, { 5, 11}, {34, 12}, {15, 13}, {25, 14}, { 6, 15},
+    {35, 16}, {16, 17}, {26, 18}, { 7, 19}, {36, 20}, {17, 21}, {27, 22}, { 8, 23},
+    {37, 24}, {18, 25}, {28, 26}, { 9, 27}, {38, 28}, {19, 29}, {29, 30}, {10, 31},
+    {39, 32}, {20, 33}, {30, 34}, {11, 35}, {40, 36}, {21, 37}, {31, 38}, {12, 39},
+  };
 
+  int num_active = 1;
+  Trace trace;
+  while (trace_2d[0].size()) {
+    int add = 0;
+    for (int i = 0; i < num_active; ++i) {
+      Trace& t = trace_2d[id_map[i].second];
+      Command cmd = t.front(); t.pop_front();
+      trace.push_back(cmd);
+      if (cmd.type() == typeid(CommandFission))
+        ++add;
+    }
+    if (add) {
+      num_active += add;
+      std::sort(id_map.begin(), id_map.begin() + num_active);
+    }
+  }
+  return trace;
+}
+
+void InitTower(const Matrix& matrix, std::vector<Trace>& trace_2d) {
+  const int R = matrix.R;
   trace_2d[0].push_back(CommandFission { Vec3 {1, 0, 0}, 19}); // 1 [22-40]
+
   int x, y, z;
   for (x = 1; x < std::min(R - 1, 31);) {
     trace_2d[0].push_back(CommandWait {});  // 1 [22-40]
@@ -103,32 +129,91 @@ Trace GVoider(const Matrix& matrix) {
         trace_2d[i].push_back(CommandSMove { Vec3 {0, 1, 0} });
     }
   }
+  trace_2d.resize(num_bots);
+}
 
-  std::vector<std::pair<int,int>> id_map = {
-    { 1,  0}, { 2,  1}, {22,  2}, { 3,  3}, {32,  4}, {13,  5}, {23,  6}, { 4,  7},
-    {33,  8}, {14,  9}, {24, 10}, { 5, 11}, {34, 12}, {15, 13}, {25, 14}, { 6, 15},
-    {35, 16}, {16, 17}, {26, 18}, { 7, 19}, {36, 20}, {17, 21}, {27, 22}, { 8, 23},
-    {37, 24}, {18, 25}, {28, 26}, { 9, 27}, {38, 28}, {19, 29}, {29, 30}, {10, 31},
-    {39, 32}, {20, 33}, {30, 34}, {11, 35}, {40, 36}, {21, 37}, {31, 38}, {12, 39},
+Trace GVoider(const Matrix& matrix) {
+  const int R = matrix.R;
+  const Region region { Vec3 { 0, 0, 0 }, { Vec3 { R, R, R } } };
+  std::vector<Trace> trace_2d(k_MaxNumberOfBots);
+  InitTower(matrix, trace_2d);
+  const int N = trace_2d.size();
+
+  int x0 = 0, x1 = std::min(R - 1, 31);
+  int z0 = 0, z1 = std::min(R - 1, 31);
+  int zsign = 1;
+
+  auto void_tower = [R, N](int dx, int dz, std::vector<Trace>& trace_2d) {
+    for (int i = 0; i < N - 7; i += 8) {
+      int y0 = (i / 8) * 60, y1 = std::min(R - 2, y0 + 30);
+      int dy = y1 - y0 + 1;
+      trace_2d[i + 0].push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { dx, dy, dz} });
+      trace_2d[i + 1].push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-dx, dy, dz} });
+      trace_2d[i + 2].push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { dx, dy,-dz} });
+      trace_2d[i + 3].push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-dx, dy,-dz} });
+      trace_2d[i + 4].push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { dx,-dy, dz} });
+      trace_2d[i + 5].push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-dx,-dy, dz} });
+      trace_2d[i + 6].push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { dx,-dy,-dz} });
+      trace_2d[i + 7].push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-dx,-dy,-dz} });
+    }
+    if (N % 8) {
+      trace_2d[N - 4].push_back(CommandWait {});
+      trace_2d[N - 3].push_back(CommandWait {});
+      trace_2d[N - 2].push_back(CommandWait {});
+      trace_2d[N - 1].push_back(CommandWait {});
+    }
+
+    if (N % 8 == 0) {
+      trace_2d[0].push_back(CommandWait {});
+      trace_2d[1].push_back(CommandWait {});
+      trace_2d[2].push_back(CommandWait {});
+      trace_2d[3].push_back(CommandWait {});
+    }
+    for (int i = 4; i < N - 7; i += 8) {
+      int y0 = (i / 8) * 60 + 30, y1 = std::min(R - 2, y0 + 30);
+      int dy = y1 - y0 + 1;
+      trace_2d[i + 0].push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { dx, dy, dz} });
+      trace_2d[i + 1].push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-dx, dy, dz} });
+      trace_2d[i + 2].push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { dx, dy,-dz} });
+      trace_2d[i + 3].push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-dx, dy,-dz} });
+      trace_2d[i + 4].push_back(CommandGVoid { Vec3 { 1, 0, 1}, Vec3 { dx,-dy, dz} });
+      trace_2d[i + 5].push_back(CommandGVoid { Vec3 {-1, 0, 1}, Vec3 {-dx,-dy, dz} });
+      trace_2d[i + 6].push_back(CommandGVoid { Vec3 { 1, 0,-1}, Vec3 { dx,-dy,-dz} });
+      trace_2d[i + 7].push_back(CommandGVoid { Vec3 {-1, 0,-1}, Vec3 {-dx,-dy,-dz} });
+    }
+    if (N % 8 == 0) {
+      trace_2d[N - 4].push_back(CommandWait {});
+      trace_2d[N - 3].push_back(CommandWait {});
+      trace_2d[N - 2].push_back(CommandWait {});
+      trace_2d[N - 1].push_back(CommandWait {});
+    }
   };
-  int num_active = 1;
-  Trace trace;
-  while (trace_2d[0].size()) {
-    int add = 0;
-    for (int i = 0; i < num_active; ++i) {
-      Trace& t = trace_2d[id_map[i].second];
-      Command cmd = t.front(); t.pop_front();
-      trace.push_back(cmd);
-      if (cmd.type() == typeid(CommandFission))
-        ++add;
+
+  while (true) {
+    int dx = x1 - x0 - 1;
+    if (zsign > 0) {
+      while (true) {
+        int dz = z1 - z0 - 1;
+        void_tower(dx, dz, trace_2d);
+        if (z1 == R - 1)
+          break;
+
+        int mvz = std::min(R - 1, z1 + 30) - z1;
+        z0 += mvz;
+        z1 += mvz;
+      }
     }
-    if (add) {
-      num_active += add;
-      std::sort(id_map.begin(), id_map.begin() + num_active);
-    }
+
+    if (x1 == R - 1)
+      break;
+
+    int mvx = std::min(R - 1, x1 + 30) - x1;
+    x0 += mvx;
+    x1 += mvx;
+    zsign = -zsign;
   }
 
-  return trace;
+  return TraceSerializer(trace_2d);
 }
 
 bool Is30Cube(const Matrix& m, const Voxel fv) {
