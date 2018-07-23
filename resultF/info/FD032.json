@@ -1,6 +1,7 @@
 {
-    "consumed_commands": 23941,
-    "energy": 19391281408,
-    "engine_name": "unknown",
+    "consumed_commands": 72,
+    "created_at": "2018-07-23T00:12:04Z",
+    "energy": 1650168,
+    "engine_name": "cube",
     "successful": true
 }
