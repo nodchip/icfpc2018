@@ -102,7 +102,7 @@ def main():
                     best_energy = energy
             default_energy = energies[0]
 
-            energy_to_ranking = {v: k for k, v in reversed(enumerate(sorted(energies)))}
+            energy_to_ranking = {v: k for k, v in reversed(list(enumerate(sorted(energies))))}
 
             for energy in energies:
                 if energy == INVALID_ENERGY:
