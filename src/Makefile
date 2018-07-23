@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-O2 -Wall -Wno-sign-compare -std=c++17 -flto
+CXXFLAGS=-O2 -Wall -Wno-sign-compare -std=c++17
 CXXFLAGS+=$(pkg-config --libs --cflags boost)
 CXXFLAGS+=-I .
 CXXFLAGS+=-I ../libs
