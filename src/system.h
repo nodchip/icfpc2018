@@ -92,7 +92,7 @@ struct System {
 
     int64_t energy = 0;
     bool harmonics_high = false;
-    Matrix matrix = {0};
+    Matrix matrix = Matrix {0};
     std::vector<Bot> bots;
     Trace trace;
 
