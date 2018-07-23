@@ -86,7 +86,7 @@ cubee: engine_main.cpp engines/cubee.cpp $(OBJS)
 split_gvoid_solver: engine_main.cpp engines/split_gvoid_solver.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-scrap_and_build: engine_main.cpp engines/scrap_and_build.cpp engines/parallel_optimized_v2.cpp engines/parallel_optimized_v5.cpp engines/cubee_classic.cpp $(OBJS)
+scrap_and_build: engine_main.cpp engines/scrap_and_build.cpp engines/parallel_optimized_v2.cpp engines/parallel_optimized_v5.cpp engines/parallel_optimized_v6.cpp engines/parallel_optimized_v7.cpp engines/parallel_optimized_v8.cpp engines/parallel_optimized_v9.cpp engines/cubee_classic.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 final_gfill: engine_main.cpp engines/final_gfill.cpp engines/parallel_optimized_v3.cpp $(OBJS)

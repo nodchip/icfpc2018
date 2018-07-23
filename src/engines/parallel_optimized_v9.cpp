@@ -432,4 +432,4 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
 
 }  // namespace
 
-REGISTER_ENGINE(parallel_optimized_v2, solver);
+REGISTER_ENGINE(parallel_optimized_v9, solver);
