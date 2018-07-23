@@ -151,7 +151,7 @@ Trace optimize_stupid_trace(const Trace& trace) {
                 ++middle;
                 continue;
             }
-            if (mlen(middle_cmd->lld) == 1 && prev_cmd->lld == -next_cmd->lld) {
+            if (prev_cmd->lld == -next_cmd->lld) {
                 commands.erase(prev);
                 commands.erase(next);
                 updated = true;
