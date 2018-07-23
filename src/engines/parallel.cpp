@@ -1,4 +1,4 @@
-#include "parallel_stupid_solver.h"
+#include "parallel.h"
 
 #include "engine.h"
 #include "nmms.h"
@@ -14,7 +14,9 @@ const Vec3 unitX(1, 0, 0);
 const Vec3 unitY(0, 1, 0);
 const Vec3 unitZ(0, 0, 1);
 
-  void naive_move(const Vec3& destination, Vec3& position, Trace& trace, long long int &t) {
+using TimeAndLocation = std::pair<int64_t, Vec3>;
+
+void naive_move(const Vec3& destination, Vec3& position, Trace& trace, int64_t &t) {
     const Vec3 dx = (destination.x > position.x) ? unitX : -unitX;
     while (position.x != destination.x) {
         trace.push_back(CommandSMove{dx});
@@ -37,9 +39,9 @@ const Vec3 unitZ(0, 0, 1);
 
 Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
                            const Vec3& lower_bound, const Vec3& upper_bound,
-                           Vec3& position, std::vector< std::pair<long long int, Vec3> > &time_and_loc) {
+                           Vec3& position, std::vector<TimeAndLocation> &time_and_loc) {
     // calculate bounding box
-  long long int t = 0;
+  int64_t t = 0;
     Vec3 lower = upper_bound - Vec3(1, 1, 1);
     Vec3 upper = lower_bound;
     for (int x = lower_bound.x; x < upper_bound.x; ++x) {
@@ -85,7 +87,7 @@ Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
                 }
                 if (problem_matrix(position - unitY)) {
                     trace.push_back(CommandFill{-unitY});
-		    time_and_loc.push_back(std::pair<long long int, Vec3>(t, position-unitY));
+		    time_and_loc.push_back(TimeAndLocation(t, position-unitY));
 		    ++t;
                 }
             }
@@ -94,9 +96,6 @@ Trace single_stupid_solver(const System& system, const Matrix& problem_matrix,
 
     return trace;
 }
-
-}  // namespace
-
 
 void unfset(const int R, UnionFind &unf, vector<bool> &is_filled, int x, int y, int z){
 
@@ -143,13 +142,13 @@ void unfset(const int R, UnionFind &unf, vector<bool> &is_filled, int x, int y, 
   is_filled[(x * R + y) * R + z] = true;
 }
 
-vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector< std::pair<long long int, Vec3> > &time_and_loc){
+vector<int64_t> get_time_to_flip(const int R, UnionFind &unf, std::vector<TimeAndLocation> &time_and_loc){
   std::vector<bool> is_filled(R * R * R);
 
-  std::vector<long long int> out;
+  std::vector<int64_t> out;
   out.push_back(-1);
   bool is_harmonic = false;
-  for(long long int i = 0; i< time_and_loc.size()-1; ++i ){
+  for(int64_t i = 0; i< time_and_loc.size()-1; ++i ){
     // unite
     unfset(R, unf, is_filled, time_and_loc[i].second.x, time_and_loc[i].second.y, time_and_loc[i].second.z);
 
@@ -172,7 +171,7 @@ vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector<
     }
   }
   out.push_back(-1);
-  std::vector<long long int> out2;
+  std::vector<int64_t> out2;
   for(int i=1; i<out.size()-1;++i){
     if(out[i-1]!=out[i] && out[i+1]!=out[i]){
       out2.push_back(out[i]);
@@ -181,7 +180,7 @@ vector<long long int> get_time_to_flip(const int R, UnionFind &unf, std::vector<
   return out2;
 }
 
-Trace parallel_stupid_solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& problem_matrix) {
+Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& problem_matrix) {
     ASSERT_RETURN(problem_type == ProblemType::Assembly, Trace());
 
     System system(problem_matrix.R);
@@ -192,7 +191,7 @@ Trace parallel_stupid_solver(ProblemType problem_type, const Matrix& src_matrix,
     UnionFind unf(system.matrix.R*system.matrix.R*system.matrix.R + 1);
 
     // time and location
-    std::vector< std::pair<long long int, Vec3> > time_and_loc;
+    std::vector<TimeAndLocation> time_and_loc;
 
     // spread nanobots
     // ASSERT(system.bots.size() == 1);
@@ -231,7 +230,7 @@ Trace parallel_stupid_solver(ProblemType problem_type, const Matrix& src_matrix,
         highest = std::max(highest, positions[i].y);
     }
     std::sort(time_and_loc.begin(), time_and_loc.end());
-    std::vector<long long int> flips;
+    std::vector<int64_t> flips;
     flips= get_time_to_flip(system.matrix.R, unf, time_and_loc);
     if(flips.size()==0){
       flips.push_back(-1);
@@ -241,7 +240,7 @@ Trace parallel_stupid_solver(ProblemType problem_type, const Matrix& src_matrix,
     }
     cout<<endl;
     std::size_t max_trace_size = 0;
-    long long int dump = 0;
+    int64_t dump = 0;
     for (int i = 0; i < N; ++i) {
       naive_move(Vec3(positions[i].x, highest, positions[i].z),
 		 positions[i], traces[i], dump);
@@ -311,5 +310,7 @@ Trace parallel_stupid_solver(ProblemType problem_type, const Matrix& src_matrix,
     return trace;
 }
 
-REGISTER_ENGINE(parallel_stupid, parallel_stupid_solver);
+}  // anonymous namespace
+
+REGISTER_ENGINE(parallel, solver);
 // vim: set si et sw=4 ts=4:
