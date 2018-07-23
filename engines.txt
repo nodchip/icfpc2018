@@ -3,5 +3,6 @@ parallel_optimized
 parallel_v3
 parallel_v2
 parallel
+3x3_solver_parallel
 3x3_solver
 stupid
