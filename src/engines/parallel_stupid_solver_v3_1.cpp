@@ -116,15 +116,50 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
 
 }  // namespace
 
-long long int getcellnumber(const Matrix &matrix, const int x){
+long long int getcellnumber(const Matrix &matrix, const int x, const int zlower, const int zupper){
   long long int output = 0;
   for(int y=0;y<matrix.R;++y){
-    for(int z=0;z<matrix.R;++z){
+    for(int z=zlower;z<zupper;++z){
       if(matrix(x,y,z))
 	++output;
     }
   }
   return output;
+}
+
+vector<int> getboundaries(const Matrix &matrix, int num, const int zlower, const int zupper){
+  std::vector<long long int> cellnumbers;
+  std::vector<int> boundaries;
+  long long int sihyou = 0;
+  const int R = matrix.R;
+  for(int x=0; x<R; ++x){
+    const long long int cnum = getcellnumber(matrix, x, zlower, zupper);
+    cellnumbers.push_back(cnum);
+    sihyou += cnum;
+  }
+
+  // dist
+  sihyou = (sihyou / num) + 1;
+  
+  long long int cnt = cellnumbers[0];
+  boundaries.push_back(0);
+  boundaries.push_back(1);
+  bool boundnext = false;
+  for(int x=1; x<=R; ++x){
+    if(boundnext){
+      boundaries.push_back(x);
+      cnt = 0;
+      boundnext = false;
+    }else if(num + 1 - boundaries.size() == R - x ){
+      boundaries.push_back(x);
+    }
+    
+    cnt += cellnumbers[x];
+    if(cnt > sihyou){
+      boundnext = true;
+    }
+  }
+  return boundaries;
 }
 
 Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix) {
@@ -142,18 +177,8 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
     ASSERT(system.bots.size() == 1);
     const int R = system.matrix.R;
     const int N = std::min<int>(system.bots.size() + system.bots[0].seeds.size(), R);
-    std::vector<int> boundaries;
-    
-    std::vector<long long int> cellnumbers;
-
-    long long int sihyou = 0;
-
-    for(int x=0; x<R; ++x){
-      const long long int cnum = getcellnumber(tgt_matrix, x);
-      cellnumbers.push_back(cnum);
-      sihyou += cnum;
-    }
-
+    std::vector<int> boundaries = getboundaries(tgt_matrix, N, 0, R);
+   
     /*
     //old version
     boundaries.push_back(0);
@@ -161,30 +186,7 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
       boundaries.push_back((R - 1) * (i - 1) / (N - 1) + 1);
     }
     */
-    
-    // dist
-    sihyou = (sihyou / N) + 1;
-
-    
-    long long int cnt = cellnumbers[0];
-    boundaries.push_back(0);
-    boundaries.push_back(1);
-    bool boundnext = false;
-    for(int x=1; x<=R; ++x){
-      if(boundnext){
-	boundaries.push_back(x);
-	cnt = 0;
-	boundnext = false;
-      }else if(N + 1 - boundaries.size() == R - x ){
-	boundaries.push_back(x);
-      }
-      
-      cnt += cellnumbers[x];
-      if(cnt > sihyou){
-	boundnext = true;
-      }
-    }
-    
+        
     
     ASSERT(system.bots[0].pos == Vec3(0, 0, 0));
     std::vector<Vec3> positions(N, system.bots[0].pos);
@@ -223,6 +225,22 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
         max_trace_size = std::max(max_trace_size, traces[i].size());
     }
 
+    
+    // add header waiting
+    // it it not effective
+    /*
+    for (int i = 1; i < N; ++i) {
+      Trace htrace;
+      for(int j = 0; j < max_trace_size - traces[i].size(); ++j){
+	htrace.push_back(CommandWait{});
+      }
+      for(auto tr : traces[i]){
+	htrace.push_back(tr);
+      }
+      traces[i] = htrace;
+    }
+    */
+    
     // merge
     auto to_index = [R](const Vec3& p) {
         return p.x + p.y * R + p.z * R * R;
