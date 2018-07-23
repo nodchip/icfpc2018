@@ -102,6 +102,35 @@ inline bool is_valid_fd(Vec3 d) {
     return 0 < mlen(d) && clen(d) <= 30;
 
 } 
+// get the nonzero axis of a lld.
+inline int get_lld_index(Vec3 lld) {
+    if (lld[0] != 0) return 0;
+    if (lld[1] != 0) return 1;
+    if (lld[2] != 0) return 2;
+    return -1;
+}
+// decompose if possible.
+inline bool decompose_to_LMove(Vec3 move, Vec3* sld1 = nullptr, Vec3* sld2 = nullptr) {
+    auto axis = abs(sign(move));
+    if (axis[0] + axis[1] + axis[2] != 2) return false;
+    Vec3 v1, v2;
+    if (axis[0] == 0) {
+        v1 = Vec3(0, move.y, 0);
+        v2 = Vec3(0, 0, move.z);
+    } else if (axis[1] == 0) {
+        v1 = Vec3(move.x, 0, 0);
+        v2 = Vec3(0, 0, move.z);
+    } else {
+        v1 = Vec3(move.x, 0, 0);
+        v2 = Vec3(0, move.y, 0);
+    }
+    if (!is_valid_short_ld(v1) || !is_valid_short_ld(v2)) return false;
+    if (sld1 && sld2) {
+        *sld1 = v1;
+        *sld2 = v2;
+    }
+    return true;
+}
 
 struct PrintCommand : public boost::static_visitor<int> {
     std::ostream& os;

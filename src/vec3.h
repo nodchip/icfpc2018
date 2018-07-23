@@ -121,8 +121,8 @@ inline int length2(Vec3 p) {
 
 inline int largest_abs_axis(Vec3 p) {
     auto a = abs(p);
-    if (a.y < a.x && a.y < a.z) return 1;
-    if (a.z < a.x && a.z < a.y) return 2;
+    if (a.y > a.x && a.y > a.z) return 1;
+    if (a.z > a.x && a.z > a.y) return 2;
     return 0;
 }
 
