@@ -133,6 +133,41 @@ TEST(Trace, OutputTraceExample) {
     // EXPECT_EQ(trace, trace2);
 }
 
+TEST(Trace, ReductionSMove) {
+    Trace trace;
+    trace.push_back(CommandSMove{Vec3(0, 0, 10)});
+    trace.push_back(CommandSMove{Vec3(0, 0, 4)});
+    trace.print();
+    EXPECT_EQ(trace.size(), 2);
+    trace.reduction_smove();
+    trace.print();
+    EXPECT_EQ(trace.size(), 1);
+    trace.push_back(CommandSMove{Vec3(0, 0, 5)});
+    trace.print();
+    trace.reduction_smove();
+    trace.print();
+    EXPECT_EQ(trace.size(), 2);
+    trace.push_back(CommandSMove{Vec3(0, 0, 11)});
+    trace.print();
+    trace.reduction_smove();
+    trace.print();
+    EXPECT_EQ(trace.size(), 2);
+    Trace trace2;
+    trace2.push_back(CommandSMove{Vec3(0, 5, 0)});
+    trace2.push_back(CommandSMove{Vec3(0, -2, 0)});
+    trace2.push_back(CommandSMove{Vec3(0, -3, 0)});
+    EXPECT_EQ(trace2.size(), 3);
+    trace2.reduction_smove();
+    EXPECT_EQ(trace2.size(), 0);
+    Trace trace3;
+    trace3.push_back(CommandSMove{Vec3(5, 0, 0)});
+    trace3.push_back(CommandWait{});
+    trace3.push_back(CommandSMove{Vec3(5, 0, 0)});
+    EXPECT_EQ(trace3.size(), 3);
+    trace3.reduction_smove();
+    EXPECT_EQ(trace3.size(), 3);
+}
+
 TEST(Commands, FissionAndFusion) {
     System system(4);
     // index to fission out
