@@ -146,6 +146,13 @@ void InitTower(const Matrix& matrix, std::vector<Trace>& trace_2d) {
   trace_2d.resize(num_bots);
 }
 
+int Sum(std::vector<Trace>& t2) {
+  int n = 0;
+  for (auto& t : t2)
+    n += t.size();
+  return n;
+}
+
 Trace GVoider(const Matrix& matrix) {
   const int R = matrix.R;
   const Region region { Vec3 { 0, 0, 0 }, { Vec3 { R, R, R } } };
@@ -203,11 +210,8 @@ Trace GVoider(const Matrix& matrix) {
   while (true) {
     const int dx = x1 - x0 - 1;
     const int dz = z1 - z0 - 1;
-    LOG() << z1 << "\n";
     if (zsign > 0) {
-      LOG() << z1 << "\n";
       while (true) {
-        LOG() << z1 << "\n";
         void_tower(dx, dz, trace_2d);
         if (z1 == R - 1)
           break;
@@ -219,7 +223,7 @@ Trace GVoider(const Matrix& matrix) {
               need_dig = true;
           }
           if (need_dig) {
-            for (int y = 0, i = 0; y < R - 1; i += 4, y += 30) {
+            for (int y = 0, i = 0; i < N; i += 4, y += 30) {
               trace_2d[i + 0].push_back(CommandWait {});
               trace_2d[i + 1].push_back(CommandWait {});
               if (matrix(x0, y, z1 + 1) == Voxel::Full)
@@ -241,12 +245,10 @@ Trace GVoider(const Matrix& matrix) {
         }
       }
     } else {
-      LOG() << z1 << "\n";
       while (true) {
         void_tower(dx, dz, trace_2d);
         if (z0 == 0)
           break;
-
         int mvz = std::min(z0, 30);
         for (int zz = 0; zz < mvz; ++zz) {
           bool need_dig = false;
@@ -255,7 +257,7 @@ Trace GVoider(const Matrix& matrix) {
               need_dig = true;
           }
           if (need_dig) {
-            for (int y = 0, i = 0; y < R - 1; i += 4, y += 30) {
+            for (int y = 0, i = 0; i < N; i += 4, y += 30) {
               if (matrix(x0, y, z0 - 1) == Voxel::Full)
                 trace_2d[i + 0].push_back(CommandVoid { Vec3 {0, 0, -1} });
               else
