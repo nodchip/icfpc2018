@@ -124,27 +124,48 @@ int main(int argc, char** argv) {
         src_model.R, src_model.capacity(),
         tgt_model.R, tgt_model.capacity());
 
+    Matrix src_t_model = src_model.transpose();
+    Matrix tgt_t_model = tgt_model.transpose();
+
     auto trace = engine(problem_type, src_model, tgt_model);
     std::cout << "generated trace: " << trace.size() << std::endl;
+    auto trace_t_tmp = engine(problem_type, src_t_model, tgt_t_model);
+    auto trace_t = trace_t_tmp.transpose();
+    std::cout << "generated transpose trace: " << trace_t.size() << std::endl;
 
     State state(src_model, tgt_model);
+    State state_t(src_model, tgt_model); // Simulation for transpose. It must be same model as normal.
     auto energy_logger = std::make_shared<AccumulateEnergyLogger>();
+    auto energy_logger_t = std::make_shared<AccumulateEnergyLogger>();
     if (options.count("energy")) {
         std::cout << "recording energy consumption." << std::endl;
         state.system.set_energy_logger(energy_logger);
+        state_t.system.set_energy_logger(energy_logger_t);
     }
     if (options.count("verbose")) {
         state.system.set_verbose(true);
+        state_t.system.set_verbose(true);
     }
 
     std::cout << "simulation prepare." << std::endl;
     int exit_code = trace.empty() ? 0 : state.simulate(trace);
+    int exit_code_t = trace_t.empty() ? 0 : state_t.simulate(trace_t);
     std::cout << "simulation done." << std::endl;
+
+    bool normal_good(state.system.energy <= state_t.system.energy);
+    cout << (normal_good ? "Normal" : "Transpose") << " is better. " << "Normal: " << state.system.energy << ", Transpose: " << state_t.system.energy << endl;
+
+    if (!normal_good) {
+        state = state_t;
+        trace = trace_t;
+        energy_logger = energy_logger_t;
+    }
 
     if (options.count("trace-output")) {
         // dump the result.
         auto dump_model_path = options["trace-output"] + ".mdl";
         state.system.matrix.dump(dump_model_path);
+      
 
         // trace.
         auto dump_trace_path = options["trace-output"];

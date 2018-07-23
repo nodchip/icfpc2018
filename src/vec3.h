@@ -67,6 +67,9 @@ struct Vec3 {
         z *= rhs;
         return *this;
     }
+    Vec3 transpose() {
+        return Vec3(z, y, x);
+    }
 
     uint32_t index() const {
         return (uint32_t(x) << 16) | (uint32_t(y) << 8) | uint32_t(z);

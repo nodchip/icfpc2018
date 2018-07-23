@@ -22,6 +22,8 @@ struct Matrix {
     // Construct Matrix from MDL file.
     Matrix(const std::string& filepath);
 
+    Matrix transpose();
+
     Voxel& operator()(int x, int y, int z) {
         return buf[(z * R + y) * R + x];
     }

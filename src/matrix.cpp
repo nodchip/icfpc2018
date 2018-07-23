@@ -35,6 +35,18 @@ Matrix::Matrix(const std::string& input_path) : R(0xff) {
     }
 }
 
+Matrix Matrix::transpose() {
+    Matrix returnMatrix(R);
+    for (int z = 0; z < R; ++z) {
+        for (int y = 0; y < R; ++y) {
+            for (int x = 0; x < R; ++x) {
+                returnMatrix(z, y, x) = (*this)(x, y, z);
+            }
+        }
+    }
+    return returnMatrix;
+}
+
 bool Matrix::dump(std::string output_path) {
     // assert a valid m.
     std::vector<uint8_t> buffer((R * R * R + 8 - 1) / 8, 0);
