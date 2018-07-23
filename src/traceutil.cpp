@@ -407,11 +407,52 @@ bool digging_move(const Matrix& blocked, const Vec3& destination, Vec3& position
     // dig if required.
     for (size_t i = 0; i < moves.size(); ++i) {
         if (blocked(position + moves[i])) {
+            LOG() << "dig erase at " << position << " => " << position + moves[i] << std::endl;
             trace.push_back(CommandVoid{moves[i]});
         }
         trace.push_back(CommandSMove{moves[i]});
         position += moves[i];
         if (blocked(position - moves[i])) {
+            LOG() << "dig fill at " << position << " => " << position - moves[i] << std::endl;
+            trace.push_back(CommandFill{-moves[i]});
+        }
+    }
+
+    return true;
+}
+
+bool digging_move_mod(const Matrix& blocked, const Vec3& destination, Vec3& position, Trace& trace) {
+    ASSERT_RETURN(!blocked(destination), false);
+    ASSERT_RETURN(!blocked(position), false);
+
+    std::vector<Vec3> moves;
+    Vec3 work = position;
+    const Vec3 dx = (destination.x > work.x) ? unitX : -unitX;
+    while (work.x != destination.x) {
+        moves.push_back(dx);
+        work += dx;
+    }
+    const Vec3 dy = (destination.y > work.y) ? unitY : -unitY;
+    while (work.y != destination.y) {
+        moves.push_back(dy);
+        work += dy;
+    }
+    const Vec3 dz = (destination.z > work.z) ? unitZ : -unitZ;
+    while (work.z != destination.z) {
+        moves.push_back(dz);
+        work += dz;
+    }
+
+    // dig if required.
+    for (size_t i = 0; i < moves.size(); ++i) {
+        if (blocked(position + moves[i])) {
+            LOG() << "dig erase at " << position << " => " << position + moves[i] << std::endl;
+            trace.push_back(CommandVoid{moves[i]});
+        }
+        trace.push_back(CommandSMove{moves[i]});
+        position += moves[i];
+        if (i == 0 || blocked(position - moves[i])) { //!!!!
+            LOG() << "dig fill at " << position << " => " << position - moves[i] << std::endl;
             trace.push_back(CommandFill{-moves[i]});
         }
     }

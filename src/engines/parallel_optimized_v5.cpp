@@ -437,7 +437,7 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     // go home
     for (int i = N - 1; i > 0; --i) {
         Trace trace_to_join;
-        naive_move(positions[i - 1], positions[i], trace_to_join);
+        naive_move(positions[i - 1], positions[i], trace_to_join, EFofReduction);
         const auto* cmd = boost::get<CommandSMove>(&trace_to_join.back());
         ASSERT(cmd);
         Vec3 unit;
@@ -466,7 +466,7 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
         trace.push_back(CommandFusionP{positions[i] - positions[i - 1]});
         trace.push_back(CommandFusionS{positions[i - 1] - positions[i]});
     }
-    naive_move(Vec3(0, 0, 0), positions[0], trace);
+    naive_move(Vec3(0, 0, 0), positions[0], trace, EFofReduction);
 
     // finalize at the origin pos.
     trace.push_back(CommandHalt{});

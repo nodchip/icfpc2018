@@ -1,7 +1,5 @@
 #include "parallel_optimized_v2.h"
 
-#include <list>
-
 #include "engines/naive_converter.h"
 #include "engine.h"
 #include "nmms.h"
@@ -42,7 +40,7 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
 
     // print
     Trace trace;
-    naive_move(lower, position, trace, ENodchipReduction);
+    naive_move(lower, position, trace, EFofReduction);
     int dx = -1;
     int dz = -1;
     for (int y = lower.y + 1; y <= upper.y; ++y) {
@@ -66,8 +64,7 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
             }
         }
     }
-  
-    naive_move(Vec3(position.x, position.y, 0), position, trace, ENodchipReduction);
+
     return trace;
 }
   
@@ -87,9 +84,9 @@ Trace optimize_stupid_trace(const Trace& trace) {
         for (auto third = std::next(commands.begin(), 2); third != commands.end(); ++third) {
             const auto second = std::prev(third);
             const auto first = std::prev(second);
-            const CommandFill* first_cmd = boost::get<CommandFill>(&*first);
-            const CommandSMove* second_cmd = boost::get<CommandSMove>(&*second);
-            const CommandFill* third_cmd = boost::get<CommandFill>(&*third);
+            const auto* first_cmd = boost::get<CommandFill>(&*first);
+            const auto* second_cmd = boost::get<CommandSMove>(&*second);
+            const auto* third_cmd = boost::get<CommandFill>(&*third);
             if (!first_cmd || !second_cmd || !third_cmd) {
                 continue;
             }
@@ -104,8 +101,8 @@ Trace optimize_stupid_trace(const Trace& trace) {
             if (std::next(third) != commands.end() && std::next(third, 2) != commands.end()) {
                 const auto fourth = std::next(third);
                 const auto fifth = std::next(fourth);
-                const CommandSMove* fourth_cmd = boost::get<CommandSMove>(&*fourth);
-                const CommandFill* fifth_cmd = boost::get<CommandFill>(&*fifth);
+                const auto* fourth_cmd = boost::get<CommandSMove>(&*fourth);
+                const auto* fifth_cmd = boost::get<CommandFill>(&*fifth);
                 if (!fourth_cmd || !fifth_cmd || fourth_cmd->lld != move_direction) {
                     continue;
                 }
@@ -137,9 +134,9 @@ Trace optimize_stupid_trace(const Trace& trace) {
             }
             const auto prev = std::prev(middle);
             const auto next = std::next(middle);
-            const CommandSMove* prev_cmd = boost::get<CommandSMove>(&*prev);
-            const CommandSMove* middle_cmd = boost::get<CommandSMove>(&*middle);
-            const CommandSMove* next_cmd = boost::get<CommandSMove>(&*next);
+            const auto* prev_cmd = boost::get<CommandSMove>(&*prev);
+            const auto* middle_cmd = boost::get<CommandSMove>(&*middle);
+            const auto* next_cmd = boost::get<CommandSMove>(&*next);
             if (!prev_cmd || !middle_cmd || !next_cmd) {
                 ++middle;
                 continue;
@@ -167,8 +164,8 @@ Trace optimize_stupid_trace(const Trace& trace) {
         auto first = commands.begin();
         while (std::next(first) != commands.end()) {
             const auto second = std::next(first);
-            const CommandSMove* first_cmd = boost::get<CommandSMove>(&*first);
-            const CommandSMove* second_cmd = boost::get<CommandSMove>(&*second);
+            const auto* first_cmd = boost::get<CommandSMove>(&*first);
+            const auto* second_cmd = boost::get<CommandSMove>(&*second);
             if (!first_cmd || !second_cmd) {
                 ++first;
                 continue;
@@ -194,8 +191,8 @@ Trace optimize_stupid_trace(const Trace& trace) {
         auto first = commands.begin();
         while (std::next(first) != commands.end()) {
             const auto second = std::next(first);
-            const CommandSMove* first_cmd = boost::get<CommandSMove>(&*first);
-            const CommandSMove* second_cmd = boost::get<CommandSMove>(&*second);
+            const auto* first_cmd = boost::get<CommandSMove>(&*first);
+            const auto* second_cmd = boost::get<CommandSMove>(&*second);
             if (!first_cmd || !second_cmd) {
                 ++first;
                 continue;
@@ -222,42 +219,41 @@ Trace optimize_stupid_trace(const Trace& trace) {
     return optimized_trace;
 }
 
-pair<long long int, vector<int>> sepbound(const vector<long long int> &cellnum, const long long int lim, const int num) {
-    vector<int> out;
-    out.push_back(0);
-    out.push_back(1);
+pair<long long int, vector<int>> sepbound(const vector<long long int> &cellnum, const long long int lim, const int num){
+  vector<int> out;
+  out.push_back(0);
+  out.push_back(1);
 
-    long long int cnt = 0;
-    long long int maxcnt = 0;
+  long long int cnt = 0;
+  long long int maxcnt = 0;
 
-    bool boundnext = false;
-    for (int x = 1; x <= cellnum.size(); ++x) {
-        const int osiz = out.size();
-        if (boundnext && osiz < num - 1) {
-            out.push_back(x);
-            if (cnt > maxcnt) {
-                maxcnt = cnt;
-            }
-            cnt = 0;
-            boundnext = false;
-        }
-        else if (num + 1 - osiz == cellnum.size() - x + 1) {
-            out.push_back(x);
-            if (cnt > maxcnt) {
-                maxcnt = cnt;
-            }
-            cnt = 0;
-            boundnext = false;
-        }
-        if (x<cellnum.size()) {
-            cnt += cellnum[x];
-            if (cnt > lim) {
-                boundnext = true;
-            }
-        }
+  bool boundnext = false;
+  for(int x=1; x<=cellnum.size(); ++x){
+    const int osiz = out.size();
+    if(boundnext && osiz < num -1){
+      out.push_back(x);
+      if(cnt > maxcnt){
+	maxcnt = cnt;
+      }
+      cnt = 0;
+      boundnext = false;
+    }else if(num + 1 - osiz == cellnum.size() - x + 1){
+      out.push_back(x);
+      if(cnt > maxcnt){
+	maxcnt = cnt;
+      }
+      cnt = 0;
+      boundnext = false;
     }
-
-    return pair<long long int, vector<int>>(maxcnt, out);
+    if(x<cellnum.size()){
+      cnt += cellnum[x];
+      if(cnt > lim){
+	boundnext = true;
+      }
+    }
+  }
+  
+  return pair<long long int, vector<int>>(maxcnt, out);
 }
 
 long long int getcellnumber(const Matrix &matrix, const int x, const int zlower, const int zupper){
@@ -343,7 +339,7 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     std::size_t max_trace_size = 0;
     for (int i = 1; i < N; ++i) {
         naive_move(Vec3(positions[i].x, highest, positions[i].z),
-             positions[i], traces[i], ENodchipReduction);
+             positions[i], traces[i], EFofReduction);
         max_trace_size = std::max(max_trace_size, traces[i].size());
     }
 
@@ -356,72 +352,33 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     const int ground = R * R * R;
     std::vector<bool> voxels(ground);
     UnionFind union_find(ground + 1);
-
-    std::vector<int> num_waitable_time_steps_remained(N);
-    for (size_t trace_index = 0; trace_index < N; ++trace_index) {
-        num_waitable_time_steps_remained[trace_index] = max_trace_size - traces[trace_index].size();
-    }
-    std::vector<int> trace_indices(N);
-
-    // Checks if the target voxel is grounded if filled.
-    auto is_groundable = [ground, &union_find, &to_index](const Vec3& position) {
-        for (const auto& d : neighbors6) {
-            auto neighbor_position = position + d;
-            auto neighbor_position_index = to_index(position + d);
-            if (union_find.findSet(neighbor_position_index, ground)) {
-                return true;
-            }
-        }
-        return false;
-    };
-
     for (std::size_t t = 0; t < max_trace_size; ++t) {
         const auto flipper = trace.size();
-
         for (int i = 0; i < N; ++i) {
-            // Wait if
-            // - the nanobot can wait,
-            // - commands are remained,
-            // - the next command is fill, and
-            // - the target position is not grounded.
-            if (num_waitable_time_steps_remained[i] && traces[i].size() != trace_indices[i]) {
-                if (auto* cmd = boost::get<CommandFill>(&traces[i][trace_indices[i]])) {
-                    auto fill_position = shadow_positions[i] + cmd->nd;
-                    if (!is_groundable(fill_position)) {
-                        trace.push_back(CommandWait{});
-                        --num_waitable_time_steps_remained[i];
-                        continue;
-                    }
-                }
-            }
-
-            if (traces[i].size() == trace_indices[i]) {
-                // All the traces are done. Wait.
-                trace.push_back(CommandWait{});
-            }
-            else {
-                trace.push_back(traces[i][trace_indices[i]++]);
-            }
-
-            if (auto* cmd = boost::get<CommandSMove>(&trace.back())) {
-                shadow_positions[i] += cmd->lld;
-            } else if (auto* cmd = boost::get<CommandLMove>(&trace.back())) {
-                shadow_positions[i] += cmd->sld1 + cmd->sld2;
-            } else if (auto* cmd = boost::get<CommandFill>(&trace.back())) {
-                const auto p = shadow_positions[i] + cmd->nd;
-                const auto index = to_index(p);
-                ++num_full;
-                voxels[index] = true;
-                if (p.y == 0) {
-                    union_find.unionSet(ground, index);
-                } else {
-                    for (const auto d : neighbors6) {
-                        const auto neighbor = to_index(p + d);
-                        if (voxels[neighbor]) {
-                            union_find.unionSet(index, to_index(p + d));
+            if (t < traces[i].size()) {
+                trace.push_back(traces[i][t]);
+                if (auto* cmd = boost::get<CommandSMove>(&trace.back())) {
+                    shadow_positions[i] += cmd->lld;
+                } else if (auto* cmd = boost::get<CommandLMove>(&trace.back())) {
+                    shadow_positions[i] += cmd->sld1 + cmd->sld2;
+                } else if (auto* cmd = boost::get<CommandFill>(&trace.back())) {
+                    const auto p = shadow_positions[i] + cmd->nd;
+                    const auto index = to_index(p);
+                    ++num_full;
+                    voxels[index] = true;
+                    if (p.y == 0) {
+                        union_find.unionSet(ground, index);
+                    } else {
+                        for (const auto d : neighbors6) {
+                            const auto neighbor = to_index(p + d);
+                            if (voxels[neighbor]) {
+                                union_find.unionSet(index, to_index(p + d));
+                            }
                         }
                     }
                 }
+            } else {
+                trace.push_back(CommandWait{});
             }
         }
 
@@ -437,7 +394,7 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     // go home
     for (int i = N - 1; i > 0; --i) {
         Trace trace_to_join;
-        naive_move(positions[i - 1], positions[i], trace_to_join, ENodchipReduction);
+        naive_move(positions[i - 1], positions[i], trace_to_join, EFofReduction);
         const auto* cmd = boost::get<CommandSMove>(&trace_to_join.back());
         ASSERT(cmd);
         Vec3 unit;
@@ -466,7 +423,7 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
         trace.push_back(CommandFusionP{positions[i] - positions[i - 1]});
         trace.push_back(CommandFusionS{positions[i - 1] - positions[i]});
     }
-    naive_move(Vec3(0, 0, 0), positions[0], trace, ENodchipReduction);
+    naive_move(Vec3(0, 0, 0), positions[0], trace, EFofReduction);
 
     // finalize at the origin pos.
     trace.push_back(CommandHalt{});
@@ -475,4 +432,4 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
 
 }  // namespace
 
-REGISTER_ENGINE(parallel_optimized_v5, solver);
+REGISTER_ENGINE(parallel_optimized_v2, solver);
