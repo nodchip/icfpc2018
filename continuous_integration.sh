@@ -16,6 +16,7 @@ do
 		--output_energy_file_directory_path ../tmp/energy/${engine} \
 		--timeout_sec 120 \
 		--jobs ${NUMBER_OF_PROCESSORS} || exit 1
+        rm -rf ../tmp/trace/${engine} || exit 1
 done
 python3 compare_engine.py --default_info_directory_path ../resultF/default_info \
 	--info_directory_path_base ../tmp/info \
