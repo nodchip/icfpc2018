@@ -368,6 +368,9 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     const int ground = R * R * R;
     std::vector<bool> voxels(ground);
     UnionFind union_find(ground + 1);
+    for (auto& trace : traces) {
+        trace.insert(trace.begin(), max_trace_size - trace.size(), CommandWait{});
+    }
     for (std::size_t t = 0; t < max_trace_size; ++t) {
         const auto flipper = trace.size();
         for (int i = 0; i < N; ++i) {

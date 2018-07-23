@@ -11,7 +11,7 @@
     <Name>icfpc2018</Name>
     <RootNamespace>icfpc2018</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--binary_file_path ../src/stupid_engine.exe --input_model_directory_path ../data/problemsF --output_trace_file_directory_path ../tmp/trace/stupid_engine --output_info_file_directory_path ../tmp/info/stupid_engine --output_energy_file_directory_path ../tmp/energy/stupid_engine --jobs 1 --verify_with_official_executor</CommandLineArguments>
+    <CommandLineArguments>--binary_file_names "parallel_optimized_v2 parallel_optimized" --binary_directory_path ../src --jobs 4 --input_model_directory_path ../data/problemsF --output_trace_file_parent_directory_path ../tmp/trace --output_info_file_parent_directory_path ../tmp/info --output_energy_file_parent_directory_path ../tmp/energy</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

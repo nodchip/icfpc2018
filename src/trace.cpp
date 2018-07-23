@@ -7,6 +7,33 @@
 
 #include "log.h"
 
+namespace {
+Vec3 getLLD(Vec3 &in) {
+    Vec3 out(0, 0, 0);
+    if (in[0] > 0) {
+        out[0] = std::min<int>(in[0], 15);
+        in[0] -= out[0];
+    } else if (in[1] > 0) {
+        out[1] = std::min<int>(in[1], 15);
+        in[1] -= out[1];
+    } else if (in[2] > 0) {
+        out[2] = std::min<int>(in[2], 15);
+        in[2] -= out[2];
+    } else if (in[0] < 0) {
+        out[0] = std::max<int>(in[0], -15);
+        in[0] -= out[0];
+    } else if (in[1] < 0) {
+        out[1] = std::max<int>(in[1], -15);
+        in[1] -= out[1];
+    } else if (in[2] < 0) {
+        out[2] = std::max<int>(in[2], -15);
+        in[2] -= out[2];
+    }
+    return out;
+}
+
+};
+
 namespace NOutputTrace {
 
 uint8_t nd_encoding(Vec3 nd) {
@@ -415,5 +442,68 @@ Trace Trace::transpose() {
         boost::apply_visitor(visitor, command);
     }
     return transposed;
+}
+
+Vec3 Trace::offset() const {
+    struct Cursor : public boost::static_visitor<void> {
+        Vec3 pos = {0, 0, 0};
+        void operator()(const CommandSMove& cmd) { pos += cmd.lld; }
+        void operator()(const CommandLMove& cmd) { pos += cmd.sld1 + cmd.sld2; }
+        void operator()(...) { }
+    } cursor;
+
+    for (const auto& cmd : *this) {
+        boost::apply_visitor(cursor, cmd);
+    }
+    return cursor.pos;
+}
+
+void Trace::reduction_smove() {
+    if (size() > 1) {
+        auto first = this->begin();
+        while (std::next(first) != this->end()) {
+            const auto second = std::next(first);
+            const auto* first_cmd = boost::get<CommandSMove>(&*first);
+            const auto* second_cmd = boost::get<CommandSMove>(&*second);
+            if (!first_cmd || !second_cmd) {
+                ++first;
+                continue;
+            }
+            auto combine = first_cmd->lld + second_cmd->lld;
+            if (is_valid_ld(combine) || (combine[0] == 0 && combine[1] == 0 && combine[2] == 0)) {
+                first = this->insert(first, CommandSMove{combine});
+                ++first;
+                first = this->erase(first);
+                first = this->erase(first);
+                --first;
+            } else {
+                ++first;
+            }
+        }
+    }
+    auto it = this->begin();
+    while (it != this->end()) {
+        const auto* cmd = boost::get<CommandSMove>(&*it);
+        if (cmd && cmd->lld[0] == 0 && cmd->lld[1] == 0 && cmd->lld[2] == 0) {
+            it = this->erase(it);
+        } else {
+            ++it;
+        }
+    }
+    it = this->begin();
+    while (it != this->end()) {
+        auto* cmd = boost::get<CommandSMove>(&*it);
+        if (cmd) {
+            auto ld = cmd->lld;
+            while (ld[0] > 15 || ld[1] > 15 || ld[2] > 15 || ld[0] < -15 || ld[1] < -15 || ld[2] < -15) {
+                auto newlld = getLLD(ld);
+                auto newcmd = CommandSMove{newlld};
+                it = this->insert(it, newcmd);
+                ++it;
+            }
+            cmd->lld = ld;
+        }
+        ++it;
+    }
 }
 // vim: set si et sw=4 ts=4:

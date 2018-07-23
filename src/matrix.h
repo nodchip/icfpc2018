@@ -17,7 +17,7 @@ struct Matrix {
     // Construct an empty invalid matrix.
     Matrix();
     // Construct an empty Matrix with resolution R.
-    Matrix(int R_);
+    explicit Matrix(int R_);
     Matrix(int R_, Voxel filled_value);
     // Construct Matrix from MDL file.
     Matrix(const std::string& filepath);

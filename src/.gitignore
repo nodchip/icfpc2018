@@ -1,4 +1,16 @@
 build/
+*_engine
+*.nbt
+*.json
+*.xml
+*.mdl
 test
 evaluate
-*_engine
+cubee
+parallel
+parallel_optimized
+parallel_v2
+parallel_v3
+split_gvoid_solver
+stupid
+stupid_engine_v2

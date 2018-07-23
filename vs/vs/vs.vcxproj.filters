@@ -63,7 +63,10 @@
     <ClInclude Include="..\..\src\vec3.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\engines\3x3_solver.h">
+    <ClInclude Include="..\..\src\engines\naive_converter.h">
+      <Filter>ヘッダー ファイル\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\engines\parallel_optimized_v2.h">
       <Filter>ヘッダー ファイル\engine</Filter>
     </ClInclude>
   </ItemGroup>
@@ -104,7 +107,10 @@
     <ClCompile Include="..\..\src\vec3.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\engines\3x3_solver.cpp">
+    <ClCompile Include="..\..\src\engines\naive_converter.cpp">
+      <Filter>ソース ファイル\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engines\parallel_optimized_v2.cpp">
       <Filter>ソース ファイル\engine</Filter>
     </ClCompile>
   </ItemGroup>
