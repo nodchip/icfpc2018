@@ -23,7 +23,8 @@ all: dirs test engines evaluate
 ######################
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
-engines: stupid stupid_engine_v2 parallel_stupid_engine parallel_stupid_engine_v2 parallel_stupid_engine_v3_1 3x3_solver cubee split_gvoid_solver
+ENGINES=stupid stupid_engine_v2 parallel parallel_v2 parallel_stupid_engine_v3_1 3x3_solver cubee split_gvoid_solver
+engines: $(ENGINES)
 
 ######################
 # ADD YOUR ENGINE HERE
@@ -33,10 +34,10 @@ stupid: engine_main.cpp engines/stupid.cpp $(OBJS)
 stupid_engine_v2: engine_main.cpp engines/stupid_solver_v2.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-parallel_stupid_engine: engine_main.cpp engines/parallel_stupid_solver.cpp $(OBJS)
+parallel: engine_main.cpp engines/parallel.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-parallel_stupid_engine_v2: engine_main.cpp engines/parallel_stupid_solver_v2.cpp $(OBJS)
+parallel_v2: engine_main.cpp engines/parallel_v2.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 parallel_stupid_engine_v3_1: engine_main.cpp engines/parallel_stupid_solver_v3_1.cpp $(OBJS)
@@ -56,7 +57,7 @@ dirs:
 	@mkdir -p $(BUILD_PATH)
 	@mkdir -p $(BUILD_PATH)/engines
 
-test: test_main.cpp engines/stupid.cpp engines/stupid_solver_v2.cpp engines/parallel_stupid_solver.cpp engines/parallel_stupid_solver_v2.cpp $(OBJS) $(TEST_OBJS)
+test: test_main.cpp engines/stupid.cpp engines/stupid_solver_v2.cpp engines/parallel.cpp engines/parallel_v2.cpp $(OBJS) $(TEST_OBJS)
 	$(CXX) -DTEST_PROJECT $(CXXFLAGS) $^ -o $@ $(LDFLAGS) -lpthread
 
 evaluate: evaluate_main.cpp $(OBJS)
@@ -76,7 +77,11 @@ clean-results:
 
 .PHONY: clean
 clean:
+	rm -f $(ENGINES)
 	rm -f $(OBJS)
 	rm -f $(BUILD_PATH)/*.o
 	rm -f $(BUILD_PATH)/engines/*.o
 	rm -f test
+	# generated files in test
+	rm -f output.nbt output.nbt.json output2.nbt output2.nbt.json stupid_energy_log.json
+	rm -f LA001_tgt_modified.mdl Planning_FastMove.json test_result.xml

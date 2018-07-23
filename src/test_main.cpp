@@ -9,8 +9,6 @@
 #include "trace.h"
 // TODO(peria): Split test for solvers
 #include "engines/stupid_solver_v2.h"
-#include "engines/parallel_stupid_solver.h"
-#include "engines/parallel_stupid_solver_v2.h"
 
 TEST(Planning, FastMove) {
     Matrix m(5);
@@ -195,11 +193,13 @@ TEST(System, StupidSolverV2) {
     EXPECT_TRUE(state.is_finished());
 }
 
-TEST(System, ParallelStupidSolver) {
+TEST(System, ParallelSolver) {
     Matrix m_tgt("../data/problems/LA001_tgt.mdl");
     Matrix m_src;
     auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
-    auto trace = parallel_stupid_solver(problem_type, m_src, m_tgt);
+    auto engine = RegisterEngine::Engines()["parallel"];
+    ASSERT_TRUE(engine);
+    auto trace = engine(problem_type, m_src, m_tgt);
 
     State state(m_src, m_tgt);
     EXPECT_FALSE(state.is_finished());
@@ -208,11 +208,13 @@ TEST(System, ParallelStupidSolver) {
     EXPECT_TRUE(state.is_finished());
 }
 
-TEST(System, ParallelStupidSolverV2) {
+TEST(System, ParallelSolverV2) {
     Matrix m_tgt("../data/problems/LA001_tgt.mdl");
     Matrix m_src;
     auto problem_type = determine_problem_type_and_prepare_matrices(m_src, m_tgt);
-    auto trace = parallel_stupid_solver_v2(problem_type, m_src, m_tgt);
+    auto engine = RegisterEngine::Engines()["parallel_v2"];
+    ASSERT_TRUE(engine);
+    auto trace = engine(problem_type, m_src, m_tgt);
 
     State state(m_src, m_tgt);
     EXPECT_FALSE(state.is_finished());

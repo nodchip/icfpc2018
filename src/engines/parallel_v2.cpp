@@ -1,6 +1,6 @@
-#include "parallel_stupid_solver_v2.h"
-#include "naive_converter.h"
+#include "parallel_v2.h"
 
+#include "engines/naive_converter.h"
 #include "engine.h"
 #include "nmms.h"
 #include "system.h"
@@ -85,13 +85,11 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
     return trace;
 }
 
-}  // namespace
-
-Trace parallel_stupid_solver_v2(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix) {
+Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix) {
     if (problem_type == ProblemType::Disassembly) {
-        return NaiveConverter::reverse(parallel_stupid_solver_v2)(problem_type, src_matrix, tgt_matrix);
+        return NaiveConverter::reverse(solver)(problem_type, src_matrix, tgt_matrix);
     } else if (problem_type == ProblemType::Reassembly) {
-        return NaiveConverter::concatenate(NaiveConverter::reverse(parallel_stupid_solver_v2), parallel_stupid_solver_v2)(problem_type, src_matrix, tgt_matrix);
+        return NaiveConverter::concatenate(NaiveConverter::reverse(solver), solver)(problem_type, src_matrix, tgt_matrix);
     }
     ASSERT_RETURN(problem_type == ProblemType::Assembly, Trace());
 
@@ -216,5 +214,6 @@ Trace parallel_stupid_solver_v2(ProblemType problem_type, const Matrix& src_matr
     return trace;
 }
 
-REGISTER_ENGINE(parallel_stupid_v2, parallel_stupid_solver_v2);
-// vim: set si et sw=4 ts=4:
+}  // namespace
+
+REGISTER_ENGINE(parallel_v2, solver);
