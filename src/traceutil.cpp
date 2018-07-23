@@ -1,5 +1,6 @@
 #include "traceutil.h"
 #include <unordered_set>
+#include <numeric>
 
 #include "system.h"
 #include "state.h"
@@ -74,6 +75,42 @@ bool fission_x_2_linear_positions(Vec3 start_pos, int N, int R, std::vector<Vec3
             trace.push_back(CommandWait{});
         }
         ++active;
+    }
+
+    return true;
+}
+
+bool fission_along_x(const std::vector<int>& boundaries, const std::vector<int>& nanobots_at, int N, int R,
+    std::vector<Vec3>& id_to_pos, Trace& trace) {
+    id_to_pos.clear();
+
+    const int n_positions = boundaries.size();
+    ASSERT_RETURN(nanobots_at.size() == n_positions, false);
+    ASSERT_RETURN(std::accumulate(nanobots_at.begin(), nanobots_at.end(), 0) == N, false);
+
+    int active = 1;
+    int seeds = N - 1;
+    int x = 0;
+    while (active < n_positions) {
+        // (1 + seeds) => (1 + nanobots_at) + (1 + m)
+        for (size_t i = 0; i < active - 1; ++i) {
+            trace.push_back(CommandWait{});
+        }
+        const int m = (1 + seeds) - (1 + nanobots_at[active - 1]) - 1;
+        LOG() << "(1 + " << seeds << ") => (1 + " << nanobots_at[active - 1] << ") + (1 + " << m << ")\n";
+        trace.push_back(CommandFission{unitX, m});
+        seeds = 1 + m;
+        ++x;
+        ++active;
+        // (fast) move.
+        while (x < boundaries[active - 1]) {
+            for (size_t i = 0; i < active - 1; ++i) {
+                trace.push_back(CommandWait{});
+            }
+            const int step = std::min(15, boundaries[active - 1] - x);
+            x += step;
+            trace.push_back(CommandSMove{unitX * step});
+        }
     }
 
     return true;
