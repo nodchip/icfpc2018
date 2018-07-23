@@ -23,3 +23,7 @@ python3 compare_engine.py --default_info_directory_path ../resultF/default_info 
 	--input_model_directory_path ../data/problemsF \
 	--output_html_file_path compare_engine.html || exit 1
 cp -f compare_engine.html /var/www/html/ || exit 1
+# visualize
+python3 visualize_compare_engine.py || exit 1
+cp -f compare_engine_visualized.html /var/www/html/ || exit 1
+cp -f compare_engine_visualized_*.png /var/www/html/ || exit 1

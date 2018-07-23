@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import argparse
 import concurrent.futures
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import json
 import os
 import shutil
@@ -31,9 +34,14 @@ def main():
                         help='Directory path containing input model files.')
     parser.add_argument('--output_html_file_path', required=True,
                         help='Directory path containing input model files.')
+    parser.add_argument('--output_csv_file_path', default='compare_engine.csv',
+                        help='CSV output path.')
     args = parser.parse_args()
 
     engines = args.engines.split()
+
+    headers = []
+    rows = []
 
     with open(args.output_html_file_path, 'wt') as f:
         print('''<html>
@@ -47,9 +55,14 @@ def main():
 <th>default</th>
 <th>registered</th>
 ''', file=f)
+        headers.append('model_name')
+        headers.append('default')
+        headers.append('registered')
         for engine in engines:
             print('<th>{}</th>'.format(engine), file=f)
+            headers.append(engine)
         print('</tr>'.format(engine), file=f)
+        headers.append('best')
 
         info_directory_paths = list()
         info_directory_paths.append(args.default_info_directory_path)
@@ -63,8 +76,10 @@ def main():
                                     in os.listdir(args.input_model_directory_path)
                                     if os.path.splitext(f)[1] == '.mdl'}))
         for model_title in model_titles:
+            row = []
             print('<tr align="right">', file=f)
             print('<td>{}</td>'.format(model_title), file=f)
+            row.append(model_title)
             energies = list()
             best_energy = 1e100
             for info_directory_path in info_directory_paths:
@@ -92,6 +107,7 @@ def main():
             for energy in energies:
                 if energy == INVALID_ENERGY:
                     print('<td></td>', file=f)
+                    row.append(np.nan)
                     continue
 
                 rank = energy_to_ranking[energy]
@@ -103,11 +119,16 @@ def main():
                     color = 'transparent'
 
                 print('<td bgcolor="{0}">{1}</td>'.format(color, energy), file=f)
+                row.append(energy)
+            row.append(best_energy)
+            rows.append(row)
             print('</tr>', file=f)
         print('''</table>
 </body>
 </html>''', file=f)
 
+    df = pd.DataFrame(rows, columns=headers)
+    df.to_csv(args.output_csv_file_path, index=False)
 
 if __name__ == '__main__':
 	main()
