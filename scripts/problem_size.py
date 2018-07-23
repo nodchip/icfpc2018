@@ -22,8 +22,8 @@ def job(p):
         'fill': fill,
 
         'bbox_x': bbox[0],
-        'bbox_y': bbox[2],
-        'bbox_z': bbox[1],
+        'bbox_y': bbox[1],
+        'bbox_z': bbox[2],
 
         'bbox_ratio': cap / R**3,
         'fill_ratio': fill / R**3,
@@ -47,6 +47,7 @@ def parse():
             rows.append(row)
 
     df = pd.DataFrame(rows)
+    df.sort_values('name', inplace=True)
     df.to_csv('problem_size.csv')
 
 def bbox_size(arr):
@@ -63,7 +64,7 @@ def bbox_size(arr):
             if v[i] > 0:
                 maxidx = i
                 break
-        return maxidx - minidx
+        return maxidx - minidx + 1
 
     return (minmax(x), minmax(y), minmax(z))
 
