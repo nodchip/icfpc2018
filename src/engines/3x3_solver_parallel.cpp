@@ -202,7 +202,7 @@ Trace single_three_by_three_solver(Matrix& current_matrix, const Matrix& src_mat
       //cout<<"digx : "<<position.x<<","<<position.y<<","<<position.z<<","<<x_direction<<endl;
       dig_to_x(dst_matrix, current_matrix, trace, position, x_direction, xstep);
     }else {
-      const int ystep = std::min(3,  upper.y - 1 - position.y);
+      const int ystep = std::min(3,  upper.y - position.y);
       if (ystep > 0) {
 	x_direction = -x_direction;
 	//cout<<"digy : "<<position.x<<","<<position.y<<","<<position.z<<","<<z_direction<<endl;
