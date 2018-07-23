@@ -262,10 +262,11 @@ pair<long long int, vector<int>> sepbound(const vector<long long int> &cellnum, 
       cnt = 0;
       boundnext = false;
     }
-    
-    cnt += cellnum[x];
-    if(cnt > lim){
-      boundnext = true;
+    if(x<cellnum.size()){
+      cnt += cellnum[x];
+      if(cnt > lim){
+	boundnext = true;
+      }
     }
   }
   
