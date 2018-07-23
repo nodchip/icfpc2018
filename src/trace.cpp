@@ -506,4 +506,150 @@ void Trace::reduction_smove() {
         ++it;
     }
 }
+
+void Trace::reduction_move() {
+    std::vector<Command> commands;
+    for (const auto& original_command : *this) {
+        ASSERT(!boost::get<CommandFission>(&original_command));
+        ASSERT(!boost::get<CommandFusionP>(&original_command));
+        ASSERT(!boost::get<CommandFusionS>(&original_command));
+        if (const auto* command = boost::get<CommandSMove>(&original_command)) {
+            commands.insert(commands.end(), command->lld.manhattan_length(), CommandSMove{ command->lld.unit_vector() });
+        }
+        else if (const auto* command = boost::get<CommandLMove>(&original_command)) {
+            commands.insert(commands.end(), command->sld1.manhattan_length(), CommandSMove{ command->sld1.unit_vector() });
+            commands.insert(commands.end(), command->sld2.manhattan_length(), CommandSMove{ command->sld2.unit_vector() });
+        }
+        else {
+            commands.push_back(original_command);
+        }
+    }
+
+    clear();
+
+    enum State {
+        Normal,
+        Move1,
+        Move2,
+    } state = Normal;
+
+    Vec3 move1;
+    int length1 = 0;
+    Vec3 move2;
+    int length2 = 0;
+    for (const auto& original_command : commands) {
+        if (const auto* command = boost::get<CommandSMove>(&original_command)) {
+            switch (state) {
+            case Normal:
+                state = Move1;
+                move1 = command->lld;
+                length1 = 1;
+                break;
+            case Move1:
+                if (command->lld == move1) {
+                    // Same direction.
+                    if (length1 == 15) {
+                        // Push CommandSMove and start the next CommandSMove.
+                        push_back(CommandSMove{ move1 * length1 });
+                        length1 = 1;
+                    }
+                    else {
+                        // Continue CommandSMove.
+                        ++length1;
+                    }
+                } else {
+                    // Different direction.
+                    if (length1 > 5) {
+                        // Push CommandSMove and start the next CommandSMove.
+                        push_back(CommandSMove{ move1 * length1 });
+                        move1 = command->lld;
+                        length1 = 1;
+                    }
+                    else {
+                        // Start the second direction.
+                        move2 = command->lld;
+                        length2 = 1;
+                        state = Move2;
+                    }
+                }
+                break;
+            case Move2:
+                if (command->lld == move2) {
+                    // Same direction.
+                    if (length2 == 5) {
+                        // Push CommandLMove and start the next CommandSMove.
+                        push_back(CommandLMove{ move1 * length1, move2 * length2 });
+                        state = Move1;
+                        move1 = command->lld;
+                        length1 = 1;
+                        move2 = Vec3();
+                        length2 = 0;
+                    }
+                    else {
+                        // Continue CommandLMove.
+                        ++length2;
+                    }
+                }
+                else {
+                    // Different direction.
+                    // Push CommandLMove and start the next CommandSMove.
+                    push_back(CommandLMove{ move1 * length1, move2 * length2 });
+                    state = Move1;
+                    move1 = command->lld;
+                    length1 = 1;
+                    move2 = Vec3();
+                    length2 = 0;
+                }
+                break;
+            default:
+                ASSERT(false);
+            }
+        }
+        else {
+            switch (state) {
+            case Normal:
+                break;
+            case Move1:
+                push_back(CommandSMove{ move1 * length1 });
+                move1 = Vec3();
+                length1 = 0;
+                state = Normal;
+                break;
+            case Move2:
+                push_back(CommandLMove{ move1 * length1, move2 * length2 });
+                move1 = Vec3();
+                length1 = 0;
+                move2 = Vec3();
+                length2 = 0;
+                state = Normal;
+                break;
+            default:
+                ASSERT(false);
+            }
+            push_back(original_command);
+        }
+    }
+
+    switch (state) {
+    case Normal:
+        break;
+    case Move1:
+        push_back(CommandSMove{ move1 * length1 });
+        move1 = Vec3();
+        length1 = 0;
+        state = Normal;
+        break;
+    case Move2:
+        push_back(CommandLMove{ move1 * length1, move2 * length2 });
+        move1 = Vec3();
+        length1 = 0;
+        move2 = Vec3();
+        length2 = 0;
+        state = Normal;
+        break;
+    default:
+        ASSERT(false);
+    }
+}
+
 // vim: set si et sw=4 ts=4:

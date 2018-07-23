@@ -42,7 +42,7 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
 
     // print
     Trace trace;
-    naive_move(lower, position, trace);
+    naive_move(lower, position, trace, true);
     int dx = -1;
     int dz = -1;
     for (int y = lower.y + 1; y <= upper.y; ++y) {
@@ -67,7 +67,7 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
         }
     }
   
-    naive_move(Vec3(position.x, position.y, 0), position, trace);
+    naive_move(Vec3(position.x, position.y, 0), position, trace, true);
     return trace;
 }
   
@@ -343,7 +343,7 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     std::size_t max_trace_size = 0;
     for (int i = 1; i < N; ++i) {
         naive_move(Vec3(positions[i].x, highest, positions[i].z),
-             positions[i], traces[i]);
+             positions[i], traces[i], true);
         max_trace_size = std::max(max_trace_size, traces[i].size());
     }
 
@@ -437,7 +437,7 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
     // go home
     for (int i = N - 1; i > 0; --i) {
         Trace trace_to_join;
-        naive_move(positions[i - 1], positions[i], trace_to_join);
+        naive_move(positions[i - 1], positions[i], trace_to_join, true);
         const auto* cmd = boost::get<CommandSMove>(&trace_to_join.back());
         ASSERT(cmd);
         Vec3 unit;
@@ -466,7 +466,7 @@ Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& t
         trace.push_back(CommandFusionP{positions[i] - positions[i - 1]});
         trace.push_back(CommandFusionS{positions[i - 1] - positions[i]});
     }
-    naive_move(Vec3(0, 0, 0), positions[0], trace);
+    naive_move(Vec3(0, 0, 0), positions[0], trace, true);
 
     // finalize at the origin pos.
     trace.push_back(CommandHalt{});
