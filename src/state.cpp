@@ -47,6 +47,29 @@ int State::simulate(const Trace& t) {
     return exit_code;
 }
 
+int State::append_simulate_partial(const Trace& t) {
+    try {
+        std::copy(t.begin(), t.end(), std::back_inserter(system.trace));
+        while (!system.is_eof()) {
+            if (system.proceed_timestep()) {
+                break;
+            }
+        }
+    } catch (const std::exception& e) {
+        std::cout << "Exception: " << e.what() << std::endl;
+        std::cout << "dump the consumed trace." << std::endl;
+        Trace consumed;
+        auto it = t.begin();
+        std::advance(it, t.size() - system.trace.size());
+        std::copy(t.begin(), it, std::back_inserter(consumed));
+        consumed.output_trace("exception.nbt");
+        consumed.output_trace_json("exception.nbt.json");
+        return false;
+    }
+    return true;
+
+}
+
 bool State::is_finished() const {
     if (system.harmonics_high) {
         LOG() << "harmonics are still high.\n";

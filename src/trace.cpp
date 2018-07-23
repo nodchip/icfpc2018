@@ -330,7 +330,7 @@ void Trace::print_detailed() {
     std::printf("------------[timestep: %7d]\n", timestep);
     for (int i = 0; i < size(); ++i) {
         std::printf("%8d : ", i);
-        PrintCommand visitor;
+        PrintCommand visitor(std::cout);
         active_change += boost::apply_visitor(visitor, operator[](i));
         std::printf("\n");
         if (--rest == 0 && i + 1 != size()) {

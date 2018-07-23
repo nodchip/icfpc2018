@@ -1,6 +1,16 @@
 #!/bin/sh
 export WORKSPACE=`pwd`
 export ENGINES=`cat engines.txt`
+
+cd ${WORKSPACE}/src || exit 1
+make -j ${NUMBER_OF_PROCESSORS} || exit 1
+cd ${WORKSPACE}/scripts || exit 1
+python3 update_result.py --temp_trace_directory_path ../data/by_hand/trace \
+        --temp_info_directory_path ../data/by_hand/info \
+        --result_trace_directory_path ../resultF/trace \
+        --result_info_directory_path ../resultF/info || exit 1
+cd ${WORKSPACE}
+
 for engine in ${ENGINES}
 do
 	export BINARY_FILE_NAME=${engine}

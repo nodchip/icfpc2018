@@ -41,6 +41,10 @@ namespace std {
     };
 }
 
+inline Region core_region(int R) {
+    return Region(Vec3(1, 1, 1), Vec3(R-2, R-2, R-2));
+}
+
 #define CANONICAL_REGION_FOR(r, xx, yy, zz) \
     for (int yy = (r).c1.y; yy <= (r).c2.y; ++yy) \
         for (int zz = (r).c1.z; zz <= (r).c2.z; ++zz) \
