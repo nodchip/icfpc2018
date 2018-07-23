@@ -13,6 +13,7 @@ const Vec3 unitX(1, 0, 0);
 const Vec3 unitY(0, 1, 0);
 const Vec3 unitZ(0, 0, 1);
 
+
 void naive_move(const Vec3& destination, Vec3& position, Trace& trace) {
     const Vec3 dx = (destination.x > position.x) ? unitX : -unitX;
     while (position.x != destination.x) {
@@ -228,6 +229,96 @@ Trace optimize_stupid_trace(const Trace& trace) {
         Trace t = commands_to_trace();
         t.print_detailed();
         LOG() << "SMove -> LMove converted = " << converted_smoves << "\n";
+    }
+
+    // convert SMove-SMove-LMove to LMove-LMove
+    int converted_SSLs = 0;
+    auto SSL_to_LL = [&](CommandSMove* s0, CommandSMove* s1, CommandLMove* l)
+         -> boost::optional<std::pair<CommandLMove, CommandLMove>> {
+        if (!s0 || !s1 || !l) {
+            return boost::none;
+        }
+        auto merged = s0->lld + s1->lld + l->sld1 + l->sld2;
+        auto temp = abs(merged) - Vec3(5, 5, 5);
+        int larger_than_5 = 0;
+        if (temp.x > 0) { ++larger_than_5; }
+        if (temp.y > 0) { ++larger_than_5; }
+        if (temp.z > 0) { ++larger_than_5; }
+
+        if (clen(merged) > 5 * 2 || larger_than_5 > 1) {
+            return boost::none;
+        }
+        const int idx = largest_abs_axis(merged);
+        Vec3 extracted(0, 0, 0);
+        if (merged[idx] > 0) {
+            extracted[idx] = std::min(5, merged[idx]);
+        } else {
+            extracted[idx] = std::max(-5, merged[idx]);
+        }
+        merged[idx] = merged[idx] - extracted[idx];
+
+        const int idx2 = (idx + 1) % 3;
+        extracted[idx2] = merged[idx2];
+        merged[idx2] = 0;
+
+        Vec3 sld1, sld2;
+        decompose_to_LMove(extracted, &sld1, &sld2);
+        auto cmd0 = CommandLMove{sld1, sld2};
+
+        decompose_to_LMove(merged, &sld1, &sld2);
+        auto cmd1 = CommandLMove{sld1, sld2};
+
+        LOG() << s0 << s1 << l << "->"
+            << (Command)cmd0 << (Command)cmd1 << std::endl;
+        //LOG() << "extract " << extracted << "\n";
+        //LOG() << "merged " << merged << "\n";
+        return std::make_pair(cmd0, cmd1);
+    };
+    while (true) {
+        if (commands.size() < 3) break;
+        bool updated = false;
+        auto middle = std::next(commands.begin());
+        while (std::next(middle) != commands.end()) {
+            if (middle == commands.begin()) {
+                ++middle;
+                continue;
+            }
+            const auto prev = std::prev(middle);
+            const auto next = std::next(middle);
+            boost::optional<std::pair<CommandLMove, CommandLMove>> result;
+            if (auto r = SSL_to_LL(
+                boost::get<CommandSMove>(&*prev),
+                boost::get<CommandSMove>(&*middle),
+                boost::get<CommandLMove>(&*next))) {
+                result = r;
+            } else if (auto r = SSL_to_LL(
+                boost::get<CommandSMove>(&*prev),
+                boost::get<CommandSMove>(&*next),
+                boost::get<CommandLMove>(&*middle))) {
+                result = r;
+            } else if (auto r = SSL_to_LL(
+                boost::get<CommandSMove>(&*middle),
+                boost::get<CommandSMove>(&*next),
+                boost::get<CommandLMove>(&*prev))) {
+                result = r;
+            }
+
+            if (result) {
+                *prev = result->first;
+                *middle = result->second;
+                commands.erase(next);
+                updated = true;
+                ++converted_SSLs; 
+            } else {
+                ++middle;
+            }
+        }
+        if (!updated) break;
+    }
+    if (false) {
+        Trace t = commands_to_trace();
+        t.print_detailed();
+        LOG() << "SMove-SMove-LMove -> LMove-LMove converted = " << converted_SSLs << "\n";
     }
 
 
