@@ -1,4 +1,6 @@
-parallel_stupid_engine_v3_1
+parallel_optimized_v2
+parallel_optimized
+parallel_v3
 parallel_v2
 parallel
 3x3_solver

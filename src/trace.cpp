@@ -272,6 +272,71 @@ bool DecodeTrace(Trace& trace, std::vector<uint8_t>& buffer) {
     return true;
 }
 
+struct TransposeCommand : public boost::static_visitor<bool> {
+    Trace &trace;
+
+    TransposeCommand(Trace &trace_)
+        : trace(trace_) {}
+
+    bool operator()(CommandHalt) { trace.push_back(CommandHalt{}); return true; }
+    bool operator()(CommandWait) { trace.push_back(CommandWait{}); return true; }
+    bool operator()(CommandFlip) { trace.push_back(CommandFlip{}); return true; }
+    bool operator()(CommandSMove cmd) {
+        cmd.lld = cmd.lld.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+    bool operator()(CommandLMove cmd) {
+        cmd.sld1 = cmd.sld1.transpose();
+        cmd.sld2 = cmd.sld2.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+    bool operator()(CommandFission cmd) {
+        cmd.nd = cmd.nd.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+    bool operator()(CommandFill cmd) {
+        cmd.nd = cmd.nd.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+    bool operator()(CommandVoid cmd) {
+        cmd.nd = cmd.nd.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+    bool operator()(CommandGFill cmd) {
+        cmd.nd = cmd.nd.transpose();
+	cmd.fd = cmd.fd.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+    bool operator()(CommandGVoid cmd) {
+        cmd.nd = cmd.nd.transpose();
+	cmd.fd = cmd.fd.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+    bool operator()(CommandFusionP cmd) {
+        cmd.nd = cmd.nd.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+    bool operator()(CommandFusionS cmd) {
+        cmd.nd = cmd.nd.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+    // only for develop & debug
+    bool operator()(CommandDebugMoveTo cmd) {
+        cmd.pos = cmd.pos.transpose();
+        trace.push_back(cmd);
+        return true;
+    };
+};
+
 
 }  // namespace NOutputTrace
 
@@ -341,5 +406,14 @@ void Trace::print_detailed() {
             std::printf("------------[timestep: %7d]\n", timestep);
         }
     }
+}
+
+Trace Trace::transpose() {
+    Trace transposed;
+    NOutputTrace::TransposeCommand visitor(transposed);
+    for (const auto& command : *this) {
+        boost::apply_visitor(visitor, command);
+    }
+    return transposed;
 }
 // vim: set si et sw=4 ts=4:

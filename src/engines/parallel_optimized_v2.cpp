@@ -1,6 +1,6 @@
-#include "parallel_stupid_solver_v3_1.h"
-#include "naive_converter.h"
+#include "parallel_optimized_v2.h"
 
+#include "engines/naive_converter.h"
 #include "engine.h"
 #include "nmms.h"
 #include "system.h"
@@ -31,12 +31,6 @@ void naive_move(const Vec3& destination, Vec3& position, Trace& trace) {
     }
 }
 
-  vector<long long int> getyslice(int y, Vec3 lower, Vec3 upper){
-    // get database of yslice
-    vector<long long int> yslice(upper.y-lower.y);
-    return yslice;
-  }
-  
 Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
                            const Vec3& lower_bound, const Vec3& upper_bound,
                            Vec3& position) {
@@ -60,10 +54,9 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
     if (lower.x >= upper.x) {
         return {};
     }
-    
+
     // print
     Trace trace;
-    set<Vec3> filled_set;
     naive_move(lower, position, trace);
     int dx = -1;
     int dz = -1;
@@ -71,53 +64,128 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
         dz *= -1;
         trace.push_back(CommandSMove{unitY});
         position += unitY;
-	int zratio = 2;
-        for (int z = lower.z; z < upper.z; z+=zratio) {
+        for (int z = lower.z; z < upper.z; ++z) {
             dx *= -1;
             if (z > lower.z) {
-                trace.push_back(CommandSMove{Vec3(0, 0, dz*zratio)});
-                position += Vec3(0, 0, dz*zratio);
+                trace.push_back(CommandSMove{Vec3(0, 0, dz)});
+                position += Vec3(0, 0, dz);
             }
-	    if( (position.z == upper.z - 2 && dz > 0) || (position.z == lower.z + 1 && dz < 0) ){
-	      zratio = 1;
-	    }
-	    int xratio = 1;
-            for(int x = lower.x; x < upper.x ; x+=xratio) {	      
-	      if (x > lower.x) {
-		trace.push_back(CommandSMove{Vec3(dx*xratio, 0, 0)});
-		position += Vec3(dx*xratio, 0, 0);
-	      }
-	      for(auto v : {Vec3(0, -1, 1), Vec3(0, -1, -1), Vec3(1, -1, 0), Vec3(-1, -1, 0), Vec3(0, -1, 0)}){
-		const auto pv = position + v;
-		
-		if(pv.x < lower.x || pv.x >= upper.x || pv.z < lower.z || pv.z >= upper.z){
-		  continue;
-		}
-		
-		if (tgt_matrix(pv) && filled_set.find(pv) == filled_set.end()) {
-		  trace.push_back(CommandFill{v});
-		  filled_set.insert(pv);
-		}
-	      }
-	      
-	      if(dx > 0 && position.x % 2 == 0){
-		xratio = 2;
-	      }
-	      if(dx < 0 && position.x % 2 == 1){
-		xratio = 2;
-	      }
-	      
-	      if( (position.x == lower.x + 1 && dx < 0)  || (position.x == upper.x - 2 && dx > 0) ){
-		xratio = 1;
-	      }
+            for (int x = lower.x; x < upper.x; ++x) {
+                if (x > lower.x) {
+                    trace.push_back(CommandSMove{Vec3(dx, 0, 0)});
+                    position += Vec3(dx, 0, 0);
+                }
+                if (tgt_matrix(position - unitY)) {
+                    trace.push_back(CommandFill{-unitY});
+                }
             }
         }
     }
-    
+
     return trace;
 }
+  
+Trace optimize_stupid_trace(const Trace& trace) {
+    std::list<Command> commands(trace.begin(), trace.end());
 
-}  // namespace
+    // merge 2 or 3 Fills sandwiching SMove(s)
+    if (commands.size() > 2) {
+        auto mergeable = [](const Vec3& first_fill_direction,
+                            const Vec3& move_direction,
+                            const Vec3& second_fill_direction) {
+            return first_fill_direction == second_fill_direction &&
+                mlen(move_direction) == 1 &&
+                is_valid_nd(first_fill_direction + move_direction) &&
+                !is_valid_ld(first_fill_direction + move_direction);
+        };
+        for (auto third = std::next(commands.begin(), 2); third != commands.end(); ++third) {
+            const auto second = std::prev(third);
+            const auto first = std::prev(second);
+            const auto* first_cmd = boost::get<CommandFill>(&*first);
+            const auto* second_cmd = boost::get<CommandSMove>(&*second);
+            const auto* third_cmd = boost::get<CommandFill>(&*third);
+            if (!first_cmd || !second_cmd || !third_cmd) {
+                continue;
+            }
+            const auto fill_direction = first_cmd->nd;
+            const auto move_direction = second_cmd->lld;
+            if (!mergeable(fill_direction, move_direction, third_cmd->nd)) {
+                continue;
+            }
+            *first = CommandSMove{move_direction};
+            *second = CommandFill{fill_direction - move_direction};
+
+            if (std::next(third) != commands.end() && std::next(third, 2) != commands.end()) {
+                const auto fourth = std::next(third);
+                const auto fifth = std::next(fourth);
+                const auto* fourth_cmd = boost::get<CommandSMove>(&*fourth);
+                const auto* fifth_cmd = boost::get<CommandFill>(&*fifth);
+                if (!fourth_cmd || !fifth_cmd || fourth_cmd->lld != move_direction) {
+                    continue;
+                }
+                if (!mergeable(fill_direction, move_direction, fifth_cmd->nd)) {
+                    continue;
+                }
+                *fourth = CommandFill{fill_direction + move_direction};
+                *fifth = CommandSMove{move_direction};
+            }
+        }
+    }
+
+    // reduce unnecessary turns
+    while (true) {
+        if (commands.size() < 3) break;
+        bool updated = false;
+        auto middle = std::next(commands.begin());
+        while (std::next(middle) != commands.end()) {
+            if (middle == commands.begin()) {
+                ++middle;
+                continue;
+            }
+            const auto prev = std::prev(middle);
+            const auto next = std::next(middle);
+            const auto* prev_cmd = boost::get<CommandSMove>(&*prev);
+            const auto* middle_cmd = boost::get<CommandSMove>(&*middle);
+            const auto* next_cmd = boost::get<CommandSMove>(&*next);
+            if (!prev_cmd || !middle_cmd || !next_cmd) {
+                ++middle;
+                continue;
+            }
+            if (mlen(middle_cmd->lld) == 1 && prev_cmd->lld == -next_cmd->lld) {
+                commands.erase(prev);
+                commands.erase(next);
+                updated = true;
+            } else {
+                ++middle;
+            }
+        }
+        if (!updated) break;
+    }
+
+    // merge straight moves
+    if (commands.size() > 1) {
+        auto first = commands.begin();
+        while (std::next(first) != commands.end()) {
+            const auto second = std::next(first);
+            const auto* first_cmd = boost::get<CommandSMove>(&*first);
+            const auto* second_cmd = boost::get<CommandSMove>(&*second);
+            if (!first_cmd || !second_cmd) {
+                ++first;
+                continue;
+            }
+            if (is_valid_long_ld(first_cmd->lld + second_cmd->lld)) {
+                *first = CommandSMove{first_cmd->lld + second_cmd->lld};
+                commands.erase(second);
+            } else {
+                ++first;
+            }
+        }
+    }
+
+    Trace optimized_trace;
+    optimized_trace.insert(optimized_trace.end(), commands.begin(), commands.end());
+    return optimized_trace;
+}
 
 pair<long long int, vector<int>> sepbound(const vector<long long int> &cellnum, const long long int lim, const int num){
   vector<int> out;
@@ -166,46 +234,12 @@ long long int getcellnumber(const Matrix &matrix, const int x, const int zlower,
   return output;
 }
 
-vector<int> getboundaries(const Matrix &matrix, int num, const int zlower, const int zupper){
-  std::vector<long long int> cellnumbers;
-  std::vector<int> boundaries;
-  long long int sihyou = 0;
-  const int R = matrix.R;
-  for(int x=0; x<R; ++x){
-    const long long int cnum = getcellnumber(matrix, x, zlower, zupper);
-    cellnumbers.push_back(cnum);
-    sihyou += cnum;
-  }
-
-  // dist
-  sihyou = (sihyou / num) + 1;
   
-  long long int cnt = cellnumbers[0];
-  boundaries.push_back(0);
-  boundaries.push_back(1);
-  bool boundnext = false;
-  for(int x=1; x<=R; ++x){
-    if(boundnext){
-      boundaries.push_back(x);
-      cnt = 0;
-      boundnext = false;
-    }else if(num + 1 - boundaries.size() == R - x + 1){
-      boundaries.push_back(x);
-    }
-    
-    cnt += cellnumbers[x];
-    if(cnt > sihyou){
-      boundnext = true;
-    }
-  }
-  return boundaries;
-}
-
-Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix) {
+Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix) {
     if (problem_type == ProblemType::Disassembly) {
-        return NaiveConverter::reverse(parallel_stupid_solver_v3_1)(problem_type, src_matrix, tgt_matrix);
+        return NaiveConverter::reverse(solver)(problem_type, src_matrix, tgt_matrix);
     } else if (problem_type == ProblemType::Reassembly) {
-        return NaiveConverter::concatenate(NaiveConverter::reverse(parallel_stupid_solver_v3_1), parallel_stupid_solver_v3_1)(problem_type, src_matrix, tgt_matrix);
+        return NaiveConverter::concatenate(NaiveConverter::reverse(solver), solver)(problem_type, src_matrix, tgt_matrix);
     }
     ASSERT_RETURN(problem_type == ProblemType::Assembly, Trace());
 
@@ -217,45 +251,26 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
     const int R = system.matrix.R;
     const int N = std::min<int>(system.bots.size() + system.bots[0].seeds.size(), R);
 
-    std::vector<int> boundaries = getboundaries(tgt_matrix, N, 0, R);
-
+    std::vector<int> boundaries;
     std::vector<long long int> cellnum;
-    long long int sihyou = 0;
+    long long int approx_index = 0;
     for(int x=0; x<R; ++x){
       const long long int cnum = getcellnumber(tgt_matrix, x, 0, R);
       cellnum.push_back(cnum);
-      sihyou += cnum;
+      approx_index += cnum;
     }
 
     // dist
-    sihyou = (sihyou / N) + 1;
+    approx_index = (approx_index / N) + 1;
     long long int maxcnt = 1145141919;
     int imax = 256;
     for(int i = 1; i<= imax; ++i){
-      pair<long long int, vector<int>> result = sepbound(cellnum, sihyou * i /imax, N);
+      pair<long long int, vector<int>> result = sepbound(cellnum, approx_index * i /imax, N);
       if(maxcnt > result.first){
 	boundaries = result.second;
 	maxcnt = result.first;
       }
-      /*
-      cout<<i<<","<<result.second.size()<<","<<result.first<<",";
-      for(auto b : result.second){
-	cout<<b<<",";
-      }
-      cout<<endl;
-      */
     }
-    
-    /*
-    std::vector<int> boundaries;
-    
-    //old version
-    boundaries.push_back(0);
-    for (int i = 1; i <= N; ++i) {
-      boundaries.push_back((R - 1) * (i - 1) / (N - 1) + 1);
-    }
-    */
-    
     
     ASSERT(system.bots[0].pos == Vec3(0, 0, 0));
     std::vector<Vec3> positions(N, system.bots[0].pos);
@@ -280,13 +295,14 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
     std::vector<Trace> traces;
     traces.push_back({});
     for (int i = 1; i < N; ++i) {
-        traces.push_back(single_stupid_solver(system, tgt_matrix,
-                                              Vec3(boundaries[i], 0, 0),
-                                              Vec3(boundaries[i + 1], R, R),
-                                              positions[i]));
+        const auto stupid_trace = single_stupid_solver(
+            system, tgt_matrix,
+            Vec3(boundaries[i], 0, 0),
+            Vec3(boundaries[i + 1], R, R),
+            positions[i]);
+        traces.push_back(optimize_stupid_trace(stupid_trace));
         highest = std::max(highest, positions[i].y);
     }
-
     std::size_t max_trace_size = 0;
     for (int i = 1; i < N; ++i) {
         naive_move(Vec3(positions[i].x, highest, positions[i].z),
@@ -294,22 +310,6 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
         max_trace_size = std::max(max_trace_size, traces[i].size());
     }
 
-    
-    // add header waiting
-    // it it not effective
-    /*
-    for (int i = 1; i < N; ++i) {
-      Trace htrace;
-      for(int j = 0; j < max_trace_size - traces[i].size(); ++j){
-	htrace.push_back(CommandWait{});
-      }
-      for(auto tr : traces[i]){
-	htrace.push_back(tr);
-      }
-      traces[i] = htrace;
-    }
-    */
-    
     // merge
     auto to_index = [R](const Vec3& p) {
         return p.x + p.y * R + p.z * R * R;
@@ -383,5 +383,6 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
     return trace;
 }
 
-REGISTER_ENGINE(parallel_stupid_v3_1, parallel_stupid_solver_v3_1);
-// vim: set si et sw=4 ts=4:
+}  // namespace
+
+REGISTER_ENGINE(parallel_optimized_v2, solver);
