@@ -153,19 +153,21 @@ int main(int argc, char** argv) {
     std::cout << "simulation done." << std::endl;
 
     bool normal_good(state.system.energy <= state_t.system.energy);
-    cout << (normal_good ? "Normal" : "Transpose") << " is better. " << "Normal: " << state.system.energy << ", Transpose: " << state_t.system.energy << endl;
+    cout << (normal_good ? "Normal" : "Transpose") << " is better. "
+         << "Normal: " << state.system.energy << ", Transpose: " << state_t.system.energy << endl;
 
     if (!normal_good) {
         state = state_t;
         trace = trace_t;
         energy_logger = energy_logger_t;
+        exit_code = exit_code_t;
     }
 
     if (options.count("trace-output")) {
         // dump the result.
         auto dump_model_path = options["trace-output"] + ".mdl";
         state.system.matrix.dump(dump_model_path);
-      
+
 
         // trace.
         auto dump_trace_path = options["trace-output"];
