@@ -416,4 +416,18 @@ Trace Trace::transpose() {
     }
     return transposed;
 }
+
+Vec3 Trace::offset() const {
+    struct Cursor : public boost::static_visitor<void> {
+        Vec3 pos = {0, 0, 0};
+        void operator()(const CommandSMove& cmd) { pos += cmd.lld; }
+        void operator()(const CommandLMove& cmd) { pos += cmd.sld1 + cmd.sld2; }
+        void operator()(...) { }
+    } cursor;
+
+    for (const auto& cmd : *this) {
+        boost::apply_visitor(cursor, cmd);
+    }
+    return cursor.pos;
+}
 // vim: set si et sw=4 ts=4:

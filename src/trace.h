@@ -12,4 +12,7 @@ class Trace : public std::deque<Command> {
   bool input_trace(std::string input_path);
   void print_detailed();
   Trace transpose();
+
+  Vec3 offset() const;
 };
+
