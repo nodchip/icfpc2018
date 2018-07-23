@@ -31,6 +31,12 @@ void naive_move(const Vec3& destination, Vec3& position, Trace& trace) {
     }
 }
 
+  vector<long long int> getyslice(int y, Vec3 lower, Vec3 upper){
+    // get database of yslice
+    vector<long long int> yslice(upper.y-lower.y);
+    return yslice;
+  }
+  
 Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
                            const Vec3& lower_bound, const Vec3& upper_bound,
                            Vec3& position) {
@@ -54,7 +60,7 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
     if (lower.x >= upper.x) {
         return {};
     }
-
+    
     // print
     Trace trace;
     set<Vec3> filled_set;
@@ -75,7 +81,6 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
 	    if( (position.z == upper.z - 2 && dz > 0) || (position.z == lower.z + 1 && dz < 0) ){
 	      zratio = 1;
 	    }
-	    //zratio = 1;
 	    int xratio = 1;
             for(int x = lower.x; x < upper.x ; x+=xratio) {	      
 	      if (x > lower.x) {
@@ -83,7 +88,6 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
 		position += Vec3(dx*xratio, 0, 0);
 	      }
 	      for(auto v : {Vec3(0, -1, 1), Vec3(0, -1, -1), Vec3(1, -1, 0), Vec3(-1, -1, 0), Vec3(0, -1, 0)}){
-		//for(auto v : {Vec3(0, -1, 0)}){
 		const auto pv = position + v;
 		
 		if(pv.x < lower.x || pv.x >= upper.x || pv.z < lower.z || pv.z >= upper.z){
@@ -106,7 +110,6 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
 	      if( (position.x == lower.x + 1 && dx < 0)  || (position.x == upper.x - 2 && dx > 0) ){
 		xratio = 1;
 	      }
-	      //xratio = 1;
             }
         }
     }
