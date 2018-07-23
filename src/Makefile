@@ -23,7 +23,7 @@ all: dirs test engines evaluate
 ######################
 # ADD YOUR ENGINE TARGET HERE
 .PHONY: engines
-ENGINES=stupid stupid_engine_v2 parallel parallel_v2 parallel_stupid_engine_v3_1 3x3_solver cubee split_gvoid_solver
+ENGINES=stupid parallel parallel_v2 parallel_v3 3x3_solver cubee stupid_engine_v2 split_gvoid_solver
 engines: $(ENGINES)
 
 ######################
@@ -40,7 +40,7 @@ parallel: engine_main.cpp engines/parallel.cpp $(OBJS)
 parallel_v2: engine_main.cpp engines/parallel_v2.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
-parallel_stupid_engine_v3_1: engine_main.cpp engines/parallel_stupid_solver_v3_1.cpp $(OBJS)
+parallel_v3: engine_main.cpp engines/parallel_v3.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) -Wall $^ -o $@ $(LDFLAGS)
 
 3x3_solver: engine_main.cpp engines/3x3_solver.cpp $(OBJS)

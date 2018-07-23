@@ -1,17 +1,25 @@
-#include "parallel_stupid_solver_v3_1.h"
-#include "naive_converter.h"
+#include "parallel_v3.h"
+
+#include <utility>
+#include <vector>
+#include <cstdint>
 
 #include "engine.h"
-#include "nmms.h"
-#include "system.h"
-#include "state.h"
+#include "engines/naive_converter.h"
 #include "log.h"
+#include "nmms.h"
+#include "state.h"
+#include "system.h"
+
+using namespace std;
 
 namespace {
 
 const Vec3 unitX(1, 0, 0);
 const Vec3 unitY(0, 1, 0);
 const Vec3 unitZ(0, 0, 1);
+
+using Boundary = pair<int64_t, vector<int>>;
 
 void naive_move(const Vec3& destination, Vec3& position, Trace& trace) {
     const Vec3 dx = (destination.x > position.x) ? unitX : -unitX;
@@ -31,12 +39,12 @@ void naive_move(const Vec3& destination, Vec3& position, Trace& trace) {
     }
 }
 
-  vector<long long int> getyslice(int y, Vec3 lower, Vec3 upper){
+  vector<int64_t> getyslice(int y, Vec3 lower, Vec3 upper){
     // get database of yslice
-    vector<long long int> yslice(upper.y-lower.y);
+    vector<int64_t> yslice(upper.y-lower.y);
     return yslice;
   }
-  
+
 Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
                            const Vec3& lower_bound, const Vec3& upper_bound,
                            Vec3& position) {
@@ -60,7 +68,7 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
     if (lower.x >= upper.x) {
         return {};
     }
-    
+
     // print
     Trace trace;
     set<Vec3> filled_set;
@@ -82,50 +90,48 @@ Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
 	      zratio = 1;
 	    }
 	    int xratio = 1;
-            for(int x = lower.x; x < upper.x ; x+=xratio) {	      
+            for(int x = lower.x; x < upper.x ; x+=xratio) {
 	      if (x > lower.x) {
 		trace.push_back(CommandSMove{Vec3(dx*xratio, 0, 0)});
 		position += Vec3(dx*xratio, 0, 0);
 	      }
 	      for(auto v : {Vec3(0, -1, 1), Vec3(0, -1, -1), Vec3(1, -1, 0), Vec3(-1, -1, 0), Vec3(0, -1, 0)}){
 		const auto pv = position + v;
-		
+
 		if(pv.x < lower.x || pv.x >= upper.x || pv.z < lower.z || pv.z >= upper.z){
 		  continue;
 		}
-		
+
 		if (tgt_matrix(pv) && filled_set.find(pv) == filled_set.end()) {
 		  trace.push_back(CommandFill{v});
 		  filled_set.insert(pv);
 		}
 	      }
-	      
+
 	      if(dx > 0 && position.x % 2 == 0){
 		xratio = 2;
 	      }
 	      if(dx < 0 && position.x % 2 == 1){
 		xratio = 2;
 	      }
-	      
+
 	      if( (position.x == lower.x + 1 && dx < 0)  || (position.x == upper.x - 2 && dx > 0) ){
 		xratio = 1;
 	      }
             }
         }
     }
-    
+
     return trace;
 }
 
-}  // namespace
-
-pair<long long int, vector<int>> sepbound(const vector<long long int> &cellnum, const long long int lim, const int num){
+Boundary sepbound(const vector<int64_t> &cellnum, const int64_t lim, const int num){
   vector<int> out;
   out.push_back(0);
   out.push_back(1);
 
-  long long int cnt = 0;
-  long long int maxcnt = 0;
+  int64_t cnt = 0;
+  int64_t maxcnt = 0;
 
   bool boundnext = false;
   for(int x=1; x<=cellnum.size(); ++x){
@@ -145,18 +151,18 @@ pair<long long int, vector<int>> sepbound(const vector<long long int> &cellnum, 
       cnt = 0;
       boundnext = false;
     }
-    
+
     cnt += cellnum[x];
     if(cnt > lim){
       boundnext = true;
     }
   }
-  
-  return pair<long long int, vector<int>>(maxcnt, out);
+
+  return Boundary(maxcnt, out);
 }
 
-long long int getcellnumber(const Matrix &matrix, const int x, const int zlower, const int zupper){
-  long long int output = 0;
+int64_t getcellnumber(const Matrix &matrix, const int x, const int zlower, const int zupper){
+  int64_t output = 0;
   for(int y=0;y<matrix.R;++y){
     for(int z=zlower;z<zupper;++z){
       if(matrix(x,y,z))
@@ -167,20 +173,20 @@ long long int getcellnumber(const Matrix &matrix, const int x, const int zlower,
 }
 
 vector<int> getboundaries(const Matrix &matrix, int num, const int zlower, const int zupper){
-  std::vector<long long int> cellnumbers;
+  std::vector<int64_t> cellnumbers;
   std::vector<int> boundaries;
-  long long int sihyou = 0;
+  int64_t sihyou = 0;
   const int R = matrix.R;
   for(int x=0; x<R; ++x){
-    const long long int cnum = getcellnumber(matrix, x, zlower, zupper);
+    const int64_t cnum = getcellnumber(matrix, x, zlower, zupper);
     cellnumbers.push_back(cnum);
     sihyou += cnum;
   }
 
   // dist
   sihyou = (sihyou / num) + 1;
-  
-  long long int cnt = cellnumbers[0];
+
+  int64_t cnt = cellnumbers[0];
   boundaries.push_back(0);
   boundaries.push_back(1);
   bool boundnext = false;
@@ -192,7 +198,7 @@ vector<int> getboundaries(const Matrix &matrix, int num, const int zlower, const
     }else if(num + 1 - boundaries.size() == R - x + 1){
       boundaries.push_back(x);
     }
-    
+
     cnt += cellnumbers[x];
     if(cnt > sihyou){
       boundnext = true;
@@ -201,11 +207,11 @@ vector<int> getboundaries(const Matrix &matrix, int num, const int zlower, const
   return boundaries;
 }
 
-Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix) {
+Trace solver(ProblemType problem_type, const Matrix& src_matrix, const Matrix& tgt_matrix) {
     if (problem_type == ProblemType::Disassembly) {
-        return NaiveConverter::reverse(parallel_stupid_solver_v3_1)(problem_type, src_matrix, tgt_matrix);
+        return NaiveConverter::reverse(solver)(problem_type, src_matrix, tgt_matrix);
     } else if (problem_type == ProblemType::Reassembly) {
-        return NaiveConverter::concatenate(NaiveConverter::reverse(parallel_stupid_solver_v3_1), parallel_stupid_solver_v3_1)(problem_type, src_matrix, tgt_matrix);
+        return NaiveConverter::concatenate(NaiveConverter::reverse(solver), solver)(problem_type, src_matrix, tgt_matrix);
     }
     ASSERT_RETURN(problem_type == ProblemType::Assembly, Trace());
 
@@ -219,20 +225,20 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
 
     std::vector<int> boundaries = getboundaries(tgt_matrix, N, 0, R);
 
-    std::vector<long long int> cellnum;
-    long long int sihyou = 0;
+    std::vector<int64_t> cellnum;
+    int64_t sihyou = 0;
     for(int x=0; x<R; ++x){
-      const long long int cnum = getcellnumber(tgt_matrix, x, 0, R);
+      const int64_t cnum = getcellnumber(tgt_matrix, x, 0, R);
       cellnum.push_back(cnum);
       sihyou += cnum;
     }
 
     // dist
     sihyou = (sihyou / N) + 1;
-    long long int maxcnt = 1145141919;
+    int64_t maxcnt = 1145141919;
     int imax = 256;
     for(int i = 1; i<= imax; ++i){
-      pair<long long int, vector<int>> result = sepbound(cellnum, sihyou * i /imax, N);
+      Boundary result = sepbound(cellnum, sihyou * i /imax, N);
       if(maxcnt > result.first){
 	boundaries = result.second;
 	maxcnt = result.first;
@@ -245,18 +251,18 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
       cout<<endl;
       */
     }
-    
+
     /*
     std::vector<int> boundaries;
-    
+
     //old version
     boundaries.push_back(0);
     for (int i = 1; i <= N; ++i) {
       boundaries.push_back((R - 1) * (i - 1) / (N - 1) + 1);
     }
     */
-    
-    
+
+
     ASSERT(system.bots[0].pos == Vec3(0, 0, 0));
     std::vector<Vec3> positions(N, system.bots[0].pos);
     int num_active_nanobots = 1;
@@ -294,7 +300,7 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
         max_trace_size = std::max(max_trace_size, traces[i].size());
     }
 
-    
+
     // add header waiting
     // it it not effective
     /*
@@ -309,7 +315,7 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
       traces[i] = htrace;
     }
     */
-    
+
     // merge
     auto to_index = [R](const Vec3& p) {
         return p.x + p.y * R + p.z * R * R;
@@ -383,5 +389,7 @@ Trace parallel_stupid_solver_v3_1(ProblemType problem_type, const Matrix& src_ma
     return trace;
 }
 
-REGISTER_ENGINE(parallel_stupid_v3_1, parallel_stupid_solver_v3_1);
+}  // namespace
+
+REGISTER_ENGINE(parallel_v3, solver);
 // vim: set si et sw=4 ts=4:
