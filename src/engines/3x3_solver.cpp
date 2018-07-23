@@ -39,7 +39,6 @@ void DoSMove(const Matrix& current_matrix, const Vec3& move_direction, Vec3& cur
 }
 
 void dig_to_x(const Matrix& dst_matrix, Matrix& current_matrix, Trace& trace, Vec3& current_position, int x_direction) {
-    int R = dst_matrix.R;
     Vec3 front_direction(x_direction, 0, 0);
     Vec3 back_direction(-x_direction, 0, 0);
     for (int i = 0; i < 3; ++i) {
@@ -60,7 +59,6 @@ void dig_to_x(const Matrix& dst_matrix, Matrix& current_matrix, Trace& trace, Ve
 }
 
 void dig_to_y(const Matrix& dst_matrix, Matrix& current_matrix, Trace& trace, Vec3& current_position) {
-    int R = dst_matrix.R;
     Vec3 front_direction(0, 1, 0);
     Vec3 back_direction(0, -1, 0);
     for (int i = 0; i < 3; ++i) {
@@ -133,7 +131,7 @@ Trace three_by_three_solver(ProblemType problem_type, const Matrix& src_matrix, 
     Vec3 current_position(0, 0, 0);
 
     // high.
-    trace.push_back(CommandFlip{}); 
+    trace.push_back(CommandFlip{});
 
     // Move to the start position.
     std::vector<Vec3> trajectory;

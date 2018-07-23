@@ -39,12 +39,6 @@ void naive_move(const Vec3& destination, Vec3& position, Trace& trace) {
     }
 }
 
-  vector<int64_t> getyslice(int y, Vec3 lower, Vec3 upper){
-    // get database of yslice
-    vector<int64_t> yslice(upper.y-lower.y);
-    return yslice;
-  }
-
 Trace single_stupid_solver(const System& system, const Matrix& tgt_matrix,
                            const Vec3& lower_bound, const Vec3& upper_bound,
                            Vec3& position) {
